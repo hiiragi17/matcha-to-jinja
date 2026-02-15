@@ -493,33 +493,190 @@ export async function apiClient<T>(
 - **Rails API**: `localhost:3001`（ポート変更）
 - **Next.js**: `localhost:3000`
 
-### 本番環境の選択肢
+### 本番環境構成: Vercel + GCP
 
-| 構成 | フロント | バックエンド | 特徴 |
-|------|---------|-------------|------|
-| **案A** | Vercel | Heroku (既存) | 最も簡単。Vercel は Next.js に最適化 |
-| **案B** | Vercel | Railway/Render | Heroku 無料枠廃止対応 |
-| **案C** | 両方 Heroku | Heroku | 一元管理 |
+コスト削減のため、バックエンドを Heroku から GCP に移行する。
 
-**推奨: 案A**（Vercel + Heroku）
-- 既存の Heroku デプロイをそのまま活用
-- Vercel は Next.js のデプロイに最適化されている
-- 環境変数で API URL を設定するだけで連携可能
+| レイヤー | サービス | 用途 |
+|---------|---------|------|
+| **フロントエンド** | Vercel | Next.js ホスティング（無料枠あり） |
+| **バックエンド API** | GCP Cloud Run | Rails API コンテナ実行 |
+| **データベース** | GCP Cloud SQL (PostgreSQL) | PostgreSQL データベース |
+| **画像ストレージ** | GCP Cloud Storage | CarrierWave の画像保存先 |
+| **シークレット管理** | GCP Secret Manager | API キー等の管理 |
+
+#### なぜ GCP Cloud Run が最適か
+
+1. **コスト**: リクエストベースの課金。トラフィックが少ない時間帯は 0 円。月の無料枠あり（200万リクエスト/月）
+2. **スケール**: 0 インスタンスまでスケールダウン可能（コールドスタートあり）
+3. **Docker**: 既存の Rails アプリを Dockerfile でコンテナ化するだけ
+4. **マネージド**: サーバー管理不要、SSL 自動、カスタムドメイン対応
+
+#### GCP コスト見積もり（小規模アプリの場合）
+
+| サービス | 月額目安 | 備考 |
+|---------|---------|------|
+| Cloud Run | 0〜500円 | 無料枠: 200万リクエスト, 360,000 GB-秒 |
+| Cloud SQL (PostgreSQL) | 約1,000〜3,000円 | db-f1-micro インスタンス（最小構成） |
+| Cloud Storage | 0〜100円 | 画像数に依存 |
+| **合計** | **約1,000〜3,500円/月** | Heroku Hobby ($7〜) より安くなる可能性 |
+
+> **さらにコスト削減するなら**: Cloud SQL の代わりに **Supabase（無料枠）** や **Neon（無料枠）** などのマネージド PostgreSQL を使えば DB 費用を 0 円にできる。
+
+#### GCP デプロイ構成図
+
+```
+[ユーザー]
+    │
+    ├── matcha-to-jinja.com ──→ [Vercel] (Next.js)
+    │                                │
+    │                                │ API リクエスト
+    │                                ↓
+    └── api.matcha-to-jinja.com ──→ [Cloud Run] (Rails API)
+                                        │
+                                        ├──→ [Cloud SQL] (PostgreSQL)
+                                        └──→ [Cloud Storage] (画像)
+```
+
+### GCP Cloud Run デプロイ手順
+
+#### 1. Dockerfile の作成（greentea_temple リポジトリ）
+
+```dockerfile
+# Dockerfile
+FROM ruby:3.1.2-slim
+
+RUN apt-get update -qq && \
+    apt-get install -y build-essential libpq-dev nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY Gemfile Gemfile.lock ./
+RUN bundle install --without development test
+
+COPY . .
+
+EXPOSE 8080
+ENV PORT=8080
+ENV RAILS_ENV=production
+ENV RAILS_LOG_TO_STDOUT=true
+
+CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0", "-p", "8080"]
+```
+
+#### 2. Cloud Run へのデプロイ
+
+```bash
+# GCP プロジェクト設定
+gcloud config set project YOUR_PROJECT_ID
+
+# Artifact Registry にリポジトリ作成
+gcloud artifacts repositories create matcha-api \
+  --repository-format=docker \
+  --location=asia-northeast1
+
+# Docker イメージのビルド＆プッシュ
+gcloud builds submit --tag asia-northeast1-docker.pkg.dev/YOUR_PROJECT_ID/matcha-api/rails-api
+
+# Cloud Run にデプロイ
+gcloud run deploy matcha-api \
+  --image asia-northeast1-docker.pkg.dev/YOUR_PROJECT_ID/matcha-api/rails-api \
+  --platform managed \
+  --region asia-northeast1 \
+  --allow-unauthenticated \
+  --set-env-vars "RAILS_ENV=production" \
+  --set-env-vars "FRONTEND_URL=https://matcha-to-jinja.com" \
+  --min-instances 0 \
+  --max-instances 3 \
+  --memory 512Mi
+```
+
+#### 3. Cloud SQL セットアップ
+
+```bash
+# PostgreSQL インスタンス作成（最小構成）
+gcloud sql instances create matcha-db \
+  --database-version=POSTGRES_14 \
+  --tier=db-f1-micro \
+  --region=asia-northeast1 \
+  --storage-size=10GB \
+  --storage-type=HDD
+
+# データベース作成
+gcloud sql databases create greentea_temple_production \
+  --instance=matcha-db
+
+# Cloud Run から Cloud SQL への接続は Cloud SQL Auth Proxy を使用
+# Cloud Run の設定で --add-cloudsql-instances フラグを追加
+```
+
+#### 4. CI/CD（GitHub Actions）
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push
+        run: |
+          gcloud builds submit \
+            --tag asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/matcha-api/rails-api
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy matcha-api \
+            --image asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/matcha-api/rails-api \
+            --platform managed \
+            --region asia-northeast1
+```
+
+### Heroku → GCP 移行時の注意点
+
+1. **データベース移行**: `pg_dump` で Heroku PostgreSQL からエクスポート → Cloud SQL にインポート
+2. **環境変数**: Heroku の Config Vars を Cloud Run の環境変数 or Secret Manager に移行
+3. **画像ファイル**: CarrierWave のストレージを `fog-google`（Cloud Storage）に変更
+4. **ドメイン/DNS**: Cloud Run のカスタムドメイン設定 + SSL 証明書（自動管理）
+5. **リージョン**: `asia-northeast1`（東京）を選択してレイテンシを最小化
 
 ### 環境変数
 
 #### Next.js 側 (.env.local)
 ```
-NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=http://localhost:3001                    # 開発時
+# NEXT_PUBLIC_API_URL=https://api.matcha-to-jinja.com       # 本番時
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=xxxxx
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=xxxxx
 ```
 
-#### Rails 側 (.env)
+#### Rails 側（Cloud Run 環境変数 or .env）
 ```
-FRONTEND_URL=http://localhost:3000
-JWT_SECRET_KEY=xxxxx  # または Rails.application.secret_key_base を使用
+FRONTEND_URL=https://matcha-to-jinja.com
+JWT_SECRET_KEY=xxxxx
+DATABASE_URL=postgres://user:pass@/greentea_temple_production?host=/cloudsql/PROJECT:REGION:INSTANCE
+GOOGLE_CLOUD_STORAGE_BUCKET=matcha-images
+RAILS_MASTER_KEY=xxxxx
 ```
 
 ---
