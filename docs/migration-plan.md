@@ -501,7 +501,7 @@ export async function apiClient<T>(
 |---------|---------|------|
 | **フロントエンド** | Vercel | Next.js ホスティング（無料枠あり） |
 | **バックエンド API** | GCP Cloud Run | Rails API コンテナ実行 |
-| **データベース** | GCP Cloud SQL (PostgreSQL) | PostgreSQL データベース |
+| **データベース** | Neon PostgreSQL（無料枠） | サーバーレス PostgreSQL |
 | **画像ストレージ** | GCP Cloud Storage | CarrierWave の画像保存先 |
 | **シークレット管理** | GCP Secret Manager | API キー等の管理 |
 
@@ -517,11 +517,9 @@ export async function apiClient<T>(
 | サービス | 月額目安 | 備考 |
 |---------|---------|------|
 | Cloud Run | 0〜500円 | 無料枠: 200万リクエスト, 360,000 GB-秒 |
-| Cloud SQL (PostgreSQL) | 約1,000〜3,000円 | db-f1-micro インスタンス（最小構成） |
+| Neon PostgreSQL | **0円** | 無料枠: 0.5GB ストレージ, 100 CU-hours/月 |
 | Cloud Storage | 0〜100円 | 画像数に依存 |
-| **合計** | **約1,000〜3,500円/月** | Heroku Hobby ($7〜) より安くなる可能性 |
-
-> **さらにコスト削減するなら**: Cloud SQL の代わりに **Supabase（無料枠）** や **Neon（無料枠）** などのマネージド PostgreSQL を使えば DB 費用を 0 円にできる。
+| **合計** | **約0〜600円/月** | Cloud SQL を使わないことで大幅コスト削減 |
 
 #### GCP デプロイ構成図
 
@@ -534,7 +532,7 @@ export async function apiClient<T>(
     │                                ↓
     └── api.matcha-to-jinja.com ──→ [Cloud Run] (Rails API)
                                         │
-                                        ├──→ [Cloud SQL] (PostgreSQL)
+                                        ├──→ [Neon] (PostgreSQL - サーバーレス)
                                         └──→ [Cloud Storage] (画像)
 ```
 
@@ -592,24 +590,101 @@ gcloud run deploy matcha-api \
   --memory 512Mi
 ```
 
-#### 3. Cloud SQL セットアップ
+#### 3. Neon PostgreSQL セットアップ
+
+Cloud SQL（月額1,000〜3,000円）の代わりに Neon の無料枠を使い、DB費用を0円にする。
+
+##### Neon 無料プランの仕様
+
+| 項目 | 無料枠 |
+|------|--------|
+| ストレージ | 0.5 GB / プロジェクト |
+| コンピュート | 100 CU-hours / 月 |
+| ブランチ | 無制限 |
+| プロジェクト数 | 最大20個 |
+| スケール | 0.25〜2 CU（オートスケール） |
+| アイドルタイムアウト | 5分でスケールtoゼロ |
+| コールドスタート | 約1秒未満 |
+| クレジットカード | **不要** |
+| 有効期限 | **なし（永久無料）** |
+| 商用利用 | **可能** |
+
+> **注意**: 100 CU-hours は最小 0.25 CU で約400時間/月。月は約750時間あるため、
+> 24時間常時稼働はできない。ただし scale-to-zero があるため、
+> 「抹茶と神社。」のような小〜中規模アプリでは十分に収まる。
+
+##### Step 3-1. Neon アカウント作成 & プロジェクト作成
+
+1. https://console.neon.tech にアクセスし、GitHub / Google / メールでサインアップ
+2. 「New Project」をクリック
+3. 以下を設定:
+   - **Project name**: `matcha-to-jinja`
+   - **Region**: `AWS Asia Pacific (Tokyo)` — ap-northeast-1 を選択（レイテンシ最小化）
+   - **PostgreSQL version**: 16（最新安定版）
+4. 「Create Project」をクリック
+
+##### Step 3-2. 接続情報の取得
+
+プロジェクト作成後、ダッシュボードに接続文字列が表示される:
+
+```
+postgresql://[user]:[password]@[endpoint-id].ap-northeast-1.aws.neon.tech/neondb?sslmode=require
+```
+
+**2種類の接続文字列がある:**
+- **Direct connection**: `ep-xxxx.ap-northeast-1.aws.neon.tech` — マイグレーション用
+- **Pooled connection**: `ep-xxxx-pooler.ap-northeast-1.aws.neon.tech` — アプリ用（接続プーリング付き）
+
+##### Step 3-3. Rails の database.yml 設定
+
+```yaml
+# config/database.yml
+production:
+  <<: *default
+  url: <%= ENV['DATABASE_URL'] %>
+```
+
+Cloud Run の環境変数に Neon の接続文字列を設定:
 
 ```bash
-# PostgreSQL インスタンス作成（最小構成）
-gcloud sql instances create matcha-db \
-  --database-version=POSTGRES_14 \
-  --tier=db-f1-micro \
-  --region=asia-northeast1 \
-  --storage-size=10GB \
-  --storage-type=HDD
-
-# データベース作成
-gcloud sql databases create greentea_temple_production \
-  --instance=matcha-db
-
-# Cloud Run から Cloud SQL への接続は Cloud SQL Auth Proxy を使用
-# Cloud Run の設定で --add-cloudsql-instances フラグを追加
+# Pooled connection を使用（Cloud Run 環境変数）
+DATABASE_URL=postgresql://user:password@ep-xxxx-pooler.ap-northeast-1.aws.neon.tech/neondb?sslmode=require
 ```
+
+##### Step 3-4. Heroku から Neon へのデータ移行
+
+```bash
+# 1. Heroku PostgreSQL からダンプをエクスポート
+heroku pg:backups:capture --app greentea-temple
+heroku pg:backups:download --app greentea-temple
+
+# 2. ダンプファイルを Neon にリストア
+#    Neon ダッシュボードから Direct connection 文字列を使用
+pg_restore --verbose --no-owner --no-acl \
+  -d "postgresql://user:password@ep-xxxx.ap-northeast-1.aws.neon.tech/neondb?sslmode=require" \
+  latest.dump
+
+# 3. データの確認
+psql "postgresql://user:password@ep-xxxx.ap-northeast-1.aws.neon.tech/neondb?sslmode=require" \
+  -c "SELECT count(*) FROM greenteas; SELECT count(*) FROM temples;"
+```
+
+##### Step 3-5. SSL 接続の確認
+
+Neon は SSL 接続が**必須**。Gemfile に以下があることを確認:
+
+```ruby
+# Gemfile（既存のはず）
+gem 'pg'
+```
+
+`sslmode=require` が接続文字列に含まれていれば追加設定は不要。
+
+##### Neon の便利機能（開発時に活用）
+
+- **ブランチング**: Git のブランチのように DB をブランチできる。本番データのコピーで安全にテスト可能
+- **SQL Editor**: Neon ダッシュボード上で直接 SQL を実行可能
+- **モニタリング**: クエリ実行時間、接続数、ストレージ使用量をダッシュボードで確認
 
 #### 4. CI/CD（GitHub Actions）
 
@@ -651,13 +726,15 @@ jobs:
             --region asia-northeast1
 ```
 
-### Heroku → GCP 移行時の注意点
+### Heroku → GCP + Neon 移行時の注意点
 
-1. **データベース移行**: `pg_dump` で Heroku PostgreSQL からエクスポート → Cloud SQL にインポート
+1. **データベース移行**: `heroku pg:backups:download` → `pg_restore` で Neon にインポート（上記 Step 3-4 参照）
 2. **環境変数**: Heroku の Config Vars を Cloud Run の環境変数 or Secret Manager に移行
 3. **画像ファイル**: CarrierWave のストレージを `fog-google`（Cloud Storage）に変更
 4. **ドメイン/DNS**: Cloud Run のカスタムドメイン設定 + SSL 証明書（自動管理）
-5. **リージョン**: `asia-northeast1`（東京）を選択してレイテンシを最小化
+5. **リージョン**: Cloud Run は `asia-northeast1`（東京）、Neon は `ap-northeast-1`（東京）を選択
+6. **接続プーリング**: Neon の Pooled connection を使用する（Cloud Run はリクエストごとにコンテナ起動されるため）
+7. **ストレージ制限**: Neon 無料枠は 0.5GB。データ量が超えそうなら有料プラン（$19/月〜）を検討
 
 ### 環境変数
 
@@ -674,7 +751,7 @@ NEXTAUTH_SECRET=xxxxx
 ```
 FRONTEND_URL=https://matcha-to-jinja.com
 JWT_SECRET_KEY=xxxxx
-DATABASE_URL=postgres://user:pass@/greentea_temple_production?host=/cloudsql/PROJECT:REGION:INSTANCE
+DATABASE_URL=postgresql://user:pass@ep-xxxx-pooler.ap-northeast-1.aws.neon.tech/neondb?sslmode=require
 GOOGLE_CLOUD_STORAGE_BUCKET=matcha-images
 RAILS_MASTER_KEY=xxxxx
 ```
