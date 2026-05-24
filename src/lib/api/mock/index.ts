@@ -162,6 +162,16 @@ export async function mockClient<T>(
     if (path === "/nearby") {
       const lat = Number(params.get("lat"));
       const lng = Number(params.get("lng"));
+      if (
+        !params.has("lat") ||
+        !params.has("lng") ||
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+      ) {
+        throw new ApiError(400, {
+          error: "lat and lng are required and must be valid numbers",
+        });
+      }
       const radiusKm = Number(params.get("radius")) || 1.5;
       const origin = { latitude: lat, longitude: lng };
       const radiusM = radiusKm * 1000;

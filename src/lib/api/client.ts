@@ -14,12 +14,15 @@ export async function apiClient<T>(
     return mockClient<T>(endpoint, options);
   }
 
+  // Headers インスタンスや [key, value][] で渡されても欠落しないようマージする。
+  const headers = new Headers(options?.headers);
+  if (!headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
   const res = await fetch(`${API_BASE_URL}/api/v1${endpoint}`, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
+    headers,
     credentials: "include",
   });
 
