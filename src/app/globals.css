@@ -1,26 +1,35 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@plugin "daisyui" {
+  themes: false;
 }
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@plugin "daisyui/theme" {
+  name: "matcha";
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+  --color-base-100: #faf9f5;
+  --color-base-200: #f1efe7;
+  --color-base-300: #e4e0d4;
+  --color-base-content: #2c2a24;
+  --color-primary: #5b8c3e;
+  --color-primary-content: #fbfdf8;
+  --color-secondary: #b23b2e;
+  --color-secondary-content: #fdf6f5;
+  --color-accent: #c79a63;
+  --color-accent-content: #2c2a24;
+  --color-neutral: #38432d;
+  --color-neutral-content: #eef0e8;
+  --color-info: #4a90a4;
+  --color-success: #5b8c3e;
+  --color-warning: #d99a2b;
+  --color-error: #c0392b;
+  --radius-box: 1rem;
+  --radius-field: 0.5rem;
+  --radius-selector: 0.5rem;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:
+    ui-sans-serif, system-ui, "Hiragino Kaku Gothic ProN", "Hiragino Sans",
+    "Noto Sans JP", Meiryo, sans-serif;
 }
