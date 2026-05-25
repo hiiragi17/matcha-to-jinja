@@ -1,35 +1,61 @@
 @import "tailwindcss";
+
 @plugin "daisyui" {
   themes: false;
 }
+
+/* 既存 greentea_temple のデザインを刷新した「帖（chō）」テーマ。
+   配色はロゴから採色。角丸ゼロ・影ゼロ・罫線と色面のみでレイヤーを表現する。 */
 @plugin "daisyui/theme" {
   name: "matcha";
   default: true;
   prefersdark: false;
   color-scheme: light;
-  --color-base-100: #faf9f5;
-  --color-base-200: #f1efe7;
-  --color-base-300: #e4e0d4;
-  --color-base-content: #2c2a24;
-  --color-primary: #5b8c3e;
-  --color-primary-content: #fbfdf8;
-  --color-secondary: #b23b2e;
-  --color-secondary-content: #fdf6f5;
-  --color-accent: #c79a63;
-  --color-accent-content: #2c2a24;
-  --color-neutral: #38432d;
-  --color-neutral-content: #eef0e8;
+  --color-base-100: #fbf6e5; /* 紙白 paper — カード・浮き面 */
+  --color-base-200: #f1e9cf; /* 生成 washi — 全画面の基調背景 */
+  --color-base-300: #e4d8b5; /* ロゴ背景 washiBg — アクセントパネル */
+  --color-base-content: #3d3322; /* 焦茶 ink — 本文 */
+  --color-primary: #608060; /* 柳色 matcha */
+  --color-primary-content: #fbf6e5;
+  --color-secondary: #905050; /* 弁柄 bengara */
+  --color-secondary-content: #fbf6e5;
+  --color-accent: #706020; /* 海松茶 olive */
+  --color-accent-content: #fbf6e5;
+  --color-neutral: #3d3322;
+  --color-neutral-content: #f1e9cf;
   --color-info: #4a90a4;
-  --color-success: #5b8c3e;
+  --color-success: #608060;
   --color-warning: #d99a2b;
-  --color-error: #c0392b;
-  --radius-box: 1rem;
-  --radius-field: 0.5rem;
-  --radius-selector: 0.5rem;
+  --color-error: #905050;
+  --radius-box: 0;
+  --radius-field: 0;
+  --radius-selector: 0;
+}
+
+/* デザイントークン（BRAND）— ユーティリティ（bg-washi / text-ink / border-line 等）を生成 */
+@theme {
+  --color-washi: #f1e9cf;
+  --color-washi-bg: #e4d8b5;
+  --color-paper: #fbf6e5;
+  --color-olive: #706020;
+  --color-olive-dark: #5f521b;
+  --color-olive-soft: #9c8b45;
+  --color-matcha: #608060;
+  --color-matcha-dark: #4b6a4c;
+  --color-bengara: #905050;
+  --color-bengara-dark: #73403f;
+  --color-ink: #3d3322;
+  --color-muted: #8a7a4e;
+  --color-line: #d5c9a4;
+  --color-line-soft: #e6dcbe;
+
+  --font-mincho: var(--font-shippori-mincho), "Shippori Mincho", serif;
+  --font-serif-jp: var(--font-noto-serif-jp), "Noto Serif JP", serif;
+  --font-sans-jp: var(--font-noto-sans-jp), "Noto Sans JP", sans-serif;
 }
 
 body {
-  font-family:
-    ui-sans-serif, system-ui, "Hiragino Kaku Gothic ProN", "Hiragino Sans",
-    "Noto Sans JP", Meiryo, sans-serif;
+  background: var(--color-washi);
+  color: var(--color-ink);
+  font-family: var(--font-serif-jp);
 }

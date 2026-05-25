@@ -1,43 +1,30 @@
 import Link from "next/link";
-import { NAV_LINKS } from "./Navigation";
+
+const FOOTER_LINKS = [
+  { href: "/terms", label: "利用規約" },
+  { href: "/privacy", label: "プライバシー" },
+  { href: "/nearby", label: "現在地から" },
+] as const;
 
 export default function Footer() {
   return (
-    <footer className="bg-neutral text-neutral-content">
-      <div className="mx-auto w-full max-w-6xl px-4 py-10">
-        <div className="flex flex-col gap-8 md:flex-row md:justify-between">
-          <div>
-            <p className="text-lg font-bold">
-              <span className="text-primary">抹茶</span>と
-              <span className="text-secondary">神社</span>。
-            </p>
-            <p className="mt-2 max-w-md text-sm opacity-80">
-              京都の抹茶スイーツ店と神社仏閣を組み合わせて紹介する非公式ガイドです。
-            </p>
-          </div>
-          <nav className="flex flex-col gap-2 text-sm">
-            {NAV_LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className="link link-hover">
+    <footer className="border-t border-line px-6 py-5 font-sans-jp text-[10px] tracking-[0.1em] text-muted md:px-12">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <span>© 2026 抹茶と神社。</span>
+        <nav className="flex items-center gap-3">
+          {FOOTER_LINKS.map((link, i) => (
+            <span key={link.href} className="flex items-center gap-3">
+              {i > 0 && <span aria-hidden="true">・</span>}
+              <Link href={link.href} className="transition-colors hover:text-ink">
                 {link.label}
               </Link>
-            ))}
-            <Link href="/terms" className="link link-hover">
-              利用規約
-            </Link>
-            <Link href="/privacy" className="link link-hover">
-              プライバシーポリシー
-            </Link>
-          </nav>
-        </div>
-        <div className="mt-8 border-t border-neutral-content/20 pt-6 text-xs opacity-70">
-          <p>
-            本サイトは非公式のファンサイトであり、掲載している店舗・神社仏閣とは一切関係ありません。掲載情報の正確性・最新性は保証されません。
-          </p>
-          <p className="mt-1">
-            画像・各種情報の出典は、それぞれの店舗・施設および公式サイトに帰属します。
-          </p>
-        </div>
+            </span>
+          ))}
+        </nav>
       </div>
+      <p className="mt-4 max-w-3xl leading-[1.9] text-muted/80">
+        本サイトは非公式のファンサイトであり、掲載している店舗・神社仏閣とは一切関係ありません。掲載情報・画像の出典はそれぞれの店舗・施設および公式サイトに帰属します。
+      </p>
     </footer>
   );
 }
