@@ -10,7 +10,7 @@ export default function Footer() {
   return (
     <footer className="border-t border-line px-6 py-5 font-sans-jp text-[10px] tracking-[0.1em] text-muted md:px-12">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <span>© 2026 抹茶と神社。</span>
+        <span>© {new Date().getFullYear()} 抹茶と神社。</span>
         <nav className="flex items-center gap-3">
           {FOOTER_LINKS.map((link, i) => (
             <span key={link.href} className="flex items-center gap-3">

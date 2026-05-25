@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { HiBars3 } from "react-icons/hi2";
 import Logo from "@/components/brand/Logo";
-import Navigation from "./Navigation";
+import Navigation from "@/components/layout/Navigation";
 
 function HeaderActions() {
   return (
