@@ -1,148 +1,84 @@
 import Link from "next/link";
-import { HiArrowRight, HiMagnifyingGlass, HiMapPin } from "react-icons/hi2";
-import { getGreenteas, getTemples } from "@/lib/api";
-import GreenteaCard from "@/components/greentea/GreenteaCard";
-import TempleCard from "@/components/temple/TempleCard";
+import type { ReactNode } from "react";
+import Logo from "@/components/brand/Logo";
+import Hairline from "@/components/brand/Hairline";
+import { ChawanIcon, ToriiIcon } from "@/components/brand/icons";
+import { PatternBackground } from "@/components/brand/patterns";
 
-export const revalidate = 3600;
+type ActionRowProps = {
+  href: string;
+  icon: ReactNode;
+  bgClass: string;
+  label: string;
+  hint: string;
+};
 
-const RECOMMEND_LIMIT = 3;
-
-export default async function Home() {
-  const [greenteasResult, templesResult] = await Promise.allSettled([
-    getGreenteas(),
-    getTemples(),
-  ]);
-
-  const greenteas =
-    greenteasResult.status === "fulfilled"
-      ? greenteasResult.value.greenteas.slice(0, RECOMMEND_LIMIT)
-      : [];
-  const temples =
-    templesResult.status === "fulfilled"
-      ? templesResult.value.temples.slice(0, RECOMMEND_LIMIT)
-      : [];
-
+function ActionRow({ href, icon, bgClass, label, hint }: ActionRowProps) {
   return (
-    <>
-      <section className="hero min-h-[60vh] bg-base-200">
-        <div className="hero-content text-center">
-          <div className="max-w-xl">
-            <h1 className="text-4xl font-bold sm:text-5xl">
-              <span className="text-primary">抹茶</span>と
-              <span className="text-secondary">神社</span>。
-            </h1>
-            <p className="py-6 text-base-content/80">
-              京都の抹茶スイーツと神社仏閣を、近さでつなぐ。
-              お店のそばの神社、神社のそばの甘味処を見つけよう。
-            </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <Link href="/greenteas" className="btn btn-primary">
-                抹茶店をさがす
-              </Link>
-              <Link href="/temples" className="btn btn-secondary btn-outline">
-                神社をさがす
-              </Link>
-            </div>
-          </div>
+    <Link
+      href={href}
+      className={`flex items-center gap-4 px-[22px] py-4 text-paper transition-colors ${bgClass}`}
+    >
+      <span className="flex w-9 items-center justify-center">{icon}</span>
+      <span className="flex-1">
+        <span className="block font-mincho text-[17px] font-semibold tracking-[0.08em]">
+          {label}
+        </span>
+        <span className="mt-0.5 block font-sans-jp text-[9px] tracking-[0.3em] opacity-70">
+          {hint}
+        </span>
+      </span>
+      <span className="font-mincho text-[18px]" aria-hidden="true">
+        →
+      </span>
+    </Link>
+  );
+}
+
+export default function Home() {
+  return (
+    <section className="relative flex min-h-[78vh] flex-col items-center justify-center overflow-hidden px-6 py-16">
+      <PatternBackground id="home-asanoha" color="#706020" opacity={0.08} size={56} />
+
+      <div className="relative flex flex-col items-center gap-7">
+        <Logo variant="full" size={300} priority />
+
+        <p className="text-center font-mincho text-[17px] leading-[2] text-ink">
+          折角京都に来たのなら、
+          <br />
+          抹茶スイーツ店と神社仏閣どちらも欲張って巡ってみよう。
+        </p>
+
+        <Hairline width={50} className="mt-2" />
+
+        <div className="mt-2 flex w-full max-w-[380px] flex-col gap-2.5">
+          <ActionRow
+            href="/greenteas"
+            icon={<ChawanIcon size={22} color="#fbf6e5" />}
+            bgClass="bg-matcha hover:bg-matcha-dark"
+            label="抹茶スイーツを探す"
+            hint="MATCHA SWEETS"
+          />
+          <ActionRow
+            href="/temples"
+            icon={<ToriiIcon size={22} color="#fbf6e5" />}
+            bgClass="bg-bengara hover:bg-bengara-dark"
+            label="神社仏閣を探す"
+            hint="SHRINES & TEMPLES"
+          />
+          <ActionRow
+            href="/nearby"
+            icon={
+              <span className="font-mincho text-[18px] text-paper" aria-hidden="true">
+                ⊕
+              </span>
+            }
+            bgClass="bg-olive hover:bg-olive-dark"
+            label="現在地から両方を探す"
+            hint="NEARBY · CURRENT LOCATION"
+          />
         </div>
-      </section>
-
-      <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:py-16">
-        {greenteas.length > 0 && (
-          <section aria-labelledby="recommend-greenteas">
-            <div className="flex items-end justify-between gap-4">
-              <h2
-                id="recommend-greenteas"
-                className="text-2xl font-bold sm:text-3xl"
-              >
-                おすすめの<span className="text-primary">抹茶店</span>
-              </h2>
-              <Link
-                href="/greenteas"
-                className="link link-hover inline-flex items-center gap-1 text-sm font-medium text-primary"
-              >
-                一覧を見る
-                <HiArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </div>
-            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {greenteas.map((greentea) => (
-                <GreenteaCard key={greentea.id} greentea={greentea} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {temples.length > 0 && (
-          <section aria-labelledby="recommend-temples" className="mt-16">
-            <div className="flex items-end justify-between gap-4">
-              <h2
-                id="recommend-temples"
-                className="text-2xl font-bold sm:text-3xl"
-              >
-                おすすめの<span className="text-secondary">神社</span>
-              </h2>
-              <Link
-                href="/temples"
-                className="link link-hover inline-flex items-center gap-1 text-sm font-medium text-secondary"
-              >
-                一覧を見る
-                <HiArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </div>
-            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {temples.map((temple) => (
-                <TempleCard key={temple.id} temple={temple} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section aria-labelledby="explore" className="mt-16">
-          <h2 id="explore" className="text-2xl font-bold sm:text-3xl">
-            さがし方
-          </h2>
-          <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
-            <Link
-              href="/greenteas"
-              className="card bg-base-100 p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-            >
-              <HiMagnifyingGlass
-                className="h-8 w-8 text-primary"
-                aria-hidden="true"
-              />
-              <h3 className="mt-3 text-lg font-bold">抹茶店から探す</h3>
-              <p className="mt-1 text-sm text-base-content/70">
-                ジャンルや名前で京都の抹茶スイーツ店をさがせます。
-              </p>
-            </Link>
-            <Link
-              href="/temples"
-              className="card bg-base-100 p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-            >
-              <HiMagnifyingGlass
-                className="h-8 w-8 text-secondary"
-                aria-hidden="true"
-              />
-              <h3 className="mt-3 text-lg font-bold">神社から探す</h3>
-              <p className="mt-1 text-sm text-base-content/70">
-                エリアや名前で京都の神社仏閣をさがせます。
-              </p>
-            </Link>
-            <Link
-              href="/nearby"
-              className="card bg-base-100 p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-            >
-              <HiMapPin className="h-8 w-8 text-accent" aria-hidden="true" />
-              <h3 className="mt-3 text-lg font-bold">現在地から探す</h3>
-              <p className="mt-1 text-sm text-base-content/70">
-                いまいる場所の近くの抹茶店と神社をまとめてさがせます。
-              </p>
-            </Link>
-          </div>
-        </section>
       </div>
-    </>
+    </section>
   );
 }
