@@ -1,15 +1,197 @@
 import type { Metadata } from "next";
-import ComingSoon from "@/components/common/ComingSoon";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { HiArrowLeft, HiHeart } from "react-icons/hi2";
+import Hairline from "@/components/brand/Hairline";
+import { ToriiIcon } from "@/components/brand/icons";
+import { ApiError, getGreentea } from "@/lib/api";
+import type { GreenteaDetail, NearbySpot } from "@/types";
 
-export const metadata: Metadata = {
-  title: "抹茶店の詳細",
-};
+type RouteParams = { id: string };
 
-export default function GreenteaDetailPage() {
+async function fetchGreentea(id: string): Promise<GreenteaDetail> {
+  try {
+    const { greentea } = await getGreentea(id);
+    return greentea;
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) notFound();
+    throw e;
+  }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<RouteParams>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const { greentea } = await getGreentea(id);
+    return {
+      title: greentea.name,
+      description: greentea.description,
+    };
+  } catch {
+    return { title: "抹茶店の詳細" };
+  }
+}
+
+function formatDistance(meters: number): string {
+  if (meters < 1000) return `${meters} m`;
+  return `${(meters / 1000).toFixed(1)} km`;
+}
+
+function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <ComingSoon
-      title="抹茶店の詳細"
-      description="抹茶店の詳細ページは現在準備中です。"
-    />
+    <div className="grid grid-cols-[7em_1fr] gap-3 border-b border-line-soft py-3 last:border-b-0 sm:grid-cols-[8em_1fr]">
+      <dt className="font-sans-jp text-[11px] tracking-[0.2em] text-olive">
+        {label}
+      </dt>
+      <dd className="font-serif-jp text-sm leading-[1.9] text-ink">{children}</dd>
+    </div>
+  );
+}
+
+function NearbyTemples({ temples }: { temples: NearbySpot[] }) {
+  if (temples.length === 0) {
+    return (
+      <p className="border border-line-soft bg-paper px-5 py-6 text-center font-serif-jp text-sm text-muted">
+        近隣 1.5km 以内に登録された神社仏閣はありません。
+      </p>
+    );
+  }
+  return (
+    <ul className="divide-y divide-line-soft border border-line-soft bg-paper">
+      {temples.map((temple) => (
+        <li key={temple.id}>
+          <Link
+            href={`/temples/${temple.id}`}
+            className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-washi-bg"
+          >
+            <ToriiIcon size={22} color="#905050" />
+            <span className="flex-1 font-mincho text-base text-ink">
+              {temple.name}
+            </span>
+            <span className="font-sans-jp text-xs tracking-[0.1em] text-muted">
+              {formatDistance(temple.distance_meters)}
+            </span>
+            <span aria-hidden="true" className="font-mincho text-base text-muted">
+              →
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default async function GreenteaDetailPage({
+  params,
+}: {
+  params: Promise<RouteParams>;
+}) {
+  const { id } = await params;
+  const greentea = await fetchGreentea(id);
+
+  return (
+    <article className="mx-auto w-full max-w-5xl px-6 py-12 md:px-12">
+      <div className="mb-6">
+        <Link
+          href="/greenteas"
+          className="inline-flex items-center gap-2 font-sans-jp text-xs tracking-[0.15em] text-olive transition-colors hover:text-olive-dark"
+        >
+          <HiArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          抹茶店一覧へ
+        </Link>
+      </div>
+
+      <header className="flex flex-col items-center text-center">
+        <p className="font-sans-jp text-[10px] font-medium tracking-[0.4em] text-olive">
+          抹茶スイーツ / MATCHA SWEETS
+        </p>
+        <h1 className="mt-3 font-mincho text-3xl font-semibold tracking-[0.06em] text-ink sm:text-4xl">
+          {greentea.name}
+        </h1>
+        <Hairline width={40} className="mt-5" />
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+          {greentea.genres.map((genre) => (
+            <span
+              key={genre.id}
+              className="border border-line bg-washi px-2.5 py-1 font-sans-jp text-[11px] tracking-[0.1em] text-olive"
+            >
+              {genre.name}
+            </span>
+          ))}
+          <span className="inline-flex items-center gap-1.5 border border-line bg-paper px-2.5 py-1 font-sans-jp text-[11px] text-muted">
+            <HiHeart className="h-3.5 w-3.5 text-bengara" aria-hidden="true" />
+            {greentea.likes_count}
+          </span>
+          {greentea.closed && (
+            <span className="border border-bengara bg-bengara px-2.5 py-1 font-sans-jp text-[11px] tracking-[0.1em] text-paper">
+              閉店
+            </span>
+          )}
+        </div>
+      </header>
+
+      <figure className="mt-10 overflow-hidden border border-line-soft bg-paper">
+        <div className="aspect-[16/9] w-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={greentea.img}
+            alt={greentea.name}
+            className="h-full w-full object-cover"
+          />
+        </div>
+      </figure>
+
+      <section className="mt-10">
+        <p className="font-serif-jp text-base leading-[2.1] text-ink">
+          {greentea.description}
+        </p>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-mincho text-lg tracking-[0.12em] text-ink">
+          店舗情報
+          <span className="ml-3 font-sans-jp text-[10px] tracking-[0.3em] text-olive">
+            INFO
+          </span>
+        </h2>
+        <dl className="mt-4 border border-line-soft bg-paper px-5 sm:px-7">
+          <InfoRow label="住所">{greentea.address}</InfoRow>
+          <InfoRow label="アクセス">{greentea.access}</InfoRow>
+          <InfoRow label="営業時間">{greentea.business_hours}</InfoRow>
+          <InfoRow label="定休日">{greentea.holiday}</InfoRow>
+          {greentea.phone_number && (
+            <InfoRow label="電話番号">{greentea.phone_number}</InfoRow>
+          )}
+          {greentea.homepage && (
+            <InfoRow label="HP">
+              <a
+                href={greentea.homepage}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="break-all text-olive underline underline-offset-4 hover:text-olive-dark"
+              >
+                {greentea.homepage}
+              </a>
+            </InfoRow>
+          )}
+        </dl>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="font-mincho text-lg tracking-[0.12em] text-ink">
+          近くの神社仏閣
+          <span className="ml-3 font-sans-jp text-[10px] tracking-[0.3em] text-olive">
+            NEARBY ( within 1.5km )
+          </span>
+        </h2>
+        <div className="mt-4">
+          <NearbyTemples temples={greentea.nearby_temples} />
+        </div>
+      </section>
+    </article>
   );
 }
