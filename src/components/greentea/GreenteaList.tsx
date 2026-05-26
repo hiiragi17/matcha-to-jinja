@@ -1,5 +1,5 @@
 import type { Greentea } from "@/types";
-import GreenteaCard from "./GreenteaCard";
+import GreenteaCard from "@/components/greentea/GreenteaCard";
 
 type GreenteaListProps = {
   greenteas: Greentea[];

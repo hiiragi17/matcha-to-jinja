@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import Hairline from "@/components/brand/Hairline";
 import Pagination from "@/components/common/Pagination";
 import GreenteaList from "@/components/greentea/GreenteaList";
@@ -31,9 +32,12 @@ export default async function GreenteasPage({
 }) {
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
-  const genreIdNum = sp.genre ? Number(sp.genre) : undefined;
+  // genre は 0 が有効 ID の可能性に備えて Number.isFinite で判定する。
+  const genreIdNum = sp.genre !== undefined ? Number(sp.genre) : undefined;
   const genreId =
-    genreIdNum && Number.isFinite(genreIdNum) ? genreIdNum : undefined;
+    genreIdNum !== undefined && Number.isFinite(genreIdNum)
+      ? genreIdNum
+      : undefined;
 
   const [{ greenteas, meta }, { genres }] = await Promise.all([
     getGreenteas({
@@ -44,6 +48,15 @@ export default async function GreenteasPage({
   ]);
 
   const preservedQuery = buildPreservedQuery(sp);
+
+  // 範囲外の page= が指定された場合は最終ページへ寄せる（モック実装でも空配列を防ぐ）。
+  if (page > meta.total_pages) {
+    const params = new URLSearchParams(preservedQuery);
+    if (meta.total_pages > 1) params.set("page", String(meta.total_pages));
+    const query = params.toString();
+    redirect(query ? `/greenteas?${query}` : "/greenteas");
+  }
+
   const selectedGenre = genres.find((g) => g.id === genreId);
 
   return (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import type { FormEvent } from "react";
 import type { Genre } from "@/types";
 
@@ -14,8 +14,17 @@ export default function GreenteaSearchForm({ genres }: GreenteaSearchFormProps) 
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const [keyword, setKeyword] = useState(searchParams.get("q") ?? "");
-  const [genreId, setGenreId] = useState(searchParams.get("genre") ?? "");
+  const queryFromUrl = searchParams.get("q") ?? "";
+  const genreFromUrl = searchParams.get("genre") ?? "";
+
+  const [keyword, setKeyword] = useState(queryFromUrl);
+  const [genreId, setGenreId] = useState(genreFromUrl);
+
+  // ブラウザの戻る/進むや外部リンクで URL が変わったとき、フォーム値を URL に追従させる。
+  useEffect(() => {
+    setKeyword(queryFromUrl);
+    setGenreId(genreFromUrl);
+  }, [queryFromUrl, genreFromUrl]);
 
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
