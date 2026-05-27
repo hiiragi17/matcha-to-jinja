@@ -41,6 +41,16 @@ function formatDistance(meters: number): string {
   return `${(meters / 1000).toFixed(1)} km`;
 }
 
+// 外部リンクとして表示してよい URL かを判定する（javascript: 等の危険スキームを除外）。
+function isSafeExternalUrl(url: string): boolean {
+  try {
+    const { protocol } = new URL(url);
+    return protocol === "http:" || protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[7em_1fr] gap-3 border-b border-line-soft py-3 last:border-b-0 sm:grid-cols-[8em_1fr]">
@@ -163,14 +173,18 @@ export default async function TempleDetailPage({
           )}
           {temple.homepage && (
             <InfoRow label="HP">
-              <a
-                href={temple.homepage}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="break-all text-olive underline underline-offset-4 hover:text-olive-dark"
-              >
-                {temple.homepage}
-              </a>
+              {isSafeExternalUrl(temple.homepage) ? (
+                <a
+                  href={temple.homepage}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="break-all text-olive underline underline-offset-4 hover:text-olive-dark"
+                >
+                  {temple.homepage}
+                </a>
+              ) : (
+                <span className="break-all text-muted">{temple.homepage}</span>
+              )}
             </InfoRow>
           )}
         </dl>

@@ -33,7 +33,9 @@ export default async function TemplesPage({
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
   // area は 0 が有効 ID の可能性に備えて Number.isFinite で判定する。
-  const areaIdNum = sp.area !== undefined ? Number(sp.area) : undefined;
+  // 空文字列は Number("") === 0 として誤判定されるため除外する。
+  const areaIdNum =
+    sp.area !== undefined && sp.area !== "" ? Number(sp.area) : undefined;
   const areaId =
     areaIdNum !== undefined && Number.isFinite(areaIdNum)
       ? areaIdNum
@@ -50,7 +52,8 @@ export default async function TemplesPage({
   const preservedQuery = buildPreservedQuery(sp);
 
   // 範囲外の page= が指定された場合は最終ページへ寄せる（モック実装でも空配列を防ぐ）。
-  if (page > meta.total_pages) {
+  // total_pages が 0 のときは redirect ループを防ぐためガードする。
+  if (meta.total_pages > 0 && page > meta.total_pages) {
     const params = new URLSearchParams(preservedQuery);
     if (meta.total_pages > 1) params.set("page", String(meta.total_pages));
     const query = params.toString();
