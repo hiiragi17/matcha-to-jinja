@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { HiArrowLeft, HiHeart } from "react-icons/hi2";
 import Hairline from "@/components/brand/Hairline";
 import { ToriiIcon } from "@/components/brand/icons";
+import ShareButtons from "@/components/common/ShareButtons";
 import { ApiError, getGreentea } from "@/lib/api";
 import type { GreenteaDetail, NearbySpot } from "@/types";
 
@@ -133,6 +134,10 @@ export default async function GreenteaDetailPage({
           )}
         </div>
       </header>
+
+      <div className="mt-6 flex justify-center">
+        <ShareButtons title={greentea.name} />
+      </div>
 
       <figure className="mt-10 overflow-hidden border border-line-soft bg-paper">
         <div className="aspect-[16/9] w-full">
