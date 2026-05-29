@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { HiArrowLeft, HiHeart } from "react-icons/hi2";
 import Hairline from "@/components/brand/Hairline";
 import { ChawanIcon } from "@/components/brand/icons";
+import ShareButtons from "@/components/common/ShareButtons";
 import { ApiError, getTemple } from "@/lib/api";
 import type { NearbySpot, TempleDetail } from "@/types";
 
@@ -138,6 +139,10 @@ export default async function TempleDetailPage({
           </span>
         </div>
       </header>
+
+      <div className="mt-6 flex justify-center">
+        <ShareButtons title={temple.name} />
+      </div>
 
       <figure className="mt-10 overflow-hidden border border-line-soft bg-paper">
         <div className="aspect-[16/9] w-full">
