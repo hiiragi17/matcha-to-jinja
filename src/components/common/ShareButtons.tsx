@@ -15,6 +15,8 @@ export default function ShareButtons({ title }: ShareButtonsProps) {
     setUrl(window.location.href);
   }, []);
 
+  if (!url) return null;
+
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
   const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`;
 
