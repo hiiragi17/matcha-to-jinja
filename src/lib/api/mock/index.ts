@@ -93,6 +93,8 @@ export async function mockClient<T>(
         .map((t) => ({
           id: t.id,
           name: t.name,
+          latitude: t.latitude,
+          longitude: t.longitude,
           distance_meters: distanceMeters(greentea, t),
         }))
         .filter((t) => t.distance_meters <= 1500)
@@ -136,6 +138,8 @@ export async function mockClient<T>(
         .map((g) => ({
           id: g.id,
           name: g.name,
+          latitude: g.latitude,
+          longitude: g.longitude,
           distance_meters: distanceMeters(temple, g),
         }))
         .filter((g) => g.distance_meters <= 1500)
@@ -184,6 +188,8 @@ export async function mockClient<T>(
       }): NearbySpot => ({
         id: item.id,
         name: item.name,
+        latitude: item.latitude,
+        longitude: item.longitude,
         distance_meters: distanceMeters(origin, item),
       });
 
