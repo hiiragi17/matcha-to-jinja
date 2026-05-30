@@ -45,6 +45,7 @@ function formatDistance(meters: number): string {
 
 export default function NearbyMap() {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+  const hasMapsConfig = Boolean(apiKey);
   const [geo, setGeo] = useState<GeoState>({ status: "idle" });
   const [radius, setRadius] = useState<Radius>(1.5);
   const [fetchState, setFetchState] = useState<FetchState>({ status: "idle" });
@@ -81,14 +82,14 @@ export default function NearbyMap() {
   }, []);
 
   useEffect(() => {
-    if (!apiKey) return;
+    if (!hasMapsConfig) return;
     requestLocation();
-  }, [apiKey, requestLocation]);
+  }, [hasMapsConfig, requestLocation]);
 
   const origin = geo.status === "granted" ? geo.origin : null;
 
   useEffect(() => {
-    if (!origin) return;
+    if (!hasMapsConfig || !origin) return;
     let cancelled = false;
     setFetchState({ status: "loading" });
     setSelected(null);
@@ -107,9 +108,9 @@ export default function NearbyMap() {
     return () => {
       cancelled = true;
     };
-  }, [origin, radius]);
+  }, [hasMapsConfig, origin, radius]);
 
-  if (!apiKey) {
+  if (!hasMapsConfig) {
     return (
       <ConfigError
         message="Google Maps の API キーが設定されていません。NEXT_PUBLIC_GOOGLE_MAPS_API_KEY を .env.local に設定してください。"
@@ -148,15 +149,23 @@ export default function NearbyMap() {
                   />
                 )}
                 {selected && (
-                  <InfoWindow
-                    position={{
-                      lat: selected.spot.latitude,
-                      lng: selected.spot.longitude,
-                    }}
-                    onCloseClick={() => setSelected(null)}
-                  >
-                    <SpotInfo kind={selected.kind} spot={selected.spot} />
-                  </InfoWindow>
+                  <>
+                    <MapFocusOnSelection
+                      position={{
+                        lat: selected.spot.latitude,
+                        lng: selected.spot.longitude,
+                      }}
+                    />
+                    <InfoWindow
+                      position={{
+                        lat: selected.spot.latitude,
+                        lng: selected.spot.longitude,
+                      }}
+                      onCloseClick={() => setSelected(null)}
+                    >
+                      <SpotInfo kind={selected.kind} spot={selected.spot} />
+                    </InfoWindow>
+                  </>
                 )}
                 {origin && (
                   <MapRecenter
@@ -488,6 +497,18 @@ function SpotColumn({
       )}
     </div>
   );
+}
+
+// 選択スポット変更時に地図中心をそのスポットへ移動。1.5km 超の半径だと
+// 選択マーカーが画面外になりうるため、リスト/マーカーいずれの選択でも追従させる。
+function MapFocusOnSelection({ position }: { position: Origin }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map) return;
+    map.panTo(position);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, position.lat, position.lng]);
+  return null;
 }
 
 // origin / radius が変わるたびに地図中心を現在地へ戻す。
