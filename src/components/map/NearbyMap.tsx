@@ -81,8 +81,9 @@ export default function NearbyMap() {
   }, []);
 
   useEffect(() => {
+    if (!apiKey) return;
     requestLocation();
-  }, [requestLocation]);
+  }, [apiKey, requestLocation]);
 
   const origin = geo.status === "granted" ? geo.origin : null;
 
@@ -129,7 +130,10 @@ export default function NearbyMap() {
           <div className="border border-line bg-paper">
             <div className="h-[60vh] min-h-[420px] w-full">
               <Map
-                mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ?? "DEMO_MAP_ID"}
+                mapId={
+                  process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID?.trim() ||
+                  "DEMO_MAP_ID"
+                }
                 defaultCenter={origin ?? KYOTO_CENTER}
                 defaultZoom={15}
                 gestureHandling="greedy"
