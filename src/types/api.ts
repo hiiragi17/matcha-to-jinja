@@ -13,6 +13,8 @@ export interface Meta {
 export interface NearbySpot {
   id: number;
   name: string;
+  latitude: number;
+  longitude: number;
   distance_meters: number;
 }
 
