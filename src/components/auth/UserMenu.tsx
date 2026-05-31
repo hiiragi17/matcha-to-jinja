@@ -30,7 +30,7 @@ export default function UserMenu({ user }: UserMenuProps) {
           <button
             type="button"
             className="rounded-none text-left text-muted hover:text-ink"
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => signOut({ redirectTo: "/" })}
           >
             ログアウト
           </button>

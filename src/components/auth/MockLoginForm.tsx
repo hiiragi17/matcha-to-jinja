@@ -4,11 +4,11 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 
 type MockLoginFormProps = {
-  callbackUrl?: string;
+  redirectTo?: string;
 };
 
 export default function MockLoginForm({
-  callbackUrl = "/mypage",
+  redirectTo = "/mypage",
 }: MockLoginFormProps) {
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -20,7 +20,7 @@ export default function MockLoginForm({
         event.preventDefault();
         setSubmitting(true);
         try {
-          await signIn("mock", { name, callbackUrl });
+          await signIn("mock", { name, redirectTo });
         } finally {
           setSubmitting(false);
         }
