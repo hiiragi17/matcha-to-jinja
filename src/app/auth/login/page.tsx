@@ -1,15 +1,95 @@
 import type { Metadata } from "next";
-import ComingSoon from "@/components/common/ComingSoon";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { FaXTwitter } from "react-icons/fa6";
+import { SiLine } from "react-icons/si";
+import Hairline from "@/components/brand/Hairline";
+import MockLoginForm from "@/components/auth/MockLoginForm";
+import { AVAILABLE_PROVIDERS, auth, signIn } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "ログイン",
 };
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const session = await auth();
+  if (session?.user) {
+    redirect("/mypage");
+  }
+
   return (
-    <ComingSoon
-      title="ログイン"
-      description="Twitter / LINE でのログインは現在準備中です。"
-    />
+    <section className="mx-auto flex min-h-[60vh] w-full max-w-md flex-col items-center px-6 py-16 text-center">
+      <p className="font-sans-jp text-[10px] font-medium tracking-[0.4em] text-olive">
+        ログイン / LOGIN
+      </p>
+      <h1 className="mt-3 font-mincho text-3xl font-semibold tracking-[0.05em] text-ink">
+        ログイン
+      </h1>
+      <Hairline width={40} className="mt-5" />
+      <p className="mt-5 max-w-sm font-serif-jp text-sm leading-[2] text-muted">
+        お気に入り登録やコメント投稿には、ログインが必要です。
+      </p>
+
+      <div className="mt-10 flex w-full flex-col gap-3">
+        {AVAILABLE_PROVIDERS.twitter ? (
+          <form
+            action={async () => {
+              "use server";
+              await signIn("twitter", { redirectTo: "/mypage" });
+            }}
+          >
+            <button
+              type="submit"
+              className="flex w-full items-center justify-center gap-3 border border-ink bg-ink px-4 py-3 font-mincho text-[13px] tracking-[0.15em] text-paper transition-opacity hover:opacity-90"
+            >
+              <FaXTwitter aria-hidden="true" className="h-4 w-4" />
+              X (Twitter) でログイン
+            </button>
+          </form>
+        ) : null}
+
+        {AVAILABLE_PROVIDERS.line ? (
+          <form
+            action={async () => {
+              "use server";
+              await signIn("line", { redirectTo: "/mypage" });
+            }}
+          >
+            <button
+              type="submit"
+              className="flex w-full items-center justify-center gap-3 border border-[#06C755] bg-[#06C755] px-4 py-3 font-mincho text-[13px] tracking-[0.15em] text-paper transition-opacity hover:opacity-90"
+            >
+              <SiLine aria-hidden="true" className="h-4 w-4" />
+              LINE でログイン
+            </button>
+          </form>
+        ) : null}
+
+        {AVAILABLE_PROVIDERS.mock ? (
+          <div className="mt-2 flex flex-col gap-3 border border-dashed border-line p-5">
+            <p className="font-sans-jp text-[10px] tracking-[0.2em] text-muted">
+              開発用 / MOCK
+            </p>
+            <p className="font-serif-jp text-xs leading-[1.8] text-muted">
+              OAuth 連携が未設定のためモック用ログインを表示しています。
+              Rails JWT 連携（#15）後に本番 OAuth に切り替えます。
+            </p>
+            <MockLoginForm />
+          </div>
+        ) : null}
+      </div>
+
+      <p className="mt-10 font-serif-jp text-[11px] leading-[1.8] text-muted">
+        ログインすると
+        <Link href="/terms" className="mx-1 underline underline-offset-2">
+          利用規約
+        </Link>
+        と
+        <Link href="/privacy" className="mx-1 underline underline-offset-2">
+          プライバシーポリシー
+        </Link>
+        に同意したものとみなします。
+      </p>
+    </section>
   );
 }

@@ -1,0 +1,41 @@
+"use client";
+
+import Link from "next/link";
+import { signOut } from "next-auth/react";
+import type { Session } from "next-auth";
+
+type UserMenuProps = {
+  user: NonNullable<Session["user"]>;
+};
+
+export default function UserMenu({ user }: UserMenuProps) {
+  const displayName = user.name ?? "ゲスト";
+
+  return (
+    <details className="dropdown dropdown-end">
+      <summary
+        className="flex cursor-pointer list-none items-center gap-2 border border-line px-3 py-1.5 font-mincho text-[13px] text-ink transition-colors hover:bg-olive hover:text-paper"
+        aria-label="ユーザーメニューを開く"
+      >
+        <span aria-hidden="true">◎</span>
+        <span className="max-w-[8rem] truncate">{displayName}</span>
+      </summary>
+      <ul className="dropdown-content menu z-50 mt-2 w-56 border border-line bg-paper p-2 font-sans-jp text-sm text-ink shadow-sm">
+        <li>
+          <Link href="/mypage" className="rounded-none">
+            マイページ
+          </Link>
+        </li>
+        <li className="border-t border-line">
+          <button
+            type="button"
+            className="rounded-none text-left text-muted hover:text-ink"
+            onClick={() => signOut({ redirectTo: "/" })}
+          >
+            ログアウト
+          </button>
+        </li>
+      </ul>
+    </details>
+  );
+}
