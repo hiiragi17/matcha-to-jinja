@@ -13,8 +13,11 @@ const hasLine = Boolean(lineId && lineSecret);
 
 // Rails JWT (#15) 未連携の間、OAuth クレデンシャル未設定でも UI を確認できるよう
 // Credentials provider を mock として併設する。
+// 本番デプロイで OAuth 未設定のまま誰でもログインできてしまわないよう、
+// production では一切有効化しない。
 const enableMock =
-  process.env.NEXT_PUBLIC_USE_MOCK === "true" || (!hasTwitter && !hasLine);
+  process.env.NODE_ENV !== "production" &&
+  (process.env.NEXT_PUBLIC_USE_MOCK === "true" || (!hasTwitter && !hasLine));
 
 const providers: NextAuthConfig["providers"] = [];
 

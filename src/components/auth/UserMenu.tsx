@@ -26,16 +26,6 @@ export default function UserMenu({ user }: UserMenuProps) {
             マイページ
           </Link>
         </li>
-        <li>
-          <Link href="/mypage/greentea-likes" className="rounded-none">
-            お気に入り 抹茶店
-          </Link>
-        </li>
-        <li>
-          <Link href="/mypage/temple-likes" className="rounded-none">
-            お気に入り 神社
-          </Link>
-        </li>
         <li className="border-t border-line">
           <button
             type="button"

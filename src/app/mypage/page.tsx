@@ -52,34 +52,9 @@ export default function MyPage() {
       </h1>
       <Hairline width={40} className="mt-5" />
 
-      <ul className="mt-10 grid gap-4 sm:grid-cols-2">
-        <li>
-          <Link
-            href="/mypage/greentea-likes"
-            className="block border border-line bg-paper p-5 transition-colors hover:border-olive"
-          >
-            <p className="font-sans-jp text-[10px] tracking-[0.2em] text-muted">
-              FAVORITES
-            </p>
-            <p className="mt-2 font-mincho text-base text-ink">
-              お気に入りの抹茶店
-            </p>
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/mypage/temple-likes"
-            className="block border border-line bg-paper p-5 transition-colors hover:border-olive"
-          >
-            <p className="font-sans-jp text-[10px] tracking-[0.2em] text-muted">
-              FAVORITES
-            </p>
-            <p className="mt-2 font-mincho text-base text-ink">
-              お気に入りの神社
-            </p>
-          </Link>
-        </li>
-      </ul>
+      <p className="mt-10 font-serif-jp text-sm leading-[2] text-muted">
+        お気に入り一覧の表示は現在準備中です（#24）。
+      </p>
     </section>
   );
 }
