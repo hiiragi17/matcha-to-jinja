@@ -2,25 +2,7 @@ import Link from "next/link";
 import { HiBars3 } from "react-icons/hi2";
 import Logo from "@/components/brand/Logo";
 import Navigation from "@/components/layout/Navigation";
-
-function HeaderActions() {
-  return (
-    <>
-      <Link
-        href="/mypage"
-        className="font-sans-jp text-xs tracking-[0.06em] text-muted transition-colors hover:text-ink"
-      >
-        <span aria-hidden="true">♡</span> お気に入り
-      </Link>
-      <Link
-        href="/auth/login"
-        className="border border-olive px-3.5 py-1.5 font-mincho text-[13px] text-ink transition-colors hover:bg-olive hover:text-paper"
-      >
-        ログイン
-      </Link>
-    </>
-  );
-}
+import HeaderAuth from "@/components/auth/HeaderAuth";
 
 export default function Header() {
   return (
@@ -34,7 +16,7 @@ export default function Header() {
       </nav>
 
       <div className="hidden items-center gap-4 lg:flex">
-        <HeaderActions />
+        <HeaderAuth />
       </div>
 
       {/* タブレット・モバイル: ハンバーガー */}
@@ -45,7 +27,7 @@ export default function Header() {
         <div className="dropdown-content z-50 mt-3 flex w-60 flex-col gap-5 border border-line bg-paper p-5">
           <Navigation orientation="vertical" />
           <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
-            <HeaderActions />
+            <HeaderAuth />
           </div>
         </div>
       </details>

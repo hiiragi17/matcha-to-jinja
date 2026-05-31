@@ -3,6 +3,7 @@ import { Shippori_Mincho, Noto_Serif_JP, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import AuthProvider from "@/components/auth/AuthProvider";
 
 const shipporiMincho = Shippori_Mincho({
   weight: ["400", "500", "600", "700"],
@@ -73,9 +74,11 @@ export default function RootLayout({
       className={`${shipporiMincho.variable} ${notoSerifJP.variable} ${notoSansJP.variable}`}
     >
       <body className="flex min-h-screen flex-col bg-washi font-serif-jp text-ink">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <AuthProvider>
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );
