@@ -1,8 +1,13 @@
 import type { Greentea, Temple, Genre, Area, Comment } from "@/types";
 
+// 受け取る userId は二重プレフィックス構造になっている点に注意:
+//   1. auth.ts authorize:   user.id = "mock-<name>"
+//   2. auth.ts jwt callback: token.railsJwt = "mock:" + user.id  →  "mock:mock-<name>"
+//   3. extractMockUserId:    "mock:" を剥がして "mock-<name>" を userId として返す
+// したがってここに渡る userId は通常 "mock-<name>" であり、先頭の "mock-" を
+// 剥がすと表示名 <name> が得られる。形式が違うトークンが渡るケースの保険として
+// プレフィックスが無いときはそのまま返す。
 export function mockUserName(userId: string): string {
-  // Authorization の "mock:<name>" 形式から表示名を取り出す。
-  // signIn 時にここへ任意の表示名を入れる前提（src/lib/auth.ts 参照）。
   return userId.startsWith("mock-") ? userId.slice("mock-".length) : userId;
 }
 
