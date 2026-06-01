@@ -47,7 +47,17 @@ export async function apiClient<T>(
     throw new ApiError(res.status, data);
   }
 
-  return res.json() as Promise<T>;
+  // DELETE 等の成功時は 204 No Content / Content-Length: 0 が返るのが通常で、
+  // 空ボディに対して res.json() は SyntaxError を投げる。
+  // 楽観的更新のロールバック誤発火を避けるため、ボディが空なら undefined を返す。
+  if (res.status === 204 || res.headers.get("Content-Length") === "0") {
+    return undefined as T;
+  }
+  const text = await res.text();
+  if (text.length === 0) {
+    return undefined as T;
+  }
+  return JSON.parse(text) as T;
 }
 
 // Ransack 形式（q[name_cont] 等）を含むクエリ文字列を組み立てる。
