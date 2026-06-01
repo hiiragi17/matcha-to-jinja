@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { HiArrowLeft, HiHeart } from "react-icons/hi2";
+import { HiArrowLeft } from "react-icons/hi2";
 import Hairline from "@/components/brand/Hairline";
 import { ChawanIcon } from "@/components/brand/icons";
+import CommentSection from "@/components/common/CommentSection";
+import LikeButton from "@/components/common/LikeButton";
 import ShareButtons from "@/components/common/ShareButtons";
 import { ApiError, getTemple } from "@/lib/api";
+import { auth } from "@/lib/auth";
 import type { NearbySpot, TempleDetail } from "@/types";
 
 type RouteParams = { id: string };
 
-async function fetchTemple(id: string): Promise<TempleDetail> {
+async function fetchTemple(
+  id: string,
+  authToken?: string,
+): Promise<TempleDetail> {
   try {
-    const { temple } = await getTemple(id);
+    const { temple } = await getTemple(id, authToken);
     return temple;
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) notFound();
@@ -102,7 +108,8 @@ export default async function TempleDetailPage({
   params: Promise<RouteParams>;
 }) {
   const { id } = await params;
-  const temple = await fetchTemple(id);
+  const session = await auth();
+  const temple = await fetchTemple(id, session?.railsJwt);
 
   return (
     <article className="mx-auto w-full max-w-5xl px-6 py-12 md:px-12">
@@ -133,10 +140,13 @@ export default async function TempleDetailPage({
               {area.name}
             </span>
           ))}
-          <span className="inline-flex items-center gap-1.5 border border-line bg-paper px-2.5 py-1 font-sans-jp text-[11px] text-muted">
-            <HiHeart className="h-3.5 w-3.5 text-bengara" aria-hidden="true" />
-            {temple.likes_count}
-          </span>
+          <LikeButton
+            kind="temple"
+            id={temple.id}
+            initialCount={temple.likes_count}
+            initialLiked={temple.liked_by_current_user ?? false}
+            callbackUrl={`/temples/${temple.id}`}
+          />
         </div>
       </header>
 
@@ -204,6 +214,23 @@ export default async function TempleDetailPage({
         </h2>
         <div className="mt-4">
           <NearbyGreenteas greenteas={temple.nearby_greenteas} />
+        </div>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="font-mincho text-lg tracking-[0.12em] text-ink">
+          コメント
+          <span className="ml-3 font-sans-jp text-[10px] tracking-[0.3em] text-olive">
+            COMMENTS
+          </span>
+        </h2>
+        <div className="mt-4">
+          <CommentSection
+            kind="temple"
+            targetId={temple.id}
+            initialComments={temple.comments}
+            callbackUrl={`/temples/${temple.id}`}
+          />
         </div>
       </section>
     </article>

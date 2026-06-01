@@ -1,5 +1,16 @@
 import type { Greentea, Temple, Genre, Area, Comment } from "@/types";
 
+// 受け取る userId は二重プレフィックス構造になっている点に注意:
+//   1. auth.ts authorize:   user.id = "mock-<name>"
+//   2. auth.ts jwt callback: token.railsJwt = "mock:" + user.id  →  "mock:mock-<name>"
+//   3. extractMockUserId:    "mock:" を剥がして "mock-<name>" を userId として返す
+// したがってここに渡る userId は通常 "mock-<name>" であり、先頭の "mock-" を
+// 剥がすと表示名 <name> が得られる。形式が違うトークンが渡るケースの保険として
+// プレフィックスが無いときはそのまま返す。
+export function mockUserName(userId: string): string {
+  return userId.startsWith("mock-") ? userId.slice("mock-".length) : userId;
+}
+
 export const mockGenres: Genre[] = [
   { id: 1, name: "パフェ" },
   { id: 2, name: "ドリンク" },
@@ -12,14 +23,15 @@ export const mockAreas: Area[] = [
   { id: 3, name: "右京区" },
 ];
 
-const mockComments: Comment[] = [
-  {
-    id: 1,
-    body: "抹茶パフェが最高でした！",
-    user: { id: 1, name: "抹茶好き" },
-    created_at: "2024-01-15T10:30:00Z",
-  },
-];
+// 既存スポットに紐づくサンプルコメント（モック初期表示用）。
+// ユーザー ID は数値で持っているが、モックユーザーは文字列 ID なので
+// 削除権限の判定には引っかからない（= seed コメントは消せない）。
+const seedComment: Comment = {
+  id: 1,
+  body: "抹茶パフェが最高でした！",
+  user: { id: 1, name: "抹茶好き" },
+  created_at: "2024-01-15T10:30:00Z",
+};
 
 export const mockGreenteas: Greentea[] = [
   {
@@ -126,5 +138,9 @@ export const mockTemples: Temple[] = [
   },
 ];
 
-export const mockGreenteaComments = mockComments;
-export const mockTempleComments = mockComments;
+export const seedGreenteaComments: Record<number, Comment[]> = {
+  1: [seedComment],
+};
+export const seedTempleComments: Record<number, Comment[]> = {
+  1: [{ ...seedComment, id: 2, body: "建仁寺の風神雷神図、圧巻でした。" }],
+};

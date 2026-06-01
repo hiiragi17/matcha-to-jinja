@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { HiArrowLeft, HiHeart } from "react-icons/hi2";
+import { HiArrowLeft } from "react-icons/hi2";
 import Hairline from "@/components/brand/Hairline";
 import { ToriiIcon } from "@/components/brand/icons";
+import CommentSection from "@/components/common/CommentSection";
+import LikeButton from "@/components/common/LikeButton";
 import ShareButtons from "@/components/common/ShareButtons";
 import { ApiError, getGreentea } from "@/lib/api";
+import { auth } from "@/lib/auth";
 import type { GreenteaDetail, NearbySpot } from "@/types";
 
 type RouteParams = { id: string };
 
-async function fetchGreentea(id: string): Promise<GreenteaDetail> {
+async function fetchGreentea(
+  id: string,
+  authToken?: string,
+): Promise<GreenteaDetail> {
   try {
-    const { greentea } = await getGreentea(id);
+    const { greentea } = await getGreentea(id, authToken);
     return greentea;
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) notFound();
@@ -92,7 +98,8 @@ export default async function GreenteaDetailPage({
   params: Promise<RouteParams>;
 }) {
   const { id } = await params;
-  const greentea = await fetchGreentea(id);
+  const session = await auth();
+  const greentea = await fetchGreentea(id, session?.railsJwt);
 
   return (
     <article className="mx-auto w-full max-w-5xl px-6 py-12 md:px-12">
@@ -123,10 +130,13 @@ export default async function GreenteaDetailPage({
               {genre.name}
             </span>
           ))}
-          <span className="inline-flex items-center gap-1.5 border border-line bg-paper px-2.5 py-1 font-sans-jp text-[11px] text-muted">
-            <HiHeart className="h-3.5 w-3.5 text-bengara" aria-hidden="true" />
-            {greentea.likes_count}
-          </span>
+          <LikeButton
+            kind="greentea"
+            id={greentea.id}
+            initialCount={greentea.likes_count}
+            initialLiked={greentea.liked_by_current_user ?? false}
+            callbackUrl={`/greenteas/${greentea.id}`}
+          />
           {greentea.closed && (
             <span className="border border-bengara bg-bengara px-2.5 py-1 font-sans-jp text-[11px] tracking-[0.1em] text-paper">
               閉店
@@ -195,6 +205,23 @@ export default async function GreenteaDetailPage({
         </h2>
         <div className="mt-4">
           <NearbyTemples temples={greentea.nearby_temples} />
+        </div>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="font-mincho text-lg tracking-[0.12em] text-ink">
+          コメント
+          <span className="ml-3 font-sans-jp text-[10px] tracking-[0.3em] text-olive">
+            COMMENTS
+          </span>
+        </h2>
+        <div className="mt-4">
+          <CommentSection
+            kind="greentea"
+            targetId={greentea.id}
+            initialComments={greentea.comments}
+            callbackUrl={`/greenteas/${greentea.id}`}
+          />
         </div>
       </section>
     </article>

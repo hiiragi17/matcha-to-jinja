@@ -1,9 +1,17 @@
 export type { Genre } from "./genre";
 export type { Area } from "./area";
 export type { User } from "./user";
-export type { Comment } from "./comment";
+export type { Comment, CommentListResponse, CommentResponse } from "./comment";
 export type { Greentea } from "./greentea";
 export type { Temple } from "./temple";
+export type {
+  GreenteaLike,
+  TempleLike,
+  GreenteaLikeListResponse,
+  TempleLikeListResponse,
+  GreenteaLikeResponse,
+  TempleLikeResponse,
+} from "./like";
 export type {
   Meta,
   NearbySpot,
