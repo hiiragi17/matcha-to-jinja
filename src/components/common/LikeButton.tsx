@@ -36,6 +36,9 @@ export default function LikeButton({
   const [error, setError] = useState<string | null>(null);
 
   const toggle = async () => {
+    // useTransition の pending は startTransition 後にしか立たないため、
+    // 楽観的更新と startTransition の間に差し込まれる連打を別途ガードする。
+    if (pending) return;
     if (!authToken) {
       router.push(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
       return;

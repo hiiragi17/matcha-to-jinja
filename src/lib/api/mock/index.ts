@@ -443,7 +443,11 @@ export async function mockClient<T>(
     if (greenteaCommentMatch) {
       const uid = requireMockUser(headers);
       const id = Number(greenteaCommentMatch[1]);
-      if (!deleteGreenteaComment(id, uid)) {
+      const result = deleteGreenteaComment(id, uid);
+      if (result === "forbidden") {
+        throw new ApiError(403, { error: "not allowed to delete this comment" });
+      }
+      if (result === "not_found") {
         throw new ApiError(404, { error: "comment not found" });
       }
       return undefined as T;
@@ -453,7 +457,11 @@ export async function mockClient<T>(
     if (templeCommentMatch) {
       const uid = requireMockUser(headers);
       const id = Number(templeCommentMatch[1]);
-      if (!deleteTempleComment(id, uid)) {
+      const result = deleteTempleComment(id, uid);
+      if (result === "forbidden") {
+        throw new ApiError(403, { error: "not allowed to delete this comment" });
+      }
+      if (result === "not_found") {
         throw new ApiError(404, { error: "comment not found" });
       }
       return undefined as T;

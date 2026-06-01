@@ -101,6 +101,10 @@ export default function CommentSection({
           setDeleteError("ログインが必要です。");
           return;
         }
+        if (e instanceof ApiError && e.status === 403) {
+          setDeleteError("このコメントを削除する権限がありません。");
+          return;
+        }
         setDeleteError("削除に失敗しました。");
       }
     });
@@ -124,6 +128,8 @@ export default function CommentSection({
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={4}
+            // ハードカットは + 100 文字までで、上限超過は文字数カウンタを
+            // 赤くしてユーザーに気付かせ送信ボタンを無効化する UX を取る。
             maxLength={MAX_BODY_LENGTH + 100}
             placeholder="感想や訪問のメモを残してみましょう"
             disabled={submitting}

@@ -17,10 +17,15 @@ export async function apiClient<T>(
   options?: ApiClientOptions,
 ): Promise<T> {
   const { authToken, ...init } = options ?? {};
+  const method = (init.method ?? "GET").toUpperCase();
 
   // Headers インスタンスや [key, value][] で渡されても欠落しないようマージする。
   const headers = new Headers(init.headers);
-  if (!headers.has("Content-Type")) {
+  // GET/DELETE はボディを持たないため Content-Type を付けない。
+  // 付けると一部サーバー/プロキシで CORS preflight が増えたり、Rails が
+  // 406 Not Acceptable を返すケースがある。
+  const hasBody = method !== "GET" && method !== "DELETE";
+  if (hasBody && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
   if (authToken && !headers.has("Authorization")) {

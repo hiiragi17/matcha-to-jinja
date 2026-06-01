@@ -4,26 +4,37 @@ import Link from "next/link";
 import useSWR from "swr";
 import GreenteaCard from "@/components/greentea/GreenteaCard";
 import TempleCard from "@/components/temple/TempleCard";
-import { ApiError, getGreenteaLikes, getTempleLikes } from "@/lib/api";
+import {
+  ApiError,
+  getGreenteaLikes,
+  getTempleLikes,
+} from "@/lib/api";
 import { useAuthToken } from "@/lib/api/useAuthToken";
+import type {
+  GreenteaLikeListResponse,
+  TempleLikeListResponse,
+} from "@/types";
 
 type LikedSpotsListProps = {
   kind: "greentea" | "temple";
 };
+
+type LikesResponse = GreenteaLikeListResponse | TempleLikeListResponse;
+type SwrKey = readonly [string, string];
 
 export default function LikedSpotsList({ kind }: LikedSpotsListProps) {
   const authToken = useAuthToken();
   const callbackUrl =
     kind === "greentea" ? "/mypage/greentea-likes" : "/mypage/temple-likes";
 
-  const { data, error, isLoading } = useSWR(
-    authToken ? [`/${kind}_likes`, authToken] : null,
-    async () => {
-      if (kind === "greentea") {
-        return getGreenteaLikes(authToken!);
-      }
-      return getTempleLikes(authToken!);
-    },
+  // フェッチャーは SWR から渡されるキー（authToken を含む）からトークンを取り出す。
+  // クロージャ越しの authToken に依存するとキャッシュ無効化のタイミングがずれる。
+  const fetcher = ([, token]: SwrKey): Promise<LikesResponse> =>
+    kind === "greentea" ? getGreenteaLikes(token) : getTempleLikes(token);
+
+  const { data, error, isLoading } = useSWR<LikesResponse, ApiError, SwrKey | null>(
+    authToken ? ([`/${kind}_likes`, authToken] as const) : null,
+    fetcher,
   );
 
   if (!authToken) {
