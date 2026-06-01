@@ -1,5 +1,11 @@
 import type { Greentea, Temple, Genre, Area, Comment } from "@/types";
 
+export function mockUserName(userId: string): string {
+  // Authorization の "mock:<name>" 形式から表示名を取り出す。
+  // signIn 時にここへ任意の表示名を入れる前提（src/lib/auth.ts 参照）。
+  return userId.startsWith("mock-") ? userId.slice("mock-".length) : userId;
+}
+
 export const mockGenres: Genre[] = [
   { id: 1, name: "パフェ" },
   { id: 2, name: "ドリンク" },
@@ -12,14 +18,15 @@ export const mockAreas: Area[] = [
   { id: 3, name: "右京区" },
 ];
 
-const mockComments: Comment[] = [
-  {
-    id: 1,
-    body: "抹茶パフェが最高でした！",
-    user: { id: 1, name: "抹茶好き" },
-    created_at: "2024-01-15T10:30:00Z",
-  },
-];
+// 既存スポットに紐づくサンプルコメント（モック初期表示用）。
+// ユーザー ID は数値で持っているが、モックユーザーは文字列 ID なので
+// 削除権限の判定には引っかからない（= seed コメントは消せない）。
+const seedComment: Comment = {
+  id: 1,
+  body: "抹茶パフェが最高でした！",
+  user: { id: 1, name: "抹茶好き" },
+  created_at: "2024-01-15T10:30:00Z",
+};
 
 export const mockGreenteas: Greentea[] = [
   {
@@ -126,5 +133,9 @@ export const mockTemples: Temple[] = [
   },
 ];
 
-export const mockGreenteaComments = mockComments;
-export const mockTempleComments = mockComments;
+export const seedGreenteaComments: Record<number, Comment[]> = {
+  1: [seedComment],
+};
+export const seedTempleComments: Record<number, Comment[]> = {
+  1: [{ ...seedComment, id: 2, body: "建仁寺の風神雷神図、圧巻でした。" }],
+};

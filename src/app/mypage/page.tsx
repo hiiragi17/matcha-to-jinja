@@ -52,9 +52,36 @@ export default function MyPage() {
       </h1>
       <Hairline width={40} className="mt-5" />
 
-      <p className="mt-10 font-serif-jp text-sm leading-[2] text-muted">
-        お気に入り一覧の表示は現在準備中です（#24）。
-      </p>
+      <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <Link
+          href="/mypage/greentea-likes"
+          className="border border-line-soft bg-paper px-6 py-7 transition-colors hover:bg-washi-bg"
+        >
+          <p className="font-sans-jp text-[10px] tracking-[0.3em] text-olive">
+            FAVORITES — GREENTEA
+          </p>
+          <p className="mt-3 font-mincho text-xl text-ink">
+            お気に入りの抹茶店
+          </p>
+          <p className="mt-3 font-serif-jp text-xs leading-[1.9] text-muted">
+            これまでに気になった抹茶スイーツのお店を一覧で。
+          </p>
+        </Link>
+        <Link
+          href="/mypage/temple-likes"
+          className="border border-line-soft bg-paper px-6 py-7 transition-colors hover:bg-washi-bg"
+        >
+          <p className="font-sans-jp text-[10px] tracking-[0.3em] text-bengara">
+            FAVORITES — TEMPLES
+          </p>
+          <p className="mt-3 font-mincho text-xl text-ink">
+            お気に入りの神社仏閣
+          </p>
+          <p className="mt-3 font-serif-jp text-xs leading-[1.9] text-muted">
+            参拝・散策で気に入った社寺をいつでも見返せます。
+          </p>
+        </Link>
+      </div>
     </section>
   );
 }

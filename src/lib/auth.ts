@@ -62,11 +62,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: "jwt",
   },
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account, user }) {
       if (account?.provider) {
         token.provider = account.provider;
         // TODO(#15 連携): account.access_token を Rails の
         // POST /api/v1/auth/:provider に渡し、Rails 発行の JWT を token.railsJwt に保存する。
+        // モック provider は Rails が無いので、ここで擬似 JWT を発行して
+        // apiClient のヘッダ付与経路を本番と統一する（mock/index.ts が Bearer "mock:<id>" を識別）。
+        if (account.provider === "mock" && user?.id) {
+          token.railsJwt = `mock:${user.id}`;
+        }
       }
       return token;
     },

@@ -11,10 +11,16 @@ export type TempleSearchParams = {
 
 export function getTemples(
   params?: TempleSearchParams,
+  authToken?: string,
 ): Promise<TempleListResponse> {
-  return apiClient<TempleListResponse>(`/temples${buildQuery(params)}`);
+  return apiClient<TempleListResponse>(`/temples${buildQuery(params)}`, {
+    authToken,
+  });
 }
 
-export function getTemple(id: number | string): Promise<TempleDetailResponse> {
-  return apiClient<TempleDetailResponse>(`/temples/${id}`);
+export function getTemple(
+  id: number | string,
+  authToken?: string,
+): Promise<TempleDetailResponse> {
+  return apiClient<TempleDetailResponse>(`/temples/${id}`, { authToken });
 }

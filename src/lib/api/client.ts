@@ -6,22 +6,33 @@ const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
 
 export { ApiError } from "./error";
 
+export type ApiClientOptions = RequestInit & {
+  // Rails 発行の JWT。指定時は `Authorization: Bearer <token>` を付与する。
+  // mock モードでもユーザー識別に使う（"mock:<id>" 形式）。
+  authToken?: string;
+};
+
 export async function apiClient<T>(
   endpoint: string,
-  options?: RequestInit,
+  options?: ApiClientOptions,
 ): Promise<T> {
-  if (USE_MOCK) {
-    return mockClient<T>(endpoint, options);
-  }
+  const { authToken, ...init } = options ?? {};
 
   // Headers インスタンスや [key, value][] で渡されても欠落しないようマージする。
-  const headers = new Headers(options?.headers);
+  const headers = new Headers(init.headers);
   if (!headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
+  if (authToken && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${authToken}`);
+  }
+
+  if (USE_MOCK) {
+    return mockClient<T>(endpoint, { ...init, headers });
+  }
 
   const res = await fetch(`${API_BASE_URL}/api/v1${endpoint}`, {
-    ...options,
+    ...init,
     headers,
     credentials: "include",
   });
