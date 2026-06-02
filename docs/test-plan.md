@@ -12,6 +12,7 @@
 - **E2E（最小限）**: モックバックエンドで「ゴールデンパス」だけ Playwright で押さえる。フル網羅は狙わない。
 
 ### 1-2. 優先度の付け方
+
 | 優先度 | 対象 | 理由 |
 |--------|------|------|
 | **A** | 純粋ロジック / API クライアント / モック層 | 副作用がなく書きやすい。ROI が最も高い |
@@ -47,7 +48,7 @@
 
 ### 追加 devDependencies
 
-```
+```text
 vitest @vitejs/plugin-react @vitest/coverage-v8
 @testing-library/react @testing-library/jest-dom @testing-library/user-event
 jsdom msw
@@ -58,7 +59,7 @@ jsdom msw
 
 ## 3. ディレクトリ構成
 
-```
+```text
 src/
   lib/api/__tests__/        # client, buildQuery, 各リソース API
   lib/api/mock/__tests__/   # モックルーター・state
@@ -178,7 +179,7 @@ playwright.config.ts
 
 **目標: 1 日。モックモードで起動し、最小 3 シナリオだけ。**
 
-```
+```bash
 NEXT_PUBLIC_USE_MOCK=true AUTH_SECRET=test npm run dev
 ```
 
