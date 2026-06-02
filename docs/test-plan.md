@@ -179,10 +179,17 @@ playwright.config.ts
 **目標: 1 日。モックモードで起動し、最小 3 シナリオだけ。**
 
 ```
-NEXT_PUBLIC_USE_MOCK=true AUTH_SECRET=test npm run build && npm start
+NEXT_PUBLIC_USE_MOCK=true AUTH_SECRET=test npm run dev
 ```
 
 を Playwright の `webServer` で起動する。
+
+> **`next dev` を使う理由**: `src/lib/auth.ts` の mock Credentials provider は
+> `NODE_ENV !== "production"` のときだけ有効になる（本番混入防止）。
+> `next build && next start` は NODE_ENV=production になるため、シナリオ C（mock ログイン）
+> が通らない。
+> 本番ビルド経路を E2E でも通したい場合は、`auth.ts` に test 専用の有効化フラグ
+> （例: `process.env.AUTH_ALLOW_MOCK === "true"`）を追加する別タスクが必要。
 
 - シナリオ A: トップ → `/greenteas` → カードクリック → 詳細表示
 - シナリオ B: `/greenteas` で検索 → URL に `?q=...` 反映 → 結果絞り込み確認 → ページネーション
