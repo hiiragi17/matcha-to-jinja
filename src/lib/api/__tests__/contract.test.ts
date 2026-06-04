@@ -61,7 +61,7 @@ describe("API contract: 読み取り系", () => {
       });
 
       expect(captured).not.toBeNull();
-      const url = captured as unknown as URL;
+      const url = captured!;
       expect(url.searchParams.get("page")).toBe("2");
       expect(url.searchParams.get("q[name_cont]")).toBe("辻利");
       expect(url.searchParams.get("q[genres_id_eq]")).toBe("3");
@@ -157,7 +157,7 @@ describe("API contract: 読み取り系", () => {
 
       await getTemples({ q: { name_cont: "稲荷", areas_id_eq: 2 } });
 
-      const url = captured as unknown as URL;
+      const url = captured!;
       expect(url.searchParams.get("q[name_cont]")).toBe("稲荷");
       expect(url.searchParams.get("q[areas_id_eq]")).toBe("2");
     });
@@ -219,7 +219,7 @@ describe("API contract: 読み取り系", () => {
     it("lat / lng / radius をクエリで送出し、契約どおりのレスポンスを返す", async () => {
       const res = await getNearby({ lat: 35.003, lng: 135.771, radius: 1.5 });
 
-      const url = captured as unknown as URL;
+      const url = captured!;
       expect(url.searchParams.get("lat")).toBe("35.003");
       expect(url.searchParams.get("lng")).toBe("135.771");
       expect(url.searchParams.get("radius")).toBe("1.5");
@@ -237,11 +237,13 @@ describe("API contract: 読み取り系", () => {
       );
     });
 
-    it("400（パラメータ不正）で ApiError を throw する", async () => {
+    it("400（lat / lng が数値として無効）で ApiError を throw する", async () => {
+      // Number.NaN は URLSearchParams で "NaN" 文字列として送出されるため、
+      // 「lat/lng は存在するが数値として無効」というケースを再現する。
       server.use(
         http.get(endpoint("/nearby"), () =>
           HttpResponse.json(
-            { error: "lat and lng are required" },
+            { error: "lat and lng must be valid numbers" },
             { status: 400 },
           ),
         ),
