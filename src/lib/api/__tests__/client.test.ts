@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildQuery } from "../client";
+import { buildQuery } from "@/lib/api/client";
 
 // Phase 1 の本格的なテストは #45 で追加する。
 // ここではテストランナーが回ることだけ確認する最小ケース。
