@@ -24,3 +24,10 @@ export {
   deleteGreenteaComment,
   deleteTempleComment,
 } from "./comments";
+export { exchangeOAuthForJwt, getCurrentUser, revokeJwt } from "./auth";
+export type {
+  AuthProvider,
+  OAuthExchangePayload,
+  AuthExchangeResponse,
+  CurrentUserResponse,
+} from "./auth";

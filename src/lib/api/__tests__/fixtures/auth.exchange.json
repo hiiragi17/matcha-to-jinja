@@ -1,0 +1,7 @@
+{
+  "token": "rails.jwt.example-token",
+  "user": {
+    "id": 42,
+    "name": "テストユーザー"
+  }
+}

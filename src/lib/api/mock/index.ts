@@ -19,6 +19,7 @@ import type {
   TempleLikeResponse,
   TempleListResponse,
 } from "@/types";
+import type { CurrentUserResponse } from "../auth";
 import { ApiError } from "../error";
 import {
   mockAreas,
@@ -335,6 +336,13 @@ export async function mockClient<T>(
         comments: mergedTempleComments(templeId, userId),
       } satisfies CommentListResponse as T;
     }
+
+    if (path === "/current_user") {
+      const uid = requireMockUser(headers);
+      return {
+        user: { id: hashUserId(uid), name: mockUserName(uid) },
+      } satisfies CurrentUserResponse as T;
+    }
   }
 
   if (method === "POST") {
@@ -464,6 +472,13 @@ export async function mockClient<T>(
       if (result === "not_found") {
         throw new ApiError(404, { error: "comment not found" });
       }
+      return undefined as T;
+    }
+
+    // モックは Rails 側の JWT 失効ストレージを持たないため、認証済みリクエストには
+    // 204 を返すだけの no-op として振る舞う（未認証は 401）。
+    if (path === "/auth/logout") {
+      requireMockUser(headers);
       return undefined as T;
     }
   }
