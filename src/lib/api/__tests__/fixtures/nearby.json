@@ -1,0 +1,27 @@
+{
+  "greenteas": [
+    {
+      "id": 1,
+      "name": "茶寮都路里 祇園本店",
+      "latitude": 35.0036,
+      "longitude": 135.7752,
+      "distance_meters": 350
+    }
+  ],
+  "temples": [
+    {
+      "id": 3,
+      "name": "建仁寺",
+      "latitude": 35.0017,
+      "longitude": 135.7745,
+      "distance_meters": 600
+    },
+    {
+      "id": 4,
+      "name": "八坂神社",
+      "latitude": 35.0036,
+      "longitude": 135.7785,
+      "distance_meters": 900
+    }
+  ]
+}

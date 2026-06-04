@@ -1,0 +1,47 @@
+{
+  "greentea": {
+    "id": 1,
+    "name": "茶寮都路里 祇園本店",
+    "description": "宇治抹茶を使ったパフェで知られる老舗。",
+    "address": "京都市東山区四条通祇園町南側",
+    "access": "祇園四条駅から徒歩5分",
+    "phone_number": "075-561-2257",
+    "business_hours": "10:00-21:00",
+    "holiday": "不定休",
+    "homepage": "https://example.com/tsujiri",
+    "closed": false,
+    "img": "https://example.com/images/tsujiri.jpg",
+    "latitude": 35.0036,
+    "longitude": 135.7752,
+    "genres": [
+      { "id": 1, "name": "パフェ" }
+    ],
+    "likes_count": 12,
+    "liked_by_current_user": true,
+    "nearby_temples": [
+      {
+        "id": 3,
+        "name": "建仁寺",
+        "latitude": 35.0017,
+        "longitude": 135.7745,
+        "distance_meters": 450
+      },
+      {
+        "id": 4,
+        "name": "八坂神社",
+        "latitude": 35.0036,
+        "longitude": 135.7785,
+        "distance_meters": 1200
+      }
+    ],
+    "comments": [
+      {
+        "id": 1,
+        "body": "抹茶パフェが最高でした！",
+        "user": { "id": 1, "name": "テストユーザー" },
+        "created_at": "2024-01-15T10:30:00Z",
+        "owned_by_current_user": false
+      }
+    ]
+  }
+}

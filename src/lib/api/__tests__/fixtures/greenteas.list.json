@@ -1,0 +1,47 @@
+{
+  "greenteas": [
+    {
+      "id": 1,
+      "name": "茶寮都路里 祇園本店",
+      "description": "宇治抹茶を使ったパフェで知られる老舗。",
+      "address": "京都市東山区四条通祇園町南側",
+      "access": "祇園四条駅から徒歩5分",
+      "phone_number": "075-561-2257",
+      "business_hours": "10:00-21:00",
+      "holiday": "不定休",
+      "homepage": "https://example.com/tsujiri",
+      "closed": false,
+      "img": "https://example.com/images/tsujiri.jpg",
+      "latitude": 35.0036,
+      "longitude": 135.7752,
+      "genres": [
+        { "id": 1, "name": "パフェ" }
+      ],
+      "likes_count": 12
+    },
+    {
+      "id": 2,
+      "name": "中村藤吉本店",
+      "description": "宇治の老舗茶舗が手がける甘味処。",
+      "address": "京都府宇治市宇治壱番十番地",
+      "access": "JR宇治駅から徒歩1分",
+      "phone_number": "0774-22-7800",
+      "business_hours": "10:00-17:30",
+      "holiday": "無休",
+      "homepage": "https://example.com/nakamura",
+      "closed": false,
+      "img": "https://example.com/images/nakamura.jpg",
+      "latitude": 34.8916,
+      "longitude": 135.8076,
+      "genres": [
+        { "id": 2, "name": "甘味処" }
+      ],
+      "likes_count": 8
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "total_pages": 5,
+    "total_count": 48
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "temples": [
+    {
+      "id": 1,
+      "name": "清水寺",
+      "description": "音羽山の中腹に建つ、世界遺産にも登録された寺院。",
+      "address": "京都市東山区清水1丁目294",
+      "access": "京阪電鉄 清水五条駅から徒歩25分",
+      "phone_number": "075-551-1234",
+      "business_hours": "6:00-18:00",
+      "holiday": "無休",
+      "homepage": "https://example.com/kiyomizu",
+      "img": "https://example.com/images/kiyomizu.jpg",
+      "latitude": 34.9949,
+      "longitude": 135.7850,
+      "areas": [
+        { "id": 1, "name": "東山" }
+      ],
+      "likes_count": 24
+    },
+    {
+      "id": 2,
+      "name": "伏見稲荷大社",
+      "description": "千本鳥居で知られる、稲荷神社の総本宮。",
+      "address": "京都市伏見区深草薮之内町68",
+      "access": "JR稲荷駅すぐ",
+      "phone_number": "075-641-7331",
+      "business_hours": "終日参拝可能",
+      "holiday": "無休",
+      "homepage": "https://example.com/fushimi",
+      "img": "https://example.com/images/fushimi.jpg",
+      "latitude": 34.9671,
+      "longitude": 135.7727,
+      "areas": [
+        { "id": 2, "name": "伏見" }
+      ],
+      "likes_count": 32
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "total_pages": 3,
+    "total_count": 30
+  }
+}
