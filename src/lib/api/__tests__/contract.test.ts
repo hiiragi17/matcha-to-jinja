@@ -1,9 +1,23 @@
 import { http, HttpResponse } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 import { server } from "../../../../tests/msw/server";
-import { ApiError, getAreas, getGenres, getGreentea, getGreenteas, getNearby, getTemple, getTemples } from "..";
+import {
+  ApiError,
+  exchangeOAuthForJwt,
+  getAreas,
+  getCurrentUser,
+  getGenres,
+  getGreentea,
+  getGreenteas,
+  getNearby,
+  getTemple,
+  getTemples,
+  revokeJwt,
+} from "..";
 
 import areasFixture from "./fixtures/areas.list.json";
+import authExchangeFixture from "./fixtures/auth.exchange.json";
+import currentUserFixture from "./fixtures/current_user.json";
 import genresFixture from "./fixtures/genres.list.json";
 import greenteaShowFixture from "./fixtures/greenteas.show.json";
 import greenteasListFixture from "./fixtures/greenteas.list.json";
@@ -252,6 +266,123 @@ describe("API contract: 読み取り系", () => {
       await expect(
         getNearby({ lat: Number.NaN, lng: Number.NaN }),
       ).rejects.toMatchObject({ status: 400 });
+    });
+  });
+});
+
+describe("API contract: 認証系", () => {
+  describe("POST /auth/:provider", () => {
+    it("OAuth の access_token を渡して Rails の JWT を受け取る", async () => {
+      let receivedBody: unknown = null;
+      let receivedContentType: string | null = null;
+      server.use(
+        http.post(endpoint("/auth/twitter"), async ({ request }) => {
+          receivedContentType = request.headers.get("Content-Type");
+          receivedBody = await request.json();
+          return HttpResponse.json(authExchangeFixture);
+        }),
+      );
+
+      const res = await exchangeOAuthForJwt("twitter", {
+        access_token: "oauth-access-token-from-twitter",
+        uid: "tw-12345",
+        info: { name: "テストユーザー", email: null, image: null },
+      });
+
+      expect(receivedContentType).toBe("application/json");
+      expect(receivedBody).toEqual({
+        access_token: "oauth-access-token-from-twitter",
+        uid: "tw-12345",
+        info: { name: "テストユーザー", email: null, image: null },
+      });
+      expect(res.token).toBe("rails.jwt.example-token");
+      expect(res.user).toEqual({ id: 42, name: "テストユーザー" });
+    });
+
+    it("LINE provider も同じ契約で交換できる", async () => {
+      server.use(
+        http.post(endpoint("/auth/line"), () =>
+          HttpResponse.json(authExchangeFixture),
+        ),
+      );
+
+      const res = await exchangeOAuthForJwt("line", {
+        access_token: "oauth-access-token-from-line",
+      });
+
+      expect(res.token).toBe("rails.jwt.example-token");
+    });
+
+    it("401（OAuth トークン無効）で ApiError を throw する", async () => {
+      server.use(
+        http.post(endpoint("/auth/twitter"), () =>
+          HttpResponse.json(
+            { error: "invalid OAuth credentials" },
+            { status: 401 },
+          ),
+        ),
+      );
+
+      await expect(
+        exchangeOAuthForJwt("twitter", { access_token: "bad" }),
+      ).rejects.toBeInstanceOf(ApiError);
+      await expect(
+        exchangeOAuthForJwt("twitter", { access_token: "bad" }),
+      ).rejects.toMatchObject({ status: 401 });
+    });
+  });
+
+  describe("GET /current_user", () => {
+    it("Authorization 付きで current_user を返す", async () => {
+      let authHeader: string | null = null;
+      server.use(
+        http.get(endpoint("/current_user"), ({ request }) => {
+          authHeader = request.headers.get("Authorization");
+          return HttpResponse.json(currentUserFixture);
+        }),
+      );
+
+      const { user } = await getCurrentUser("rails.jwt.example-token");
+
+      expect(authHeader).toBe("Bearer rails.jwt.example-token");
+      expect(user).toEqual({ id: 42, name: "テストユーザー" });
+    });
+
+    it("401（未認証 / 期限切れ）で ApiError を throw する", async () => {
+      server.use(
+        http.get(endpoint("/current_user"), () =>
+          HttpResponse.json({ error: "Unauthorized" }, { status: 401 }),
+        ),
+      );
+
+      await expect(getCurrentUser("expired-token")).rejects.toMatchObject({
+        status: 401,
+      });
+    });
+  });
+
+  describe("DELETE /auth/logout", () => {
+    it("Authorization 付きで送出し、空ボディの 204 を受け取れる", async () => {
+      let authHeader: string | null = null;
+      server.use(
+        http.delete(endpoint("/auth/logout"), ({ request }) => {
+          authHeader = request.headers.get("Authorization");
+          return new HttpResponse(null, { status: 204 });
+        }),
+      );
+
+      await expect(revokeJwt("rails.jwt.example-token")).resolves.toBeUndefined();
+      expect(authHeader).toBe("Bearer rails.jwt.example-token");
+    });
+
+    it("401（既に失効）でも ApiError を throw する（呼び出し側で握りつぶす想定）", async () => {
+      server.use(
+        http.delete(endpoint("/auth/logout"), () =>
+          HttpResponse.json({ error: "Unauthorized" }, { status: 401 }),
+        ),
+      );
+
+      await expect(revokeJwt("expired")).rejects.toMatchObject({ status: 401 });
     });
   });
 });
