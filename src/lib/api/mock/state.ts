@@ -43,6 +43,18 @@ const store: MockStore = ((): MockStore => {
   return g[globalKey]!;
 })();
 
+// テスト用にインメモリストアを初期化する。各テストの beforeEach から呼ぶ想定。
+// 本番では呼ばれない（mock モード自体が本番では無効）。
+export function resetMockStore(): void {
+  store.greenteaLikes.clear();
+  store.templeLikes.clear();
+  store.greenteaComments.clear();
+  store.templeComments.clear();
+  store.greenteaLikeCountDelta.clear();
+  store.templeLikeCountDelta.clear();
+  store.nextCommentId.value = 1000;
+}
+
 function ensureSet<K, V>(map: Map<K, Set<V>>, key: K): Set<V> {
   let set = map.get(key);
   if (!set) {
