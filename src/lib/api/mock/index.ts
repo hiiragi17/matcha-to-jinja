@@ -19,6 +19,7 @@ import type {
   TempleLikeResponse,
   TempleListResponse,
 } from "@/types";
+import { distanceMeters } from "@/lib/utils/distance";
 import type { CurrentUserResponse } from "../auth";
 import { ApiError } from "../error";
 import {
@@ -60,23 +61,6 @@ function paginate<T>(items: T[], page: number) {
       total_count: items.length,
     },
   };
-}
-
-// 緯度経度から概算の距離（メートル）を求める（Haversine）。
-function distanceMeters(
-  from: { latitude: number; longitude: number },
-  to: { latitude: number; longitude: number },
-): number {
-  const R = 6371000;
-  const toRad = (deg: number) => (deg * Math.PI) / 180;
-  const dLat = toRad(to.latitude - from.latitude);
-  const dLng = toRad(to.longitude - from.longitude);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(from.latitude)) *
-      Math.cos(toRad(to.latitude)) *
-      Math.sin(dLng / 2) ** 2;
-  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
 function notFound(endpoint: string): never {
