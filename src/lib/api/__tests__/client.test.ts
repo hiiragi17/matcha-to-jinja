@@ -1,6 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
-import { server } from "../../../../tests/msw/server";
+import { server } from "@tests/msw/server";
 import { ApiError, apiClient, buildQuery } from "@/lib/api/client";
 
 const API_BASE_URL =
