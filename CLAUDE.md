@@ -95,6 +95,19 @@ src/
 - **デザインは daisyUI + Tailwind** で既存 greentea_temple のデザインを踏襲する。
 - コメントは「なぜ」が非自明な場合のみ。自明な処理にコメントを足さない。
 
+### import スタイル
+
+`src/` 配下の import パスは、以下の使い分けで統一する。ESLint の `no-restricted-imports` で機械的にチェックする。
+
+- **同階層 (`./xxx`)** — 相対 import を使う。例: `src/lib/api/greenteas.ts` から `import { apiClient } from "./client"`
+- **同一パッケージ内の親 1 階層 (`../xxx`)** — 相対 import を使ってよい。例: `src/lib/api/mock/index.ts` から `import { ApiError } from "../error"`
+- **親 2 階層以上 (`../../`, `../../../`...)** — `@/*` エイリアス必須。深い相対 path は禁止する（ESLint で error）。
+  - 例: ❌ `import { ApiError } from "../../error"` → ✅ `import { ApiError } from "@/lib/api/error"`
+- **`tests/` 配下への参照** — `@tests/*` エイリアスを使う。`@/*` は `src/*` のみを指す。
+  - 例: ✅ `import { server } from "@tests/msw/server"`
+
+`tests/` 内の `./xxx` / `../xxx` の相対 import は同様の基準で OK。
+
 ## 著作権・免責
 
 - 画像は外部URL参照のみ（Rails 側 CarrierWave の URL をそのまま表示）。

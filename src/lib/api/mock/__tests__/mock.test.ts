@@ -14,7 +14,7 @@ import type {
   TempleLikeResponse,
   TempleListResponse,
 } from "@/types";
-import { ApiError } from "../../error";
+import { ApiError } from "@/lib/api/error";
 import { mockClient } from "../index";
 import { resetMockStore } from "../state";
 
