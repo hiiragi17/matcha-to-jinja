@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse, delay } from "msw";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -147,7 +147,7 @@ describe("LikeButton", () => {
     });
   });
 
-  it("連打しても二重リクエストが発生しない（loading 中は disabled）", async () => {
+  it("連打しても二重リクエストが発生しない（pending 立ち上がり前の同期連打も弾く）", async () => {
     mockLoggedIn();
     let calls = 0;
     server.use(
@@ -160,7 +160,6 @@ describe("LikeButton", () => {
       }),
     );
 
-    const user = userEvent.setup();
     render(
       <LikeButton
         kind="temple"
@@ -172,10 +171,14 @@ describe("LikeButton", () => {
     );
 
     const button = screen.getByRole("button");
-    // 連打: 1 回目で startTransition が走り、以降は pending で弾かれる。
-    await user.click(button);
-    await user.click(button);
-    await user.click(button);
+    // disabled が React 再レンダで立ち上がる前の同一イベントループでの連打を踏ませる。
+    // userEvent.click は await ごとに React のフラッシュを待つため、useTransition の
+    // pending=true が反映された 2 回目以降のクリックは disabled で弾かれてしまい、
+    // 「if (pending) return;」の早期 return ガード自体は通っていない。fireEvent で
+    // 同期的に 3 連射し、内部ガードが効くことを確認する。
+    fireEvent.click(button);
+    fireEvent.click(button);
+    fireEvent.click(button);
 
     await waitFor(() => {
       expect(button).not.toBeDisabled();

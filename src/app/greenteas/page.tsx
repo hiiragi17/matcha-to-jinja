@@ -50,7 +50,8 @@ export default async function GreenteasPage({
   const preservedQuery = buildPreservedQuery(sp);
 
   // 範囲外の page= が指定された場合は最終ページへ寄せる（モック実装でも空配列を防ぐ）。
-  if (page > meta.total_pages) {
+  // total_pages が 0 のときは redirect ループを防ぐためガードする。
+  if (meta.total_pages > 0 && page > meta.total_pages) {
     const params = new URLSearchParams(preservedQuery);
     if (meta.total_pages > 1) params.set("page", String(meta.total_pages));
     const query = params.toString();

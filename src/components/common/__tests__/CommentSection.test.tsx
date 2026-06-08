@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CommentSection from "@/components/common/CommentSection";
 import { server } from "@tests/msw/server";
 import type { Comment } from "@/types";
@@ -18,6 +18,12 @@ const endpoint = (path: string) => `${API_BASE_URL}/api/v1${path}`;
 
 beforeEach(() => {
   useSessionMock.mockReset();
+});
+
+// window.confirm 等の vi.spyOn を確実に元に戻す。アサーション失敗で
+// 各テスト末尾の mockRestore() に到達しなくても次テストにリークしない。
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 function mockLoggedIn() {
@@ -207,12 +213,11 @@ describe("CommentSection", () => {
       expect(screen.queryByText("削除対象")).not.toBeInTheDocument();
     });
     expect(screen.getByText(/まだコメントはありません/)).toBeInTheDocument();
-    confirmSpy.mockRestore();
   });
 
   it("確認ダイアログをキャンセルすると削除されない", async () => {
     mockLoggedIn();
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    vi.spyOn(window, "confirm").mockReturnValue(false);
     const user = userEvent.setup();
     render(
       <CommentSection
@@ -227,6 +232,5 @@ describe("CommentSection", () => {
 
     await user.click(screen.getByRole("button", { name: /削除/ }));
     expect(screen.getByText("残す")).toBeInTheDocument();
-    confirmSpy.mockRestore();
   });
 });

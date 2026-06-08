@@ -77,4 +77,15 @@ describe("/greenteas page — SSR 境界", () => {
     await Page({ searchParams: Promise.resolve({ page: "2" }) });
     expect(redirectMock).not.toHaveBeenCalled();
   });
+
+  it("total_pages が 0 のときは redirect しない（ループ防止）", async () => {
+    getGreenteasMock.mockResolvedValueOnce({
+      greenteas: [],
+      meta: { current_page: 1, total_pages: 0, total_count: 0 },
+    });
+    const { default: Page } = await import("@/app/greenteas/page");
+
+    await Page({ searchParams: Promise.resolve({ page: "5" }) });
+    expect(redirectMock).not.toHaveBeenCalled();
+  });
 });
