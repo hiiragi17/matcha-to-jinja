@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const redirectMock = vi.fn((url: string) => {
-  // Next.js の redirect() は throw して呼び出し以降の処理を中断する。
-  // テストでは sentinel エラーを投げて呼び出しを検知する。
-  throw new Error(`NEXT_REDIRECT:${url}`);
-});
-
-const getGreenteasMock = vi.fn();
-const getGenresMock = vi.fn().mockResolvedValue({ genres: [] });
+// vi.mock のファクトリは vi.mock 自体と共にホイストされる。top-level const を
+// 直接参照すると TDZ に当たる恐れがあるため、共有 fake は vi.hoisted() で先に作る。
+const { redirectMock, getGreenteasMock, getGenresMock } = vi.hoisted(() => ({
+  redirectMock: vi.fn((url: string) => {
+    throw new Error(`NEXT_REDIRECT:${url}`);
+  }),
+  getGreenteasMock: vi.fn(),
+  getGenresMock: vi.fn().mockResolvedValue({ genres: [] }),
+}));
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,

@@ -1,11 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const redirectMock = vi.fn((url: string) => {
-  throw new Error(`NEXT_REDIRECT:${url}`);
-});
-
-const getTemplesMock = vi.fn();
-const getAreasMock = vi.fn().mockResolvedValue({ areas: [] });
+// vi.mock のファクトリは vi.mock 自体と共にホイストされる。top-level const を
+// 直接参照すると TDZ に当たる恐れがあるため、共有 fake は vi.hoisted() で先に作る。
+const { redirectMock, getTemplesMock, getAreasMock } = vi.hoisted(() => ({
+  redirectMock: vi.fn((url: string) => {
+    throw new Error(`NEXT_REDIRECT:${url}`);
+  }),
+  getTemplesMock: vi.fn(),
+  getAreasMock: vi.fn().mockResolvedValue({ areas: [] }),
+}));
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,

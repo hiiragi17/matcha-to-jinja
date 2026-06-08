@@ -1,12 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/error";
 
-const notFoundMock = vi.fn(() => {
-  throw new Error("NEXT_NOT_FOUND");
-});
-
-const getTempleMock = vi.fn();
-const authMock = vi.fn().mockResolvedValue(null);
+// vi.mock のファクトリは vi.mock 自体と共にホイストされる。top-level const を
+// 直接参照すると TDZ に当たる恐れがあるため、共有 fake は vi.hoisted() で先に作る。
+const { notFoundMock, getTempleMock, authMock } = vi.hoisted(() => ({
+  notFoundMock: vi.fn(() => {
+    throw new Error("NEXT_NOT_FOUND");
+  }),
+  getTempleMock: vi.fn(),
+  authMock: vi.fn().mockResolvedValue(null),
+}));
 
 vi.mock("next/navigation", () => ({
   notFound: notFoundMock,
