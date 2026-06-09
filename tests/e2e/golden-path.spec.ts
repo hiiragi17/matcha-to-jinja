@@ -69,13 +69,18 @@ test.describe("シナリオ B: 検索フォームで URL と結果が絞り込�
 test.describe("シナリオ C: mock ログイン → Like → お気に入り一覧", () => {
   test("ログイン後の LikeButton トグルが /mypage/greentea-likes に反映される", async ({
     page,
-  }) => {
+  }, testInfo) => {
     // mock provider でログイン（NEXT_PUBLIC_USE_MOCK=true により有効化されている）。
     await page.goto("/auth/login");
     // 表示名はそのまま Authorization ヘッダの `mock:mock-<name>` に乗るため、
     // 非 ASCII（例: 日本語）を入れると Headers.set が ByteString エラーになる。
     // SSR ページ（/greenteas/[id]）の fetch で 500 になるので ASCII で入力する。
-    await page.getByRole("textbox", { name: /表示名/ }).fill("tester");
+    //
+    // モック store は globalThis に永続化されるため、固定名だと retry 時に
+    // 「既に like 済み」の状態から始まってしまい、`お気に入りに追加` ボタンが
+    // 出ず Playwright の retry で復帰できない。試行ごとに一意な名前を使う。
+    const displayName = `tester-${Date.now()}-${testInfo.retry}`;
+    await page.getByRole("textbox", { name: /表示名/ }).fill(displayName);
     await page.getByRole("button", { name: /モックでログイン/ }).click();
 
     // ログイン成功で /mypage へリダイレクト。
@@ -89,12 +94,23 @@ test.describe("シナリオ C: mock ログイン → Like → お気に入り一
     await expect(likeButton).toBeVisible();
     await likeButton.click();
     // 楽観的更新で aria-label が「解除」に切り替わる。
-    await expect(
-      page.getByRole("button", { name: "お気に入りを解除" }),
-    ).toBeVisible();
+    const unlikeButton = page.getByRole("button", { name: "お気に入りを解除" });
+    await expect(unlikeButton).toBeVisible();
+    // useTransition の async 完了を待つ（mock の store 反映を確実に）。
+    await expect(unlikeButton).toBeEnabled();
 
     // お気に入り一覧に反映される。
-    await page.goto("/mypage/greentea-likes");
+    //
+    // 注: モックの like state はブラウザの globalThis に乗っているため、
+    // page.goto による full reload では document が再ロードされて消える。
+    // /mypage/greentea-likes へは Next.js の soft navigation（Link クリック）
+    // で辿り、JS コンテキストを維持する。
+    await page
+      .getByRole("link", { name: "お気に入り", exact: true })
+      .click();
+    await page.waitForURL("**/mypage");
+    await page.getByRole("link", { name: /お気に入りの抹茶店/ }).click();
+    await page.waitForURL("**/mypage/greentea-likes");
     await expect(
       page.getByRole("heading", { level: 1, name: "抹茶店" }),
     ).toBeVisible();
