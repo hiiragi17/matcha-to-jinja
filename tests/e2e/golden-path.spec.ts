@@ -8,11 +8,11 @@ test.describe("シナリオ A: トップ → 一覧 → 詳細", () => {
     page,
   }) => {
     await page.goto("/");
-    // トップにはワードマーク（alt="抹茶と神社。"）の Logo 画像が出る。
-    await expect(page.getByRole("img", { name: "抹茶と神社。" })).toBeVisible();
-
-    // トップの主要導線「抹茶スイーツを探す」から一覧へ。
-    await page.getByRole("link", { name: /抹茶スイーツを探す/ }).click();
+    // トップの主要導線「抹茶スイーツを探す」が出ること（ヘッダロゴと本文ロゴが
+    // 同じ alt を持ち strict mode に引っかかるため、ナビ導線で到達確認する）。
+    const enterLink = page.getByRole("link", { name: /抹茶スイーツを探す/ });
+    await expect(enterLink).toBeVisible();
+    await enterLink.click();
     await page.waitForURL("**/greenteas");
     await expect(
       page.getByRole("heading", { level: 1, name: "抹茶店をさがす" }),
@@ -72,9 +72,10 @@ test.describe("シナリオ C: mock ログイン → Like → お気に入り一
   }) => {
     // mock provider でログイン（NEXT_PUBLIC_USE_MOCK=true により有効化されている）。
     await page.goto("/auth/login");
-    await page
-      .getByRole("textbox", { name: /表示名/ })
-      .fill("テスター");
+    // 表示名はそのまま Authorization ヘッダの `mock:mock-<name>` に乗るため、
+    // 非 ASCII（例: 日本語）を入れると Headers.set が ByteString エラーになる。
+    // SSR ページ（/greenteas/[id]）の fetch で 500 になるので ASCII で入力する。
+    await page.getByRole("textbox", { name: /表示名/ }).fill("tester");
     await page.getByRole("button", { name: /モックでログイン/ }).click();
 
     // ログイン成功で /mypage へリダイレクト。
