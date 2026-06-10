@@ -88,7 +88,7 @@ export default function PrivacyPage() {
       </div>
 
       <p className="mt-14 text-right font-sans-jp text-[11px] tracking-[0.1em] text-muted">
-        最終更新: 2026年5月
+        最終更新: 2026年6月
       </p>
     </article>
   );
