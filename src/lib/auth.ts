@@ -1,7 +1,7 @@
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Line from "next-auth/providers/line";
-import Twitter from "next-auth/providers/twitter";
+import Google from "next-auth/providers/google";
 import {
   exchangeOAuthForJwt,
   revokeJwt,
@@ -9,18 +9,18 @@ import {
 } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
 
-const RAILS_AUTH_PROVIDERS = new Set<string>(["twitter", "line"]);
+const RAILS_AUTH_PROVIDERS = new Set<string>(["google", "line"]);
 
 function isRailsAuthProvider(provider: string): provider is AuthProvider {
   return RAILS_AUTH_PROVIDERS.has(provider);
 }
 
-const twitterId = process.env.AUTH_TWITTER_ID;
-const twitterSecret = process.env.AUTH_TWITTER_SECRET;
+const googleId = process.env.AUTH_GOOGLE_ID;
+const googleSecret = process.env.AUTH_GOOGLE_SECRET;
 const lineId = process.env.AUTH_LINE_ID;
 const lineSecret = process.env.AUTH_LINE_SECRET;
 
-const hasTwitter = Boolean(twitterId && twitterSecret);
+const hasGoogle = Boolean(googleId && googleSecret);
 const hasLine = Boolean(lineId && lineSecret);
 
 // Rails JWT (#15) 未連携の間、OAuth クレデンシャル未設定でも UI を確認できるよう
@@ -29,12 +29,12 @@ const hasLine = Boolean(lineId && lineSecret);
 // production では一切有効化しない。
 const enableMock =
   process.env.NODE_ENV !== "production" &&
-  (process.env.NEXT_PUBLIC_USE_MOCK === "true" || (!hasTwitter && !hasLine));
+  (process.env.NEXT_PUBLIC_USE_MOCK === "true" || (!hasGoogle && !hasLine));
 
 const providers: NextAuthConfig["providers"] = [];
 
-if (hasTwitter) {
-  providers.push(Twitter({ clientId: twitterId, clientSecret: twitterSecret }));
+if (hasGoogle) {
+  providers.push(Google({ clientId: googleId, clientSecret: googleSecret }));
 }
 if (hasLine) {
   providers.push(Line({ clientId: lineId, clientSecret: lineSecret }));
@@ -60,7 +60,7 @@ if (enableMock) {
 }
 
 export const AVAILABLE_PROVIDERS = {
-  twitter: hasTwitter,
+  google: hasGoogle,
   line: hasLine,
   mock: enableMock,
 } as const;

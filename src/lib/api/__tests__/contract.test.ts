@@ -276,23 +276,23 @@ describe("API contract: 認証系", () => {
       let receivedBody: unknown = null;
       let receivedContentType: string | null = null;
       server.use(
-        http.post(endpoint("/auth/twitter"), async ({ request }) => {
+        http.post(endpoint("/auth/google"), async ({ request }) => {
           receivedContentType = request.headers.get("Content-Type");
           receivedBody = await request.json();
           return HttpResponse.json(authExchangeFixture);
         }),
       );
 
-      const res = await exchangeOAuthForJwt("twitter", {
-        access_token: "oauth-access-token-from-twitter",
-        uid: "tw-12345",
+      const res = await exchangeOAuthForJwt("google", {
+        access_token: "oauth-access-token-from-google",
+        uid: "gg-12345",
         info: { name: "テストユーザー", email: null, image: null },
       });
 
       expect(receivedContentType).toBe("application/json");
       expect(receivedBody).toEqual({
-        access_token: "oauth-access-token-from-twitter",
-        uid: "tw-12345",
+        access_token: "oauth-access-token-from-google",
+        uid: "gg-12345",
         info: { name: "テストユーザー", email: null, image: null },
       });
       expect(res.token).toBe("rails.jwt.example-token");
@@ -315,7 +315,7 @@ describe("API contract: 認証系", () => {
 
     it("401（OAuth トークン無効）で ApiError を throw する", async () => {
       server.use(
-        http.post(endpoint("/auth/twitter"), () =>
+        http.post(endpoint("/auth/google"), () =>
           HttpResponse.json(
             { error: "invalid OAuth credentials" },
             { status: 401 },
@@ -324,10 +324,10 @@ describe("API contract: 認証系", () => {
       );
 
       await expect(
-        exchangeOAuthForJwt("twitter", { access_token: "bad" }),
+        exchangeOAuthForJwt("google", { access_token: "bad" }),
       ).rejects.toBeInstanceOf(ApiError);
       await expect(
-        exchangeOAuthForJwt("twitter", { access_token: "bad" }),
+        exchangeOAuthForJwt("google", { access_token: "bad" }),
       ).rejects.toMatchObject({ status: 401 });
     });
   });
