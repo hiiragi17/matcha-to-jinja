@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { FaXTwitter } from "react-icons/fa6";
+import { FcGoogle } from "react-icons/fc";
 import { SiLine } from "react-icons/si";
 import Hairline from "@/components/brand/Hairline";
 import MockLoginForm from "@/components/auth/MockLoginForm";
@@ -31,19 +31,19 @@ export default async function LoginPage() {
       </p>
 
       <div className="mt-10 flex w-full flex-col gap-3">
-        {AVAILABLE_PROVIDERS.twitter ? (
+        {AVAILABLE_PROVIDERS.google ? (
           <form
             action={async () => {
               "use server";
-              await signIn("twitter", { redirectTo: "/mypage" });
+              await signIn("google", { redirectTo: "/mypage" });
             }}
           >
             <button
               type="submit"
-              className="flex w-full items-center justify-center gap-3 border border-ink bg-ink px-4 py-3 font-mincho text-[13px] tracking-[0.15em] text-paper transition-opacity hover:opacity-90"
+              className="flex w-full items-center justify-center gap-3 border border-line bg-paper px-4 py-3 font-mincho text-[13px] tracking-[0.15em] text-ink transition-opacity hover:opacity-90"
             >
-              <FaXTwitter aria-hidden="true" className="h-4 w-4" />
-              X (Twitter) でログイン
+              <FcGoogle aria-hidden="true" className="h-4 w-4" />
+              Google でログイン
             </button>
           </form>
         ) : null}

@@ -1,7 +1,7 @@
 import type { User } from "@/types";
 import { apiClient } from "./client";
 
-export type AuthProvider = "twitter" | "line";
+export type AuthProvider = "google" | "line";
 
 export type OAuthExchangePayload = {
   // OAuth provider が発行したアクセストークン。Rails 側で再度プロバイダに問い合わせ

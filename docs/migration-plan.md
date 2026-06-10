@@ -5,7 +5,7 @@
 ### greentea_temple (Rails アプリ)
 - **概要**: 京都の抹茶スイーツ店と神社仏閣を組み合わせて紹介するWebアプリ
 - **技術スタック**: Ruby 3.1.2 / Rails 7.0.3 / PostgreSQL / Hotwire / Tailwind CSS + daisyUI
-- **認証**: Sorcery + OAuth (Twitter, LINE) ※パスワード認証なし
+- **認証**: Sorcery + OAuth (Google, LINE) ※パスワード認証なし
 - **特徴的機能**: Geokit による位置情報検索（1.5km圏内の近隣スポット表示）
 - **API**: 現状なし（サーバーサイドレンダリングのみ）
 
@@ -145,7 +145,7 @@ app/controllers/api/v1/
 - `jwt` gem（シンプルな JWT 生成・検証）
 
 **フロー:**
-1. Next.js フロントからOAuth認証プロバイダ（Twitter/LINE）へリダイレクト
+1. Next.js フロントからOAuth認証プロバイダ（Google/LINE）へリダイレクト
 2. コールバックで Rails API が JWT トークンを発行
 3. Next.js が JWT を Cookie（httpOnly, secure, sameSite）に保存
 4. 以降のAPIリクエストで Authorization ヘッダーに JWT を付与
@@ -423,7 +423,7 @@ export async function apiClient<T>(
 ### OAuth フロー（Next.js + Rails API）
 
 ```
-[ユーザー] → [Next.js] → [OAuth Provider (Twitter/LINE)]
+[ユーザー] → [Next.js] → [OAuth Provider (Google/LINE)]
                                     ↓
                               [コールバック]
                                     ↓
@@ -765,4 +765,4 @@ RAILS_MASTER_KEY=xxxxx
 3. **検索**: Ransack の検索パラメータを API で受け付けるように変換（`q[name_cont]` 等）
 4. **ページネーション**: Kaminari のメタ情報を API レスポンスに含める
 5. **管理画面**: Administrate はそのまま Rails 側で運用（API化の対象外）
-6. **LINE/Twitter OAuth**: プロバイダのコールバック URL を Next.js 側に変更する必要あり
+6. **LINE/Google OAuth**: プロバイダのコールバック URL を Next.js 側に変更する必要あり

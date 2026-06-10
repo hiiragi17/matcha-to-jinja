@@ -26,7 +26,7 @@
 - daisyUI — 既存デザイン踏襲のための Tailwind プラグイン
 - SWR または TanStack Query — データフェッチ/キャッシュ
 - react-icons — アイコン
-- next-auth — OAuth（Twitter / LINE）フロー管理
+- next-auth — OAuth（Google / LINE）フロー管理
 - react-hook-form + zod + @hookform/resolvers — フォーム
 - @react-google-maps/api または @vis.gl/react-google-maps — 地図
 
