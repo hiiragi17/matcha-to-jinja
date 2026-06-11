@@ -7,7 +7,7 @@ import {
   isForbidden,
   isUnauthorized,
   isValidationError,
-} from "@/lib/api/error";
+} from "../error";
 
 describe("error ユーティリティ", () => {
   describe("getErrorStatus / getErrorData", () => {
