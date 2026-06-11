@@ -8,6 +8,7 @@ import {
   ApiError,
   getGreenteaLikes,
   getTempleLikes,
+  isUnauthorized,
 } from "@/lib/api";
 import { useAuthToken } from "@/lib/api/useAuthToken";
 import type {
@@ -62,10 +63,9 @@ export default function LikedSpotsList({ kind }: LikedSpotsListProps) {
   }
 
   if (error) {
-    const msg =
-      error instanceof ApiError && error.status === 401
-        ? "ログインの有効期限が切れました。再度ログインしてください。"
-        : "お気に入りの取得に失敗しました。時間を置いてお試しください。";
+    const msg = isUnauthorized(error)
+      ? "ログインの有効期限が切れました。再度ログインしてください。"
+      : "お気に入りの取得に失敗しました。時間を置いてお試しください。";
     return (
       <p role="alert" className="font-sans-jp text-xs text-bengara">
         {msg}

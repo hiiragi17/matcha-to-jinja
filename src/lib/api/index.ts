@@ -1,5 +1,13 @@
 export { apiClient, buildQuery, ApiError } from "./client";
 export type { ApiClientOptions } from "./client";
+export {
+  getErrorStatus,
+  getErrorData,
+  isUnauthorized,
+  isForbidden,
+  isValidationError,
+  getApiErrorMessage,
+} from "./error";
 export { getGreenteas, getGreentea } from "./greenteas";
 export type { GreenteaSearchParams } from "./greenteas";
 export { getTemples, getTemple } from "./temples";

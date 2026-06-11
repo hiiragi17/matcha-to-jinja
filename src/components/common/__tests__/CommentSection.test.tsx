@@ -4,6 +4,7 @@ import { http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CommentSection from "@/components/common/CommentSection";
 import { server } from "@tests/msw/server";
+import { commentDeleted, writeError } from "@tests/msw/writeApiHandlers";
 import type { Comment } from "@/types";
 
 const useSessionMock = vi.fn();
@@ -164,6 +165,64 @@ describe("CommentSection", () => {
     expect(items[1]).toHaveTextContent("既存コメント");
   });
 
+  it("投稿が 422 だとサーバーのバリデーションメッセージを表示する", async () => {
+    mockLoggedIn();
+    server.use(
+      writeError("post", "greenteacomments", 422, {
+        errors: ["本文を入力してください"],
+      }),
+    );
+
+    const user = userEvent.setup();
+    render(
+      <CommentSection
+        kind="greentea"
+        targetId={1}
+        initialComments={[]}
+        callbackUrl="/greenteas/1"
+      />,
+    );
+
+    await user.type(
+      screen.getByRole("textbox", { name: /コメントを書く/ }),
+      "ng",
+    );
+    await user.click(screen.getByRole("button", { name: /投稿する/ }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "本文を入力してください",
+      );
+    });
+    // 楽観追加していないので、リストは空のまま。
+    expect(screen.getByText(/まだコメントはありません/)).toBeInTheDocument();
+  });
+
+  it("投稿が 401 だと再ログイン案内を表示する", async () => {
+    mockLoggedIn();
+    server.use(writeError("post", "greenteacomments", 401));
+
+    const user = userEvent.setup();
+    render(
+      <CommentSection
+        kind="greentea"
+        targetId={1}
+        initialComments={[]}
+        callbackUrl="/greenteas/1"
+      />,
+    );
+
+    await user.type(
+      screen.getByRole("textbox", { name: /コメントを書く/ }),
+      "感想",
+    );
+    await user.click(screen.getByRole("button", { name: /投稿する/ }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(/再度ログイン/);
+    });
+  });
+
   it("自分のコメントだけ「削除」ボタンが表示される", () => {
     mockLoggedIn();
     render(
@@ -187,11 +246,7 @@ describe("CommentSection", () => {
 
   it("削除すると確認ダイアログ後にリストから消える", async () => {
     mockLoggedIn();
-    server.use(
-      http.delete(endpoint("/greenteacomments/2"), () =>
-        HttpResponse.text(null, { status: 204 }),
-      ),
-    );
+    server.use(commentDeleted("greentea"));
 
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     const user = userEvent.setup();
@@ -232,5 +287,31 @@ describe("CommentSection", () => {
 
     await user.click(screen.getByRole("button", { name: /削除/ }));
     expect(screen.getByText("残す")).toBeInTheDocument();
+  });
+
+  it("他人のコメント削除で 403 が返るとロールバックして権限エラーを表示する", async () => {
+    mockLoggedIn();
+    server.use(writeError("delete", "greenteacomments", 403));
+
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const user = userEvent.setup();
+    render(
+      <CommentSection
+        kind="greentea"
+        targetId={1}
+        initialComments={[
+          baseComment({ id: 2, body: "消せない", owned_by_current_user: true }),
+        ]}
+        callbackUrl="/greenteas/1"
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /削除/ }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(/権限がありません/);
+    });
+    // ロールバックされ、コメントは残る。
+    expect(screen.getByText("消せない")).toBeInTheDocument();
   });
 });
