@@ -4,11 +4,14 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { HiTrash } from "react-icons/hi2";
 import {
-  ApiError,
   createGreenteaComment,
   createTempleComment,
   deleteGreenteaComment,
   deleteTempleComment,
+  getApiErrorMessage,
+  isForbidden,
+  isUnauthorized,
+  isValidationError,
 } from "@/lib/api";
 import { useAuthToken } from "@/lib/api/useAuthToken";
 import type { Comment } from "@/types";
@@ -69,8 +72,12 @@ export default function CommentSection({
         ]);
         setBody("");
       } catch (e) {
-        if (e instanceof ApiError && e.status === 401) {
+        if (isUnauthorized(e)) {
           setSubmitError("ログインの有効期限が切れました。再度ログインしてください。");
+          return;
+        }
+        if (isValidationError(e)) {
+          setSubmitError(getApiErrorMessage(e, "投稿内容を確認してください。"));
           return;
         }
         setSubmitError("投稿に失敗しました。時間を置いてお試しください。");
@@ -97,11 +104,11 @@ export default function CommentSection({
         }
       } catch (e) {
         setComments(snapshot);
-        if (e instanceof ApiError && e.status === 401) {
+        if (isUnauthorized(e)) {
           setDeleteError("ログインが必要です。");
           return;
         }
-        if (e instanceof ApiError && e.status === 403) {
+        if (isForbidden(e)) {
           setDeleteError("このコメントを削除する権限がありません。");
           return;
         }

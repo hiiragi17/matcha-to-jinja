@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { HiHeart, HiOutlineHeart } from "react-icons/hi2";
 import {
-  ApiError,
+  isUnauthorized,
   likeGreentea,
   likeTemple,
   unlikeGreentea,
@@ -63,7 +63,7 @@ export default function LikeButton({
       } catch (e) {
         setLiked(prevLiked);
         setCount(prevCount);
-        if (e instanceof ApiError && e.status === 401) {
+        if (isUnauthorized(e)) {
           router.push(
             `/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`,
           );
