@@ -8,9 +8,16 @@ import { commentDeleted, writeError } from "@tests/msw/writeApiHandlers";
 import type { Comment } from "@/types";
 
 const useSessionMock = vi.fn();
+const pushMock = vi.fn();
+const signOutMock = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: pushMock }),
+}));
 
 vi.mock("next-auth/react", () => ({
   useSession: () => useSessionMock(),
+  signOut: (...args: unknown[]) => signOutMock(...args),
 }));
 
 const API_BASE_URL =
@@ -19,6 +26,9 @@ const endpoint = (path: string) => `${API_BASE_URL}/api/v1${path}`;
 
 beforeEach(() => {
   useSessionMock.mockReset();
+  pushMock.mockReset();
+  signOutMock.mockReset();
+  signOutMock.mockResolvedValue(undefined);
 });
 
 // window.confirm 等の vi.spyOn を確実に元に戻す。アサーション失敗で
@@ -198,7 +208,7 @@ describe("CommentSection", () => {
     expect(screen.getByText(/まだコメントはありません/)).toBeInTheDocument();
   });
 
-  it("投稿が 401 だと再ログイン案内を表示する", async () => {
+  it("投稿が 401 だと signOut してログインへ誘導する", async () => {
     mockLoggedIn();
     server.use(writeError("post", "greenteacomments", 401));
 
@@ -219,8 +229,11 @@ describe("CommentSection", () => {
     await user.click(screen.getByRole("button", { name: /投稿する/ }));
 
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(/再度ログイン/);
+      expect(signOutMock).toHaveBeenCalledWith({ redirect: false });
     });
+    expect(pushMock).toHaveBeenCalledWith(
+      "/auth/login?callbackUrl=%2Fgreenteas%2F1",
+    );
   });
 
   it("自分のコメントだけ「削除」ボタンが表示される", () => {
