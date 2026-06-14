@@ -14,6 +14,7 @@ import {
   isValidationError,
 } from "@/lib/api";
 import { useAuthToken } from "@/lib/api/useAuthToken";
+import { useSessionExpiredHandler } from "@/lib/api/useSessionExpired";
 import type { Comment } from "@/types";
 
 type CommentSectionProps = {
@@ -44,6 +45,7 @@ export default function CommentSection({
   callbackUrl,
 }: CommentSectionProps) {
   const authToken = useAuthToken();
+  const handleSessionExpired = useSessionExpiredHandler(callbackUrl);
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [body, setBody] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -73,7 +75,7 @@ export default function CommentSection({
         setBody("");
       } catch (e) {
         if (isUnauthorized(e)) {
-          setSubmitError("ログインの有効期限が切れました。再度ログインしてください。");
+          await handleSessionExpired();
           return;
         }
         if (isValidationError(e)) {
@@ -105,7 +107,7 @@ export default function CommentSection({
       } catch (e) {
         setComments(snapshot);
         if (isUnauthorized(e)) {
-          setDeleteError("ログインが必要です。");
+          await handleSessionExpired();
           return;
         }
         if (isForbidden(e)) {

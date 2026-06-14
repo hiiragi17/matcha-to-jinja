@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import useSWR from "swr";
 import GreenteaCard from "@/components/greentea/GreenteaCard";
 import TempleCard from "@/components/temple/TempleCard";
@@ -11,6 +12,7 @@ import {
   isUnauthorized,
 } from "@/lib/api";
 import { useAuthToken } from "@/lib/api/useAuthToken";
+import { useSessionExpiredHandler } from "@/lib/api/useSessionExpired";
 import type {
   GreenteaLikeListResponse,
   TempleLikeListResponse,
@@ -27,6 +29,7 @@ export default function LikedSpotsList({ kind }: LikedSpotsListProps) {
   const authToken = useAuthToken();
   const callbackUrl =
     kind === "greentea" ? "/mypage/greentea-likes" : "/mypage/temple-likes";
+  const handleSessionExpired = useSessionExpiredHandler(callbackUrl);
 
   // フェッチャーは SWR から渡されるキー（authToken を含む）からトークンを取り出す。
   // クロージャ越しの authToken に依存するとキャッシュ無効化のタイミングがずれる。
@@ -37,6 +40,15 @@ export default function LikedSpotsList({ kind }: LikedSpotsListProps) {
     authToken ? ([`/${kind}_likes`, authToken] as const) : null,
     fetcher,
   );
+
+  // 401（セッション切れ）はレンダー中に副作用を起こせないため effect で処理し、
+  // 他コンポーネントと同じく signOut → ログイン誘導へ寄せる。
+  const sessionExpired = !!error && isUnauthorized(error);
+  useEffect(() => {
+    if (sessionExpired) {
+      void handleSessionExpired();
+    }
+  }, [sessionExpired, handleSessionExpired]);
 
   if (!authToken) {
     return (

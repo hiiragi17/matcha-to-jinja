@@ -7,6 +7,7 @@ import { server } from "@tests/msw/server";
 
 const pushMock = vi.fn();
 const useSessionMock = vi.fn();
+const signOutMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock }),
@@ -14,6 +15,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("next-auth/react", () => ({
   useSession: () => useSessionMock(),
+  signOut: (...args: unknown[]) => signOutMock(...args),
 }));
 
 const API_BASE_URL =
@@ -23,6 +25,8 @@ const endpoint = (path: string) => `${API_BASE_URL}/api/v1${path}`;
 beforeEach(() => {
   pushMock.mockReset();
   useSessionMock.mockReset();
+  signOutMock.mockReset();
+  signOutMock.mockResolvedValue(undefined);
 });
 
 function mockLoggedIn() {
@@ -85,7 +89,7 @@ describe("LikeButton", () => {
     expect(screen.getByRole("button")).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("API が 401 を返すとカウントがロールバックされ、ログイン誘導が走る", async () => {
+  it("API が 401 を返すとカウントがロールバックされ、signOut とログイン誘導が走る", async () => {
     mockLoggedIn();
     server.use(
       http.post(endpoint("/greentea_likes"), () =>
@@ -110,6 +114,9 @@ describe("LikeButton", () => {
       expect(screen.getByRole("button")).toHaveTextContent("3");
     });
     expect(screen.getByRole("button")).toHaveAttribute("aria-pressed", "false");
+    await waitFor(() => {
+      expect(signOutMock).toHaveBeenCalledWith({ redirect: false });
+    });
     expect(pushMock).toHaveBeenCalledWith(
       "/auth/login?callbackUrl=%2Fgreenteas%2F1",
     );

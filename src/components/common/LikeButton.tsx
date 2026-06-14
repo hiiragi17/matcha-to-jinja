@@ -11,6 +11,7 @@ import {
   unlikeTemple,
 } from "@/lib/api";
 import { useAuthToken } from "@/lib/api/useAuthToken";
+import { useSessionExpiredHandler } from "@/lib/api/useSessionExpired";
 
 type LikeButtonProps = {
   kind: "greentea" | "temple";
@@ -30,6 +31,7 @@ export default function LikeButton({
 }: LikeButtonProps) {
   const router = useRouter();
   const authToken = useAuthToken();
+  const handleSessionExpired = useSessionExpiredHandler(callbackUrl);
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
   const [pending, startTransition] = useTransition();
@@ -64,9 +66,7 @@ export default function LikeButton({
         setLiked(prevLiked);
         setCount(prevCount);
         if (isUnauthorized(e)) {
-          router.push(
-            `/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`,
-          );
+          await handleSessionExpired();
           return;
         }
         setError("通信に失敗しました。もう一度お試しください。");
