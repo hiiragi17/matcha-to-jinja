@@ -15,7 +15,12 @@ export function useSessionExpiredHandler(
   return useCallback(async () => {
     // redirect: false で NextAuth の自動遷移を抑止し、callbackUrl 付きの
     // ログインページへ自前で送る（元のページに戻すため）。
-    await signOut({ redirect: false });
-    router.push(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+    // signOut が失敗してもユーザーを壊れたページに残さないよう、
+    // 誘導は finally で必ず実行する（クリーンアップは best-effort）。
+    try {
+      await signOut({ redirect: false });
+    } finally {
+      router.push(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+    }
   }, [router, callbackUrl]);
 }

@@ -33,6 +33,19 @@ describe("useSessionExpiredHandler", () => {
     );
   });
 
+  it("signOut が失敗してもログイン誘導は実行される", async () => {
+    signOutMock.mockRejectedValueOnce(new Error("network"));
+    const { result } = renderHook(() =>
+      useSessionExpiredHandler("/greenteas/1"),
+    );
+
+    await expect(result.current()).rejects.toThrow("network");
+
+    expect(pushMock).toHaveBeenCalledWith(
+      "/auth/login?callbackUrl=%2Fgreenteas%2F1",
+    );
+  });
+
   it("callbackUrl をエンコードして付与する", async () => {
     const { result } = renderHook(() =>
       useSessionExpiredHandler("/mypage/temple-likes?tab=a&b=c"),
