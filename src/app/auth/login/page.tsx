@@ -6,15 +6,23 @@ import { SiLine } from "react-icons/si";
 import Hairline from "@/components/brand/Hairline";
 import MockLoginForm from "@/components/auth/MockLoginForm";
 import { AVAILABLE_PROVIDERS, auth, signIn } from "@/lib/auth";
+import { safeCallbackUrl } from "@/lib/utils/safeCallbackUrl";
 
 export const metadata: Metadata = {
   title: "ログイン",
 };
 
-export default async function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{ callbackUrl?: string | string[] }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
   const session = await auth();
+  // 401 誘導元（LikeButton / CommentSection 等）が付けた callbackUrl を尊重し、
+  // ログイン後に元のページへ戻す。検証して外部 URL への誘導は防ぐ。
+  const callbackUrl = safeCallbackUrl((await searchParams).callbackUrl);
   if (session?.user) {
-    redirect("/mypage");
+    redirect(callbackUrl);
   }
 
   return (
@@ -35,7 +43,7 @@ export default async function LoginPage() {
           <form
             action={async () => {
               "use server";
-              await signIn("google", { redirectTo: "/mypage" });
+              await signIn("google", { redirectTo: callbackUrl });
             }}
           >
             <button
@@ -52,7 +60,7 @@ export default async function LoginPage() {
           <form
             action={async () => {
               "use server";
-              await signIn("line", { redirectTo: "/mypage" });
+              await signIn("line", { redirectTo: callbackUrl });
             }}
           >
             <button
@@ -74,7 +82,7 @@ export default async function LoginPage() {
               OAuth 連携が未設定のためモック用ログインを表示しています。
               Rails JWT 連携（#15）後に本番 OAuth に切り替えます。
             </p>
-            <MockLoginForm />
+            <MockLoginForm redirectTo={callbackUrl} />
           </div>
         ) : null}
       </div>
