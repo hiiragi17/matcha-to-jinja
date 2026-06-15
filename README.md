@@ -82,7 +82,7 @@ npm run dev
 
 ## ディレクトリ構成（抜粋）
 
-```
+```text
 src/
   app/            # ルーティング（greenteas / temples / nearby / mypage / auth ...）
   components/     # layout / greentea / temple / map / common / auth / brand
