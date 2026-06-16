@@ -510,6 +510,15 @@ CORS / Cookie / 環境変数の組み合わせをここで潰しておく。
   固定値を入れると OAuth コールバックがずれる。Vercel 上では Auth.js が `VERCEL_URL`
   からホストを自動解決し、`trustHost` も自動で有効になる。固定ドメインを持つ
   Production にのみ `AUTH_URL` を設定する。
+- **OAuth redirect proxy（Preview の肝）**: OAuth プロバイダ（Google / LINE）は
+  事前登録した**絶対 redirect URI** のみを許可し、毎回変わる `*.vercel.app` の
+  プレビュー host はそのままでは登録できない。`AUTH_GOOGLE_*` / `AUTH_LINE_*` を
+  設定すると `src/lib/auth.ts` が実プロバイダを有効化するため、対策しないと
+  Preview デプロイのたびに OAuth コールバックが失敗する。Auth.js v5 の
+  **redirect proxy**（`AUTH_REDIRECT_PROXY_URL` に安定 URL を設定し、全環境で
+  同じ `AUTH_SECRET` を共有）を使い、プロバイダには安定 URL の
+  `/api/auth/callback/{google,line}` だけを登録する。proxy が各 Preview デプロイへ
+  コールバックを転送する。安定したプレビュー URL を別途用意する手もある。
 - **CORS**: Rails 側 `rack-cors` の origins に Preview ドメインを許可する。
   `*.vercel.app` をワイルドカード許可するか明示列挙するかは方針決定が必要
   （ワイルドカードは第三者の `*.vercel.app` も通るリスクがあるため、
@@ -525,14 +534,16 @@ CORS / Cookie / 環境変数の組み合わせをここで潰しておく。
 |------|-----|
 | `NEXT_PUBLIC_API_URL` | Cloud Run dev の URL |
 | `NEXT_PUBLIC_USE_MOCK` | `false` |
-| `AUTH_SECRET` | Preview 用シークレット |
+| `AUTH_SECRET` | Preview 用シークレット（redirect proxy を使うなら proxy 元と同一値） |
+| `AUTH_REDIRECT_PROXY_URL` | 安定 URL の `/api/auth`（例: `https://<本番 or 安定>/api/auth`）。OAuth callback を Preview へ転送する |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | 開発用 OAuth クライアント |
 | `AUTH_LINE_ID` / `AUTH_LINE_SECRET` | 開発用 OAuth クライアント |
 | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Maps キー |
 | `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` | Map ID |
 
 > `AUTH_URL` は Preview には入れない（上記の通り自動解決）。
-> OAuth クライアントのリダイレクト URI には `/api/auth/callback/{google,line}` を追加しておく。
+> OAuth クライアントに登録するリダイレクト URI は、redirect proxy を使う場合は
+> **安定 URL の** `/api/auth/callback/{google,line}` のみで足りる（毎回変わる Preview host は登録しない）。
 > Cloud Run dev には `FRONTEND_URL` / `JWT_SECRET_KEY` を設定する。
 
 本番ドメイン（`matcha-to-jinja.com` / `api.matcha-to-jinja.com`）への切替は #27 のスコープ。
