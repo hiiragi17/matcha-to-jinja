@@ -53,10 +53,12 @@ Phase 5  本番ドメイン切替                ← #27
 
 1. 🧑 Vercel でプロジェクト作成 → GitHub `hiiragi17/matcha-to-jinja` を import。
 2. 🧑 Vercel の環境変数（**Production / Preview / Development の3環境すべて**）に最低限：
+
    | 変数 | 値 |
    |------|-----|
    | `NEXT_PUBLIC_USE_MOCK` | `true`（この段階） |
    | `AUTH_SECRET` | Phase 0 で生成した値（**再生成しない**） |
+
    - `AUTH_URL` は **Production にのみ**確定ドメインを設定。Preview には入れない（Auth.js が `VERCEL_URL` から自動解決）。
    - ⚠️ `AUTH_SECRET` は Phase 4 以降も **全環境で同一の値**を使い続ける。フェーズが進んでも再生成しないこと。
    - `NEXT_PUBLIC_API_URL` はモックモード（`NEXT_PUBLIC_USE_MOCK=true`）では参照されないため、この段階では未設定で OK（Phase 3 以降で設定）。
@@ -129,6 +131,7 @@ Preview URL は毎回変わり OAuth に登録できないため、Auth.js v5 �
 - OAuth プロバイダには **安定 URL の** `/api/auth/callback/{google,line}` のみ登録。
 
 ### 4-2. Vercel Preview の環境変数 🧑
+
 | 変数 | 値 |
 |------|-----|
 | `NEXT_PUBLIC_API_URL` | Cloud Run dev の URL |
