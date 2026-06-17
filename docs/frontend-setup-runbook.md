@@ -56,8 +56,10 @@ Phase 5  本番ドメイン切替                ← #27
    | 変数 | 値 |
    |------|-----|
    | `NEXT_PUBLIC_USE_MOCK` | `true`（この段階） |
-   | `AUTH_SECRET` | `npx auth secret` の生成値 |
+   | `AUTH_SECRET` | Phase 0 で生成した値（**再生成しない**） |
    - `AUTH_URL` は **Production にのみ**確定ドメインを設定。Preview には入れない（Auth.js が `VERCEL_URL` から自動解決）。
+   - ⚠️ `AUTH_SECRET` は Phase 4 以降も **全環境で同一の値**を使い続ける。フェーズが進んでも再生成しないこと。
+   - `NEXT_PUBLIC_API_URL` はモックモード（`NEXT_PUBLIC_USE_MOCK=true`）では参照されないため、この段階では未設定で OK（Phase 3 以降で設定）。
 3. ✅ main への push / PR で Preview デプロイが生成され、その URL でモックサイトが開ける。
 
 ---
@@ -73,12 +75,13 @@ Phase 5  本番ドメイン切替                ← #27
 4. 値を以下に設定：`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` / `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID`
    - ローカル `.env.local` と Vercel 全環境の両方。
 
-### 2-2. Google OAuth 🧑（Rails #90 のクライアント発行と兼用）
+### 2-2. Google OAuth 🧑（`greentea_temple` #90 のクライアント発行と兼用）
 1. GCP で OAuth 2.0 クライアント（ウェブ）を発行（Rails と同一クライアントを共有）。
 2. **承認済みリダイレクト URI** に Next.js 側を追加：
    - `http://localhost:3000/api/auth/callback/google`（ローカル）
    - `https://<本番ドメイン>/api/auth/callback/google`（本番）
    - Preview を使う場合は **redirect proxy の安定 URL** の `/api/auth/callback/google` を登録（毎回変わる `*.vercel.app` は登録しない。詳細は Phase 4）
+   - 📌 安定 URL の候補は本番ドメイン（`https://matcha-to-jinja.com`）または専用の安定デプロイ URL。決まっていなければ Preview を使う段階（Phase 4）まで戻して登録してよい。
 3. `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` を取得。
 
 ### 2-3. LINE OAuth 🧑
@@ -87,9 +90,10 @@ Phase 5  本番ドメイン切替                ← #27
 3. `AUTH_LINE_ID` / `AUTH_LINE_SECRET` を取得。
 
 ### 2-4. シークレットの配置 🧑
-取得した OAuth 値を **ローカル `.env.local` と Vercel の全環境**に登録する。
+取得した OAuth 値を **Vercel の全環境**に登録する（後の Phase で使う）。
+ローカル `.env.local` は、Rails の JWT 発行 API（`greentea_temple` #15）が動くまで **設定を保留してよい**。
 
-> ⚠️ `AUTH_GOOGLE_*` / `AUTH_LINE_*` を設定した瞬間、`src/lib/auth.ts` が実 OAuth を有効化し、モックログインは無効になる。ローカルで OAuth を試すには Rails の JWT 発行 API（greentea_temple #15）も必要。まだなら設定を保留し、モックログインのまま進めてよい。
+> ⚠️ `AUTH_GOOGLE_*` / `AUTH_LINE_*` を設定した瞬間、`src/lib/auth.ts` が実 OAuth を有効化し、モックログインは無効になる。ローカルで OAuth を試すには Rails #15 も必要なため、それまでは `.env.local` に入れず、モックログインのまま進めるのが安全。
 
 **🤖 Claude に任せられること**: env 名の整合、`.env.example` の追補、`src/lib/auth.ts` のプロバイダ設定確認。
 
