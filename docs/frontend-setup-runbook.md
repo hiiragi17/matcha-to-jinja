@@ -120,6 +120,7 @@ Phase 5  本番ドメイン切替                ← #27
 ### 4-1. redirect proxy（Preview の肝）🧑
 Preview URL は毎回変わり OAuth に登録できないため、Auth.js v5 の **redirect proxy** を使う。
 - `AUTH_REDIRECT_PROXY_URL` に安定 URL の `/api/auth`（例: 本番 or 専用の安定デプロイ）を設定。
+  - ⚠️ **Preview と「callback を受ける安定デプロイ」の両方**に同じ値を設定する。安定デプロイ側に無いと proxy が有効化されず、コールバックは届くのに Preview へ転送されずログインが失敗する（[Auth.js: Securing a preview deployment](https://authjs.dev/getting-started/deployment#securing-a-preview-deployment)）。
 - 全環境で **同一の `AUTH_SECRET`** を共有。
 - OAuth プロバイダには **安定 URL の** `/api/auth/callback/{google,line}` のみ登録。
 
