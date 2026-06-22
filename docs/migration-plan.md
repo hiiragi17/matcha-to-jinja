@@ -11,7 +11,7 @@
 
 ### matcha-to-jinja (Next.js アプリ)
 - **状態**: create-next-app で生成したばかりの初期状態
-- **技術スタック**: Next.js 15.3.3 / React 19 / TypeScript 5 / Tailwind CSS v4
+- **技術スタック**: Next.js 15.5.19 / React 19 / TypeScript 5 / Tailwind CSS v4
 
 ---
 
