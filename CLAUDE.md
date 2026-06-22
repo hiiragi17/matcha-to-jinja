@@ -18,7 +18,7 @@
 ## 技術スタック
 
 ### 導入済み
-- Next.js 15.3.3 (App Router) + React 19 + TypeScript 5
+- Next.js 15.5.19 (App Router) + React 19 + TypeScript 5
 - Tailwind CSS v4（`@tailwindcss/postcss`）
 - ESLint 9（`next/core-web-vitals`, `next/typescript`）
 
