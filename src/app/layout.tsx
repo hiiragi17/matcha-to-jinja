@@ -52,13 +52,13 @@ export const metadata: Metadata = {
     siteName: "抹茶と神社。",
     title: "抹茶と神社。",
     description: SITE_DESCRIPTION,
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "抹茶と神社。" }],
+    // 画像は src/app/opengraph-image.tsx（ファイル規約）で自動付与される
   },
   twitter: {
     card: "summary_large_image",
     title: "抹茶と神社。",
     description: SITE_DESCRIPTION,
-    images: ["/og-image.png"],
+    // 画像は src/app/twitter-image.tsx（ファイル規約）で自動付与される
   },
 };
 
