@@ -2,6 +2,9 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
+// node:fs/promises を使うため Node.js ランタイムを明示する（Edge では動作しない）。
+export const runtime = "nodejs";
+
 export const alt = "抹茶と神社。";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -9,8 +12,14 @@ export const contentType = "image/png";
 // ロゴ（抹茶と神社。のタイトル文字を含む）を使うことで、
 // Satori に日本語フォントを埋め込まずに OGP 画像を生成する。
 export default async function OpengraphImage() {
-  const logo = await readFile(join(process.cwd(), "public/brand/logo.png"));
-  const logoSrc = `data:image/png;base64,${logo.toString("base64")}`;
+  // ロゴが読めない場合でも 500 にせず、タイトル文字のフォールバックで描画する。
+  let logoSrc = "";
+  try {
+    const logo = await readFile(join(process.cwd(), "public/brand/logo.png"));
+    logoSrc = `data:image/png;base64,${logo.toString("base64")}`;
+  } catch {
+    logoSrc = "";
+  }
 
   return new ImageResponse(
     (
@@ -39,7 +48,19 @@ export default async function OpengraphImage() {
             background: "#fbf6e5",
           }}
         >
-          <img src={logoSrc} alt="" width={360} height={360} />
+          {logoSrc ? (
+            <img
+              src={logoSrc}
+              alt=""
+              width={360}
+              height={360}
+              style={{ objectFit: "contain" }}
+            />
+          ) : (
+            <div style={{ fontSize: 64, letterSpacing: 8, color: "#3d3322" }}>
+              MATCHA TO JINJA
+            </div>
+          )}
           <div
             style={{
               fontSize: 30,
