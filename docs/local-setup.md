@@ -83,6 +83,21 @@ npm run dev
 両モードを行き来する場合は `.env.local` を書き換えて `npm run dev` を再起動する
 （`NEXT_PUBLIC_*` はビルド時に埋め込まれるため、HMR では切り替わらない）。
 
+### ⚠️ 現状（実 API 連携の進捗）
+
+`NEXT_PUBLIC_USE_MOCK` は **全エンドポイント一括** の単一フラグで、エンドポイント単位の切替はできない。
+そのため、社交系（likes / comments）が実 API 側で未整合な現状では **`false` にしてはいけない**。
+
+| 系統 | 実 API の状態 | 切替可否 |
+|------|--------------|----------|
+| 読み取り（greenteas / temples / genres / areas / nearby）| 契約一致（検証 `PASS=8`）| 単独なら可 |
+| 認証（`POST /auth/:provider` → `token` / `GET /current_user`）| 契約一致 | 単独なら可 |
+| 社交系（`*_likes` / `*comments`）| **旧 `data` エンベロープ・`like_count` 旧名のまま未整合** | ❌ 不可 |
+
+→ グローバルフラグを `false` にすると詳細ページの `LikeButton` / `CommentSection`、マイページが壊れる。
+**社交系の契約合わせ（matcha-to-jinja #51 / greentea_temple #116）が完了するまでは `NEXT_PUBLIC_USE_MOCK=true` を維持する。**
+読み取り＋認証＋社交系がすべて契約一致になった時点で一括カットオーバーする方針。
+
 ## 動作確認の最小チェック
 
 `NEXT_PUBLIC_USE_MOCK=false` で起動した後、以下が描画されることを確認する:
