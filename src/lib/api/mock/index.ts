@@ -324,7 +324,7 @@ export async function mockClient<T>(
     if (path === "/current_user") {
       const uid = requireMockUser(headers);
       return {
-        user: { id: hashUserId(uid), name: mockUserName(uid) },
+        user: { id: hashUserId(uid), name: mockUserName(uid), role: "general" },
       } satisfies CurrentUserResponse as T;
     }
   }

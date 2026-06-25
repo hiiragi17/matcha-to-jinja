@@ -1,4 +1,4 @@
-import type { User } from "@/types";
+import type { AuthUser } from "@/types";
 import { apiClient } from "./client";
 
 export type AuthProvider = "google" | "line";
@@ -20,11 +20,11 @@ export type OAuthExchangePayload = {
 export type AuthExchangeResponse = {
   // Rails が発行する JWT。`apiClient` の Authorization: Bearer に渡す。
   token: string;
-  user: User;
+  user: AuthUser;
 };
 
 export type CurrentUserResponse = {
-  user: User;
+  user: AuthUser;
 };
 
 // NextAuth の jwt callback で OAuth 成功直後に呼び出し、Rails 側の JWT に交換する。

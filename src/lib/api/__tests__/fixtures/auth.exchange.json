@@ -2,6 +2,7 @@
   "token": "rails.jwt.example-token",
   "user": {
     "id": 42,
-    "name": "テストユーザー"
+    "name": "テストユーザー",
+    "role": "general"
   }
 }

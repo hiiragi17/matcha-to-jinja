@@ -75,8 +75,8 @@ curl -s -H "Authorization: Bearer $JWT" http://localhost:3001/api/v1/current_use
 
 | # | メソッド & 実パス | リクエスト body | レスポンス | fixture | ✅ |
 |---|---|---|---|---|---|
-| 14 | `POST /api/v1/auth/:provider` | `{ access_token, uid?, info?: { name, email, image } }` | `{ token, user: { id, name } }` | `auth.exchange.json` | ☐ |
-| 15 | `GET /api/v1/current_user`（Bearer） | — | `{ user: { id, name } }` | `current_user.json` | ☐ |
+| 14 | `POST /api/v1/auth/:provider` | `{ access_token, uid?, info?: { name, email, image } }` | `{ token, user: { id, name, role } }` | `auth.exchange.json` | ☐ |
+| 15 | `GET /api/v1/current_user`（Bearer） | — | `{ user: { id, name, role } }` | `current_user.json` | ☐ |
 | 16 | `DELETE /api/v1/auth/logout`（Bearer） | — | 204 / 空ボディ可 | — | ☐ |
 
 | # | 確認内容 | 期待 | ✅ |
@@ -127,12 +127,13 @@ curl -s -H "Authorization: Bearer $JWT" http://localhost:3001/api/v1/current_use
 | 項目 | 正（fixtures / 型） | 誤りやすい表記 |
 |---|---|---|
 | いいね数 | **`likes_count`** | ~~`like_count`~~ |
-| 一覧 meta | `{ current_page, total_pages, total_count }` | ~~`per_page` を含む~~（fixtures には無い。Rails が返すなら型追加を検討） |
+| 一覧 meta | `{ current_page, total_pages, total_count }` | **`per_page` は含めない**（Rails 側で削除する方針に決定。フロント未使用） |
 | 距離 | `distance_meters`（整数） | ~~`distance` / `distance_km`~~ |
 | いいね済み判定 | `liked_by_current_user`（**詳細のみ**） | 一覧には無い |
 | コメント所有 | `owned_by_current_user` | — |
 | コメントの endpoint | `greenteacomments` / `templecomments`（**`_` 無し**） | ~~`greentea_comments`~~ |
 | いいねの endpoint | `greentea_likes` / `temple_likes`（**`_` あり**） | ~~`greentealikes`~~ |
+| 認証ユーザー | `current_user` / `auth` の `user` は **`{ id, name, role }`**（`role` を契約に含める方針に決定） | コメント投稿者の `user` は `{ id, name }` のみで **`role` 無し** |
 
 > いずれかが実 Rails と食い違ったら、**Rails 側を契約に寄せる**のが原則（fixtures が正本）。
 > どうしても Rails 側を変えられない場合は `src/types/` と `fixtures/` を更新し、`contract.test.ts` を通してから
