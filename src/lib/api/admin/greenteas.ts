@@ -1,21 +1,5 @@
-import type { Greentea } from "@/types";
-import { apiClient } from "@/lib/api/client";
-
-export type GreenteaInput = {
-  name: string;
-  description: string;
-  address: string;
-  access: string;
-  phone_number: string;
-  business_hours: string;
-  holiday: string;
-  homepage: string;
-  closed: boolean;
-  img: string;
-  latitude: number;
-  longitude: number;
-  genre_ids: number[];
-};
+import type { Greentea, GreenteaInput } from "@/types";
+import { apiClient } from "../client";
 
 type GreenteaResponse = { greentea: Greentea };
 

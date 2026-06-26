@@ -1,15 +1,7 @@
-import type { Comment } from "@/types";
-import { apiClient } from "@/lib/api/client";
+import type { AdminComment, AdminCommentListResponse } from "@/types";
+import { apiClient } from "../client";
 
-export type AdminComment = Comment & {
-  resource_type: "greentea" | "temple";
-  resource_id: number;
-  resource_name: string;
-};
-
-export type AdminCommentListResponse = {
-  comments: AdminComment[];
-};
+export type { AdminComment, AdminCommentListResponse };
 
 export function listAdminComments(
   authToken: string,

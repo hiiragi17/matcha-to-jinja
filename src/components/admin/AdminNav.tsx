@@ -25,7 +25,7 @@ export default function AdminNav() {
           const isActive =
             href === "/admin"
               ? pathname === "/admin"
-              : pathname.startsWith(href);
+              : pathname === href || pathname.startsWith(`${href}/`);
           return (
             <Link
               key={href}

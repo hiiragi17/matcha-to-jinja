@@ -1,20 +1,5 @@
-import type { Temple } from "@/types";
-import { apiClient } from "@/lib/api/client";
-
-export type TempleInput = {
-  name: string;
-  description: string;
-  address: string;
-  access: string;
-  phone_number: string;
-  business_hours: string;
-  holiday: string;
-  homepage: string;
-  img: string;
-  latitude: number;
-  longitude: number;
-  area_ids: number[];
-};
+import type { Temple, TempleInput } from "@/types";
+import { apiClient } from "../client";
 
 type TempleResponse = { temple: Temple };
 

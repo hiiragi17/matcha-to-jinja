@@ -15,3 +15,13 @@ export interface CommentListResponse {
 export interface CommentResponse {
   comment: Comment;
 }
+
+export interface AdminComment extends Comment {
+  resource_type: "greentea" | "temple";
+  resource_id: number;
+  resource_name: string;
+}
+
+export interface AdminCommentListResponse {
+  comments: AdminComment[];
+}

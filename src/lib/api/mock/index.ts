@@ -20,7 +20,7 @@ import type {
   TempleListResponse,
 } from "@/types";
 import { distanceMeters } from "@/lib/utils/distance";
-import type { AdminCommentListResponse } from "../admin/comments";
+import type { AdminCommentListResponse } from "@/types";
 import type { CurrentUserResponse } from "../auth";
 import { ApiError } from "../error";
 import {
@@ -489,7 +489,8 @@ export async function mockClient<T>(
     if (adminGreenteaDeleteMatch) {
       requireMockAdmin(headers);
       const id = Number(adminGreenteaDeleteMatch[1]);
-      if (!deleteMockGreentea(id)) notFound(endpoint);
+      if (!deleteMockGreentea(id, { greenteas: mockGreenteas }))
+        notFound(endpoint);
       return undefined as T;
     }
 
@@ -498,7 +499,7 @@ export async function mockClient<T>(
     if (adminTempleDeleteMatch) {
       requireMockAdmin(headers);
       const id = Number(adminTempleDeleteMatch[1]);
-      if (!deleteMockTemple(id)) notFound(endpoint);
+      if (!deleteMockTemple(id, { temples: mockTemples })) notFound(endpoint);
       return undefined as T;
     }
 
@@ -554,7 +555,13 @@ export async function mockClient<T>(
       const input = parseJsonBody<Parameters<typeof createMockGreentea>[0]>(
         options?.body,
       );
-      const greentea = createMockGreentea(input, { genres: mockGenres });
+      if (!Array.isArray(input.genre_ids)) {
+        throw new ApiError(400, { error: "genre_ids is required" });
+      }
+      const greentea = createMockGreentea(input, {
+        genres: mockGenres,
+        greenteas: mockGreenteas,
+      });
       return { greentea } as T;
     }
 
@@ -564,7 +571,13 @@ export async function mockClient<T>(
       const input = parseJsonBody<Parameters<typeof createMockTemple>[0]>(
         options?.body,
       );
-      const temple = createMockTemple(input, { areas: mockAreas });
+      if (!Array.isArray(input.area_ids)) {
+        throw new ApiError(400, { error: "area_ids is required" });
+      }
+      const temple = createMockTemple(input, {
+        areas: mockAreas,
+        temples: mockTemples,
+      });
       return { temple } as T;
     }
   }
@@ -578,7 +591,10 @@ export async function mockClient<T>(
       const input = parseJsonBody<Parameters<typeof updateMockGreentea>[1]>(
         options?.body,
       );
-      const greentea = updateMockGreentea(id, input, { genres: mockGenres });
+      const greentea = updateMockGreentea(id, input, {
+        genres: mockGenres,
+        greenteas: mockGreenteas,
+      });
       if (!greentea) notFound(endpoint);
       return { greentea } as T;
     }
@@ -591,7 +607,10 @@ export async function mockClient<T>(
       const input = parseJsonBody<Parameters<typeof updateMockTemple>[1]>(
         options?.body,
       );
-      const temple = updateMockTemple(id, input, { areas: mockAreas });
+      const temple = updateMockTemple(id, input, {
+        areas: mockAreas,
+        temples: mockTemples,
+      });
       if (!temple) notFound(endpoint);
       return { temple } as T;
     }

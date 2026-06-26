@@ -1,9 +1,15 @@
 export type { Genre } from "./genre";
 export type { Area } from "./area";
 export type { User, AuthUser } from "./user";
-export type { Comment, CommentListResponse, CommentResponse } from "./comment";
-export type { Greentea } from "./greentea";
-export type { Temple } from "./temple";
+export type {
+  Comment,
+  CommentListResponse,
+  CommentResponse,
+  AdminComment,
+  AdminCommentListResponse,
+} from "./comment";
+export type { Greentea, GreenteaInput } from "./greentea";
+export type { Temple, TempleInput } from "./temple";
 export type {
   GreenteaLike,
   TempleLike,

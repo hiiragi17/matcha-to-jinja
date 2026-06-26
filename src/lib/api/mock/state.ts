@@ -7,9 +7,7 @@
 // Next.js dev サーバーは HMR で module-level の変数がリセットされてしまい、
 // 開発中にいいね・コメントが突然消えて混乱するため、globalThis にぶら下げる。
 
-import type { Comment, Greentea, Temple } from "@/types";
-import type { GreenteaInput } from "../admin/greenteas";
-import type { TempleInput } from "../admin/temples";
+import type { Comment, Greentea, GreenteaInput, Temple, TempleInput } from "@/types";
 
 type UserId = string;
 type CommentRecord = { comment: Comment; ownerId: UserId };
@@ -232,15 +230,21 @@ export function deleteTempleComment(
   return "not_found";
 }
 
-// Authorization: Bearer "mock:<id>" からユーザー ID を取り出す。
+// Authorization: Bearer "mock:<encoded-id>" からユーザー ID を取り出す。
+// auth.ts で encodeURIComponent されているため、ここで decodeURIComponent する。
 // 形式が異なるトークン（実 JWT 等）が来た場合は null。
 export function extractMockUserId(headers: Headers): string | null {
   const auth = headers.get("Authorization");
   if (!auth?.startsWith("Bearer ")) return null;
   const token = auth.slice("Bearer ".length);
   if (!token.startsWith("mock:")) return null;
-  const id = token.slice("mock:".length);
-  return id.length > 0 ? id : null;
+  const encoded = token.slice("mock:".length);
+  if (encoded.length === 0) return null;
+  try {
+    return decodeURIComponent(encoded);
+  } catch {
+    return encoded;
+  }
 }
 
 export function isMockAdmin(userId: UserId): boolean {
@@ -267,42 +271,45 @@ export function getMockTemples(seed: Temple[]): Temple[] {
 
 export function createMockGreentea(
   input: GreenteaInput,
-  seed: { genres: import("@/types").Genre[] },
+  seed: { genres: import("@/types").Genre[]; greenteas: Greentea[] },
 ): Greentea {
+  const { genre_ids, ...attrs } = input;
   const greentea: Greentea = {
-    ...input,
+    ...attrs,
     id: store.nextResourceId.value++,
-    genres: seed.genres.filter((g) => input.genre_ids.includes(g.id)),
+    genres: seed.genres.filter((g) => genre_ids.includes(g.id)),
     likes_count: 0,
     liked_by_current_user: false,
   };
-  getMockGreenteas([]).push(greentea);
+  getMockGreenteas(seed.greenteas).push(greentea);
   return greentea;
 }
 
 export function updateMockGreentea(
   id: number,
   input: Partial<GreenteaInput>,
-  seed: { genres: import("@/types").Genre[] },
+  seed: { genres: import("@/types").Genre[]; greenteas: Greentea[] },
 ): Greentea | null {
-  const list = store.greenteas;
-  if (!list) return null;
+  const list = getMockGreenteas(seed.greenteas);
   const idx = list.findIndex((g) => g.id === id);
   if (idx < 0) return null;
+  const { genre_ids, ...attrs } = input;
   const updated: Greentea = {
     ...list[idx],
-    ...input,
-    genres: input.genre_ids
-      ? seed.genres.filter((g) => input.genre_ids!.includes(g.id))
+    ...attrs,
+    genres: genre_ids
+      ? seed.genres.filter((g) => genre_ids.includes(g.id))
       : list[idx].genres,
   };
   list[idx] = updated;
   return updated;
 }
 
-export function deleteMockGreentea(id: number): boolean {
-  const list = store.greenteas;
-  if (!list) return false;
+export function deleteMockGreentea(
+  id: number,
+  seed: { greenteas: Greentea[] },
+): boolean {
+  const list = getMockGreenteas(seed.greenteas);
   const idx = list.findIndex((g) => g.id === id);
   if (idx < 0) return false;
   list.splice(idx, 1);
@@ -313,42 +320,45 @@ export function deleteMockGreentea(id: number): boolean {
 
 export function createMockTemple(
   input: TempleInput,
-  seed: { areas: import("@/types").Area[] },
+  seed: { areas: import("@/types").Area[]; temples: Temple[] },
 ): Temple {
+  const { area_ids, ...attrs } = input;
   const temple: Temple = {
-    ...input,
+    ...attrs,
     id: store.nextResourceId.value++,
-    areas: seed.areas.filter((a) => input.area_ids.includes(a.id)),
+    areas: seed.areas.filter((a) => area_ids.includes(a.id)),
     likes_count: 0,
     liked_by_current_user: false,
   };
-  getMockTemples([]).push(temple);
+  getMockTemples(seed.temples).push(temple);
   return temple;
 }
 
 export function updateMockTemple(
   id: number,
   input: Partial<TempleInput>,
-  seed: { areas: import("@/types").Area[] },
+  seed: { areas: import("@/types").Area[]; temples: Temple[] },
 ): Temple | null {
-  const list = store.temples;
-  if (!list) return null;
+  const list = getMockTemples(seed.temples);
   const idx = list.findIndex((t) => t.id === id);
   if (idx < 0) return null;
+  const { area_ids, ...attrs } = input;
   const updated: Temple = {
     ...list[idx],
-    ...input,
-    areas: input.area_ids
-      ? seed.areas.filter((a) => input.area_ids!.includes(a.id))
+    ...attrs,
+    areas: area_ids
+      ? seed.areas.filter((a) => area_ids.includes(a.id))
       : list[idx].areas,
   };
   list[idx] = updated;
   return updated;
 }
 
-export function deleteMockTemple(id: number): boolean {
-  const list = store.temples;
-  if (!list) return false;
+export function deleteMockTemple(
+  id: number,
+  seed: { temples: Temple[] },
+): boolean {
+  const list = getMockTemples(seed.temples);
   const idx = list.findIndex((t) => t.id === id);
   if (idx < 0) return false;
   list.splice(idx, 1);
