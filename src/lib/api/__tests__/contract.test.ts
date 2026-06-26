@@ -296,7 +296,7 @@ describe("API contract: 認証系", () => {
         info: { name: "テストユーザー", email: null, image: null },
       });
       expect(res.token).toBe("rails.jwt.example-token");
-      expect(res.user).toEqual({ id: 42, name: "テストユーザー" });
+      expect(res.user).toEqual({ id: 42, name: "テストユーザー", role: "general" });
     });
 
     it("LINE provider も同じ契約で交換できる", async () => {
@@ -345,7 +345,7 @@ describe("API contract: 認証系", () => {
       const { user } = await getCurrentUser("rails.jwt.example-token");
 
       expect(authHeader).toBe("Bearer rails.jwt.example-token");
-      expect(user).toEqual({ id: 42, name: "テストユーザー" });
+      expect(user).toEqual({ id: 42, name: "テストユーザー", role: "general" });
     });
 
     it("401（未認証 / 期限切れ）で ApiError を throw する", async () => {
