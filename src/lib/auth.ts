@@ -81,6 +81,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // apiClient のヘッダ付与経路を本番と統一する（mock/index.ts が Bearer "mock:<id>" を識別）。
         if (account.provider === "mock" && user?.id) {
           token.railsJwt = `mock:${user.id}`;
+          // mock では名前に "admin" を含む場合に admin ロールを付与する（開発・テスト用）。
+          token.role = String(user.id).toLowerCase().includes("admin")
+            ? "admin"
+            : "general";
         } else if (
           isRailsAuthProvider(account.provider) &&
           account.access_token
@@ -89,7 +93,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           // Rails 発行の JWT を受け取り、以後の API 呼び出し用に保持する。
           // 失敗時は token.railsJwt を残さずに throw → NextAuth がセッション確立を
           // 中断し、ユーザーは未ログイン状態のまま /auth/login に戻る。
-          const { token: railsJwt } = await exchangeOAuthForJwt(
+          const authResult = await exchangeOAuthForJwt(
             account.provider,
             {
               access_token: account.access_token,
@@ -103,7 +107,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 : undefined,
             },
           );
-          token.railsJwt = railsJwt;
+          token.railsJwt = authResult.token;
+          token.role = authResult.user.role;
         }
       }
       return token;
@@ -113,6 +118,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user = {
           ...session.user,
           provider: token.provider,
+        };
+      }
+      if (token.role) {
+        session.user = {
+          ...session.user,
+          role: token.role,
         };
       }
       if (token.railsJwt) {

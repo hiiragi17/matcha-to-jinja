@@ -20,6 +20,7 @@ import type {
   TempleListResponse,
 } from "@/types";
 import { distanceMeters } from "@/lib/utils/distance";
+import type { AdminCommentListResponse } from "../admin/comments";
 import type { CurrentUserResponse } from "../auth";
 import { ApiError } from "../error";
 import {
@@ -36,17 +37,26 @@ import {
   addGreenteaLike,
   addTempleComment,
   addTempleLike,
+  adminDeleteGreenteaComment,
+  adminDeleteTempleComment,
+  createMockGreentea,
+  createMockTemple,
   deleteGreenteaComment,
+  deleteMockGreentea,
+  deleteMockTemple,
   deleteTempleComment,
   extractMockUserId,
   getGreenteaLikeDelta,
   getGreenteaLikedIds,
   getTempleLikeDelta,
   getTempleLikedIds,
+  listAllComments,
   listGreenteaComments,
   listTempleComments,
   removeGreenteaLike,
   removeTempleLike,
+  updateMockGreentea,
+  updateMockTemple,
 } from "./state";
 
 const PER_PAGE = 12;
@@ -118,6 +128,14 @@ function mergedTempleComments(
 function requireMockUser(headers: Headers): string {
   const userId = extractMockUserId(headers);
   if (!userId) unauthorized();
+  return userId;
+}
+
+function requireMockAdmin(headers: Headers): string {
+  const userId = requireMockUser(headers);
+  if (!userId.toLowerCase().includes("admin")) {
+    throw new ApiError(403, { error: "Admin role required" });
+  }
   return userId;
 }
 
@@ -464,6 +482,118 @@ export async function mockClient<T>(
     if (path === "/auth/logout") {
       requireMockUser(headers);
       return undefined as T;
+    }
+
+    // Admin: greentea 削除
+    const adminGreenteaDeleteMatch = path.match(/^\/admin\/greenteas\/(\d+)$/);
+    if (adminGreenteaDeleteMatch) {
+      requireMockAdmin(headers);
+      const id = Number(adminGreenteaDeleteMatch[1]);
+      if (!deleteMockGreentea(id)) notFound(endpoint);
+      return undefined as T;
+    }
+
+    // Admin: temple 削除
+    const adminTempleDeleteMatch = path.match(/^\/admin\/temples\/(\d+)$/);
+    if (adminTempleDeleteMatch) {
+      requireMockAdmin(headers);
+      const id = Number(adminTempleDeleteMatch[1]);
+      if (!deleteMockTemple(id)) notFound(endpoint);
+      return undefined as T;
+    }
+
+    // Admin: greentea コメント削除（owner チェックなし）
+    const adminGreenteaCommentMatch = path.match(
+      /^\/admin\/greenteacomments\/(\d+)$/,
+    );
+    if (adminGreenteaCommentMatch) {
+      requireMockAdmin(headers);
+      const id = Number(adminGreenteaCommentMatch[1]);
+      const result = adminDeleteGreenteaComment(id);
+      if (result === "not_found") notFound(endpoint);
+      return undefined as T;
+    }
+
+    // Admin: temple コメント削除（owner チェックなし）
+    const adminTempleCommentMatch = path.match(
+      /^\/admin\/templecomments\/(\d+)$/,
+    );
+    if (adminTempleCommentMatch) {
+      requireMockAdmin(headers);
+      const id = Number(adminTempleCommentMatch[1]);
+      const result = adminDeleteTempleComment(id);
+      if (result === "not_found") notFound(endpoint);
+      return undefined as T;
+    }
+  }
+
+  if (method === "GET") {
+    // Admin: コメント一覧（横断）
+    if (path === "/admin/comments") {
+      requireMockAdmin(headers);
+      const all = listAllComments();
+      const greenteasMap = new Map(mockGreenteas.map((g) => [g.id, g.name]));
+      const templesMap = new Map(mockTemples.map((t) => [t.id, t.name]));
+      const comments = all.map(({ comment, resourceType, resourceId }) => ({
+        ...comment,
+        resource_type: resourceType,
+        resource_id: resourceId,
+        resource_name:
+          resourceType === "greentea"
+            ? (greenteasMap.get(resourceId) ?? "")
+            : (templesMap.get(resourceId) ?? ""),
+      }));
+      return { comments } satisfies AdminCommentListResponse as T;
+    }
+  }
+
+  if (method === "POST") {
+    // Admin: greentea 作成
+    if (path === "/admin/greenteas") {
+      requireMockAdmin(headers);
+      const input = parseJsonBody<Parameters<typeof createMockGreentea>[0]>(
+        options?.body,
+      );
+      const greentea = createMockGreentea(input, { genres: mockGenres });
+      return { greentea } as T;
+    }
+
+    // Admin: temple 作成
+    if (path === "/admin/temples") {
+      requireMockAdmin(headers);
+      const input = parseJsonBody<Parameters<typeof createMockTemple>[0]>(
+        options?.body,
+      );
+      const temple = createMockTemple(input, { areas: mockAreas });
+      return { temple } as T;
+    }
+  }
+
+  if (method === "PATCH") {
+    // Admin: greentea 更新
+    const adminGreenteasPatchMatch = path.match(/^\/admin\/greenteas\/(\d+)$/);
+    if (adminGreenteasPatchMatch) {
+      requireMockAdmin(headers);
+      const id = Number(adminGreenteasPatchMatch[1]);
+      const input = parseJsonBody<Parameters<typeof updateMockGreentea>[1]>(
+        options?.body,
+      );
+      const greentea = updateMockGreentea(id, input, { genres: mockGenres });
+      if (!greentea) notFound(endpoint);
+      return { greentea } as T;
+    }
+
+    // Admin: temple 更新
+    const adminTemplesPatchMatch = path.match(/^\/admin\/temples\/(\d+)$/);
+    if (adminTemplesPatchMatch) {
+      requireMockAdmin(headers);
+      const id = Number(adminTemplesPatchMatch[1]);
+      const input = parseJsonBody<Parameters<typeof updateMockTemple>[1]>(
+        options?.body,
+      );
+      const temple = updateMockTemple(id, input, { areas: mockAreas });
+      if (!temple) notFound(endpoint);
+      return { temple } as T;
     }
   }
 
