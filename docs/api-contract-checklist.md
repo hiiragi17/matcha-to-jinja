@@ -81,7 +81,7 @@ curl -s -H "Authorization: Bearer $JWT" http://localhost:3001/api/v1/current_use
 
 | # | 確認内容 | 期待 | ✅ |
 |---|---|---|---|
-| 17 | `:provider` の制約 | `google` / `line` のみ受理（Rails `constraints: { provider: /line|google/ }`） | ☐ |
+| 17 | `:provider` の制約 | `google` / `line` のみ受理（Rails `constraints: { provider: /line\|google/ }`） | ☐ |
 | 18 | JWT のキー名 | レスポンスは `token`（`access_token` 等ではない） | ☐ |
 
 ---

@@ -62,17 +62,19 @@ cd path/to/matcha-to-jinja
 # 初回のみ
 npm install
 
-# .env.local の用意（実 API に向ける）
+# .env.local の用意
 cp .env.example .env.local
-# .env.local を編集して以下に変更:
+# .env.local を編集:
 #   NEXT_PUBLIC_API_URL=http://localhost:3001
-#   NEXT_PUBLIC_USE_MOCK=false
+#   NEXT_PUBLIC_USE_MOCK=true    # 現時点は mock 維持（社交系が未整合のため。下記「現状」参照）
+#   ※ 実 API へ繋ぐ（false）のは読み取り/認証/社交系がすべて契約一致になってから
 
 # サーバ起動（ポート 3000）
 npm run dev
 ```
 
-ブラウザで <http://localhost:3000/greenteas> を開き、Rails が返した一覧が描画されれば疎通成功。
+ブラウザで <http://localhost:3000/greenteas> を開き、一覧が描画されれば起動成功。
+（mock=true の現時点では mock データ。実 API カットオーバー後は Rails のデータが表示される。）
 
 ## モック / 実 API の切替
 
@@ -98,9 +100,10 @@ npm run dev
 **社交系の契約合わせ（matcha-to-jinja #51 / greentea_temple #116）が完了するまでは `NEXT_PUBLIC_USE_MOCK=true` を維持する。**
 読み取り＋認証＋社交系がすべて契約一致になった時点で一括カットオーバーする方針。
 
-## 動作確認の最小チェック
+## 動作確認の最小チェック（実 API カットオーバー時）
 
-`NEXT_PUBLIC_USE_MOCK=false` で起動した後、以下が描画されることを確認する:
+社交系を含む全系統が契約一致になった後、`NEXT_PUBLIC_USE_MOCK=false` で起動して
+以下が描画されることを確認する（それまでは上記のとおり mock を維持）:
 
 | URL | 期待 |
 |-----|------|
