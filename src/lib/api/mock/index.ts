@@ -26,8 +26,8 @@ import { ApiError } from "../error";
 import {
   mockAreas,
   mockGenres,
-  mockGreenteas,
-  mockTemples,
+  mockGreenteas as seedGreenteas,
+  mockTemples as seedTemples,
   mockUserName,
   seedGreenteaComments,
   seedTempleComments,
@@ -46,6 +46,8 @@ import {
   deleteMockTemple,
   deleteTempleComment,
   extractMockUserId,
+  getMockGreenteas,
+  getMockTemples,
   getGreenteaLikeDelta,
   getGreenteaLikedIds,
   getTempleLikeDelta,
@@ -149,6 +151,12 @@ export async function mockClient<T>(
   const params = url.searchParams;
   const headers = new Headers(options?.headers);
   const userId = extractMockUserId(headers);
+
+  // mock モードの単一の真実: 公開取得（list/detail/likes/nearby）も管理 CRUD も、
+  // 同じ可変ストアを参照する。seed から遅延初期化されるため、admin の
+  // create/update/delete が一覧・詳細に即座に反映される（Phase 1 で予告した切替）。
+  const mockGreenteas = getMockGreenteas(seedGreenteas);
+  const mockTemples = getMockTemples(seedTemples);
 
   if (method === "GET") {
     if (path === "/greenteas") {

@@ -337,6 +337,65 @@ describe("mockClient comments", () => {
   });
 });
 
+describe("mockClient admin greentea CRUD は公開一覧に反映される", () => {
+  const adminAuth = auth("mock-admin");
+
+  it("create した抹茶店が GET /greenteas に現れる", async () => {
+    const before = await mockClient<GreenteaListResponse>("/greenteas");
+
+    const { greentea } = await mockClient<{ greentea: { id: number } }>(
+      "/admin/greenteas",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          name: "新店",
+          description: "",
+          address: "京都市中京区",
+          access: "",
+          phone_number: "",
+          business_hours: "",
+          holiday: "",
+          homepage: "",
+          closed: false,
+          img: "",
+          latitude: 35.01,
+          longitude: 135.77,
+          genre_ids: [1],
+        }),
+        ...adminAuth,
+      },
+    );
+
+    const after = await mockClient<GreenteaListResponse>("/greenteas");
+    expect(after.meta.total_count).toBe(before.meta.total_count + 1);
+    expect(after.greenteas.some((g) => g.id === greentea.id)).toBe(true);
+  });
+
+  it("delete した抹茶店は GET /greenteas から消える", async () => {
+    await mockClient("/admin/greenteas/1", {
+      method: "DELETE",
+      ...adminAuth,
+    });
+
+    const after = await mockClient<GreenteaListResponse>("/greenteas");
+    expect(after.greenteas.some((g) => g.id === 1)).toBe(false);
+    await expect(mockClient("/greenteas/1")).rejects.toMatchObject({
+      status: 404,
+    });
+  });
+
+  it("update した内容が GET /greenteas/:id に反映される", async () => {
+    await mockClient("/admin/greenteas/2", {
+      method: "PATCH",
+      body: JSON.stringify({ name: "改名後" }),
+      ...adminAuth,
+    });
+
+    const res = await mockClient<GreenteaDetailResponse>("/greenteas/2");
+    expect(res.greentea.name).toBe("改名後");
+  });
+});
+
 describe("mockClient routing", () => {
   it("未定義パスは ApiError(404)", async () => {
     await expect(mockClient("/unknown")).rejects.toMatchObject({

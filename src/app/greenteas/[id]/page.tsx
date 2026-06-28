@@ -9,6 +9,7 @@ import LikeButton from "@/components/common/LikeButton";
 import ShareButtons from "@/components/common/ShareButtons";
 import { ApiError, getGreentea } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { imageSrcOrPlaceholder } from "@/lib/utils/image";
 import type { GreenteaDetail, NearbySpot } from "@/types";
 
 type RouteParams = { id: string };
@@ -153,7 +154,7 @@ export default async function GreenteaDetailPage({
         <div className="aspect-[16/9] w-full">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={greentea.img}
+            src={imageSrcOrPlaceholder(greentea.img)}
             alt={greentea.name}
             className="h-full w-full object-cover"
           />
