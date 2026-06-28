@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HiHeart } from "react-icons/hi2";
+import { imageSrcOrPlaceholder } from "@/lib/utils/image";
 import type { Greentea } from "@/types";
 
 type GreenteaCardProps = {
@@ -16,7 +17,7 @@ export default function GreenteaCard({ greentea }: GreenteaCardProps) {
         {/* 画像は Rails(CarrierWave)/外部 URL をそのまま表示するため next/image を使わない */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={greentea.img}
+          src={imageSrcOrPlaceholder(greentea.img)}
           alt={greentea.name}
           loading="lazy"
           className="h-full w-full object-cover"
