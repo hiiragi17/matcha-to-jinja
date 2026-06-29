@@ -43,13 +43,20 @@ Vercel のビルドは `next build` を実行する。事前にローカルで�
 
    - `AUTH_URL` は **設定しない**（Preview は毎回 URL が変わるため。Vercel 上では Auth.js が `VERCEL_URL` から自動解決）。
    - `NEXT_PUBLIC_API_URL` はモックモードでは参照されないので**未設定で OK**（Phase 3 以降で設定）。
-   - OAuth（`AUTH_GOOGLE_*` / `AUTH_LINE_*`）も**未設定で OK**。未設定なら開発用モックログインが表示される。
+   - OAuth（`AUTH_GOOGLE_*` / `AUTH_LINE_*`）も**未設定で OK**（この段階では設定不要）。
 3. 🧑 **Deploy** を押す。完了後、`https://<project>.vercel.app` でモックサイトが開く。
-4. ✅ 主要ページが表示されることを確認：
+4. ✅ **ログイン不要の公開ページ**が表示されることを確認（この段階で確認できるのはここまで）：
    - `/`（トップ）/ `/greenteas`（一覧・検索）/ `/temples` / `/greenteas/[id]`（詳細）
    - `/nearby`（現在地検索・要 Maps キーは Phase 2、未設定でも地図枠は出る）
-   - `/mypage`（モックログイン後）/ `/admin`（モックの admin ユーザーで）
+   - 表示されるデータは `NEXT_PUBLIC_USE_MOCK=true` による**モックデータ**。
 5. ✅ 以降、main への push / PR ごとに Preview デプロイが自動生成される。
+
+> ⚠️ **Vercel 上ではモックログインは使えない**（`/mypage` `/admin` などログイン必須ページはこの段階では確認不可）。
+> 開発用モックログイン（`src/lib/auth.ts` の Credentials provider）は **`NODE_ENV !== "production"` のときだけ**有効で、
+> Vercel は Preview / Production とも production ビルドで動くため無効化される。
+> - **ログイン必須ページの確認はローカル（`npm run dev`）で行う**（`docs/frontend-setup-runbook.md` Phase 0）。そこではモックログインが出る。
+> - Vercel 上でログインを通すには **OAuth 設定（Phase 2）＋ Rails JWT 連携（Phase 3 以降）** が必要。
+> - 補足: `NEXT_PUBLIC_USE_MOCK`（API の**データ**をモックにする）と、モック**ログイン**（認証を省略する）は別物。前者は Vercel でも効くが、後者は本番ビルドでは無効。
 
 ---
 
