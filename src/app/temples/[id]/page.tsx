@@ -9,6 +9,7 @@ import LikeButton from "@/components/common/LikeButton";
 import ShareButtons from "@/components/common/ShareButtons";
 import { ApiError, getTemple } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { imageSrcOrPlaceholder } from "@/lib/utils/image";
 import type { NearbySpot, TempleDetail } from "@/types";
 
 type RouteParams = { id: string };
@@ -158,7 +159,7 @@ export default async function TempleDetailPage({
         <div className="aspect-[16/9] w-full">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={temple.img}
+            src={imageSrcOrPlaceholder(temple.img)}
             alt={temple.name}
             className="h-full w-full object-cover"
           />
