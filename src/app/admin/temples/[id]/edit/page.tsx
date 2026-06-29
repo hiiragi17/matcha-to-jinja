@@ -10,9 +10,13 @@ export default async function EditTemplePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const templeId = Number(id);
+  if (!Number.isInteger(templeId) || templeId <= 0) {
+    notFound();
+  }
 
   const [templeResult, { areas }] = await Promise.all([
-    getTemple(id).catch((e: unknown) => {
+    getTemple(templeId).catch((e: unknown) => {
       if (getErrorStatus(e) === 404) return null;
       throw e;
     }),

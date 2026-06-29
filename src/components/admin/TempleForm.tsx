@@ -15,11 +15,12 @@ import {
 import type { Area, Temple } from "@/types";
 import ImageUrlField from "./ImageUrlField";
 
-type TempleFormProps = {
-  areas: Area[];
-  mode: "create" | "edit";
-  initial?: Temple;
-};
+// edit モードでは initial を必須にして、initial 無しの edit という不正状態を
+// 型レベルで排除する（initial 無し edit だと書き込みをスキップしたまま一覧へ
+// リダイレクトし、偽の成功になってしまうため）。
+type TempleFormProps =
+  | { areas: Area[]; mode: "create"; initial?: never }
+  | { areas: Area[]; mode: "edit"; initial: Temple };
 
 function toDefaults(initial?: Temple): Partial<TempleFormValues> {
   return {
@@ -39,7 +40,8 @@ function toDefaults(initial?: Temple): Partial<TempleFormValues> {
   };
 }
 
-export default function TempleForm({ areas, mode, initial }: TempleFormProps) {
+export default function TempleForm(props: TempleFormProps) {
+  const { areas, mode, initial } = props;
   const router = useRouter();
   const authToken = useAuthToken();
   const handleSessionExpired = useSessionExpiredHandler("/admin/temples");
@@ -65,10 +67,12 @@ export default function TempleForm({ areas, mode, initial }: TempleFormProps) {
     }
     setSubmitError(null);
     try {
-      if (mode === "create") {
+      // props 経由で参照して discriminated union のナローイングを効かせる
+      // （edit 分岐では props.initial が Temple として確定する）。
+      if (props.mode === "create") {
         await createTemple(values, authToken);
-      } else if (initial) {
-        await updateTemple(initial.id, values, authToken);
+      } else {
+        await updateTemple(props.initial.id, values, authToken);
       }
       router.push("/admin/temples");
       router.refresh();

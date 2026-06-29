@@ -13,7 +13,8 @@ export default async function AdminTemplesPage({
   searchParams: Promise<SearchParams>;
 }) {
   const sp = await searchParams;
-  const page = Math.max(1, Number(sp.page) || 1);
+  const parsedPage = Number.parseInt(sp.page ?? "", 10);
+  const page = Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
   const { temples, meta } = await getTemples({ page });
 
