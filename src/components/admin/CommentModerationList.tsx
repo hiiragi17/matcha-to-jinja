@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { useEffect, useState, useTransition } from "react";
 import useSWR from "swr";
 import { HiTrash } from "react-icons/hi2";
@@ -37,6 +38,7 @@ function resourceHref(comment: AdminComment): string {
 }
 
 export default function CommentModerationList() {
+  const { status } = useSession();
   const authToken = useAuthToken();
   const handleSessionExpired = useSessionExpiredHandler(CALLBACK_URL);
   const [target, setTarget] = useState<AdminComment | null>(null);
@@ -94,6 +96,16 @@ export default function CommentModerationList() {
     });
   };
 
+  // NextAuth セッション解決中はログイン CTA を出さない。解決前は railsJwt が
+  // 一時的に undefined になり、ログイン済み admin に誤って CTA が見えてしまうため。
+  if (status === "loading") {
+    return (
+      <p className="font-sans-jp text-[10px] tracking-[0.3em] text-muted">
+        読み込み中…
+      </p>
+    );
+  }
+
   if (!authToken) {
     return (
       <div className="border border-line-soft bg-paper px-5 py-6">
@@ -121,7 +133,9 @@ export default function CommentModerationList() {
   if (error) {
     const msg = isUnauthorized(error)
       ? "ログインの有効期限が切れました。再度ログインしてください。"
-      : "コメントの取得に失敗しました。時間を置いてお試しください。";
+      : isForbidden(error)
+        ? "この画面を表示する権限がありません。"
+        : "コメントの取得に失敗しました。時間を置いてお試しください。";
     return (
       <p role="alert" className="font-sans-jp text-xs text-bengara">
         {msg}

@@ -75,6 +75,35 @@ describe("CommentModerationList — コメントモデレーション", () => {
     );
   });
 
+  it("セッション解決中（loading）はログイン CTA を出さず読み込み中を表示する", () => {
+    useSessionMock.mockReturnValue({ data: null, status: "loading" });
+
+    render(<CommentModerationList />);
+
+    expect(screen.getByText(/読み込み中/)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/コメント管理の表示にはログインが必要/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("一覧取得が 403 のときは権限エラーを表示する", async () => {
+    useSessionMock.mockReturnValue({
+      data: { railsJwt: "jwt-token" },
+      status: "authenticated",
+    });
+    server.use(
+      http.get(endpoint("/admin/comments"), () =>
+        HttpResponse.json({ error: "forbidden" }, { status: 403 }),
+      ),
+    );
+
+    renderWithSwr(<CommentModerationList />);
+
+    expect(
+      await screen.findByText(/この画面を表示する権限がありません/),
+    ).toBeInTheDocument();
+  });
+
   it("ログイン時は横断コメント一覧を対象リンク付きで表示する", async () => {
     useSessionMock.mockReturnValue({
       data: { railsJwt: "jwt-token" },

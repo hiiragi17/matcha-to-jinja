@@ -69,10 +69,10 @@ describe("admin/comments API", () => {
   });
 
   it("adminDeleteTempleComment は DELETE /admin/templecomments/:id を呼ぶ（204）", async () => {
-    let called = false;
+    let captured: { auth: string | null } | null = null;
     server.use(
-      http.delete(endpoint("/admin/templecomments/202"), () => {
-        called = true;
+      http.delete(endpoint("/admin/templecomments/202"), ({ request }) => {
+        captured = { auth: request.headers.get("Authorization") };
         return HttpResponse.text(null, { status: 204 });
       }),
     );
@@ -80,6 +80,6 @@ describe("admin/comments API", () => {
     await expect(
       adminDeleteTempleComment(202, "jwt-token"),
     ).resolves.toBeUndefined();
-    expect(called).toBe(true);
+    expect(captured!.auth).toBe("Bearer jwt-token");
   });
 });
