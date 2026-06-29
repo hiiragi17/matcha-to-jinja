@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HiHeart } from "react-icons/hi2";
+import { imageSrcOrPlaceholder } from "@/lib/utils/image";
 import type { Temple } from "@/types";
 
 type TempleCardProps = {
@@ -16,7 +17,7 @@ export default function TempleCard({ temple }: TempleCardProps) {
         {/* 画像は Rails(CarrierWave)/外部 URL をそのまま表示するため next/image を使わない */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={temple.img}
+          src={imageSrcOrPlaceholder(temple.img)}
           alt={temple.name}
           loading="lazy"
           className="h-full w-full object-cover"
