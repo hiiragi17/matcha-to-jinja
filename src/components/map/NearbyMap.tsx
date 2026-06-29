@@ -19,8 +19,27 @@ import Hairline from "@/components/brand/Hairline";
 const RADIUS_OPTIONS = [0.5, 1.0, 1.5, 2.0] as const;
 type Radius = (typeof RADIUS_OPTIONS)[number];
 
-// 京都市中心部のフォールバック（位置情報拒否時の初期表示）
+// 京都市中心部のフォールバック（位置情報拒否時・京都圏外時の初期表示）
 const KYOTO_CENTER = { lat: 35.0116, lng: 135.7681 };
+
+// 収録スポットは京都のみのため、現在地がこの範囲外なら京都中心へ寄せる。
+// 京都府全体をゆるく覆う緯度経度ボックス（北は丹後半島〜日本海側、南は奈良府境、
+// 西は兵庫府境、東は滋賀・三重府境あたりまで含む）。
+const KYOTO_BOUNDS = {
+  minLat: 34.7,
+  maxLat: 35.8,
+  minLng: 134.85,
+  maxLng: 136.05,
+} as const;
+
+function isInKyoto(lat: number, lng: number): boolean {
+  return (
+    lat >= KYOTO_BOUNDS.minLat &&
+    lat <= KYOTO_BOUNDS.maxLat &&
+    lng >= KYOTO_BOUNDS.minLng &&
+    lng <= KYOTO_BOUNDS.maxLng
+  );
+}
 
 type Origin = { lat: number; lng: number };
 type SelectedSpot = { kind: "greentea" | "temple"; spot: NearbySpot };
@@ -28,7 +47,7 @@ type SelectedSpot = { kind: "greentea" | "temple"; spot: NearbySpot };
 type GeoState =
   | { status: "idle" }
   | { status: "requesting" }
-  | { status: "granted"; origin: Origin }
+  | { status: "granted"; origin: Origin; outsideKyoto: boolean }
   | { status: "denied" }
   | { status: "error"; message: string };
 
@@ -62,9 +81,13 @@ export default function NearbyMap() {
     setGeo({ status: "requesting" });
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        const { latitude, longitude } = pos.coords;
+        // 京都圏内なら実際の現在地、圏外なら収録範囲の京都中心へ寄せる。
+        const inKyoto = isInKyoto(latitude, longitude);
         setGeo({
           status: "granted",
-          origin: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+          origin: inKyoto ? { lat: latitude, lng: longitude } : KYOTO_CENTER,
+          outsideKyoto: !inKyoto,
         });
       },
       (err) => {
@@ -87,6 +110,7 @@ export default function NearbyMap() {
   }, [hasMapsConfig, requestLocation]);
 
   const origin = geo.status === "granted" ? geo.origin : null;
+  const outsideKyoto = geo.status === "granted" && geo.outsideKyoto;
 
   useEffect(() => {
     if (!hasMapsConfig || !origin) return;
@@ -141,7 +165,9 @@ export default function NearbyMap() {
                 disableDefaultUI={false}
                 clickableIcons={false}
               >
-                {origin && <OriginMarker origin={origin} />}
+                {origin && (
+                  <OriginMarker origin={origin} outsideKyoto={outsideKyoto} />
+                )}
                 {fetchState.status === "success" && (
                   <SpotMarkers
                     spots={fetchState.data}
@@ -163,7 +189,11 @@ export default function NearbyMap() {
                       }}
                       onCloseClick={() => setSelected(null)}
                     >
-                      <SpotInfo kind={selected.kind} spot={selected.spot} />
+                      <SpotInfo
+                        kind={selected.kind}
+                        spot={selected.spot}
+                        outsideKyoto={outsideKyoto}
+                      />
                     </InfoWindow>
                   </>
                 )}
@@ -182,12 +212,14 @@ export default function NearbyMap() {
       <StatusPanel
         geo={geo}
         fetchState={fetchState}
+        outsideKyoto={outsideKyoto}
         onRetry={requestLocation}
       />
 
       {fetchState.status === "success" && (
         <SpotLists
           data={fetchState.data}
+          outsideKyoto={outsideKyoto}
           onSelect={setSelected}
         />
       )}
@@ -239,9 +271,18 @@ function RadiusSelector({
   );
 }
 
-function OriginMarker({ origin }: { origin: Origin }) {
+function OriginMarker({
+  origin,
+  outsideKyoto,
+}: {
+  origin: Origin;
+  outsideKyoto: boolean;
+}) {
   return (
-    <AdvancedMarker position={origin} title="現在地">
+    <AdvancedMarker
+      position={origin}
+      title={outsideKyoto ? "京都市中心部" : "現在地"}
+    >
       <Pin background="#4a90a4" borderColor="#3d3322" glyphColor="#fbf6e5" />
     </AdvancedMarker>
   );
@@ -301,12 +342,16 @@ function MarkerBadge({ kind }: { kind: "greentea" | "temple" }) {
 function SpotInfo({
   kind,
   spot,
+  outsideKyoto,
 }: {
   kind: "greentea" | "temple";
   spot: NearbySpot;
+  outsideKyoto: boolean;
 }) {
   const href = kind === "greentea" ? `/greenteas/${spot.id}` : `/temples/${spot.id}`;
   const label = kind === "greentea" ? "抹茶店" : "神社仏閣";
+  // 京都圏外では検索の基準が現在地ではなく京都市中心部になるため文言を切り替える。
+  const distancePrefix = outsideKyoto ? "京都市中心部から" : "現在地から";
   return (
     <div className="flex min-w-[180px] flex-col gap-2 font-serif-jp text-ink">
       <span className="font-sans-jp text-[10px] tracking-[0.2em] text-muted">
@@ -314,7 +359,7 @@ function SpotInfo({
       </span>
       <span className="font-mincho text-base leading-tight">{spot.name}</span>
       <span className="font-sans-jp text-xs text-muted">
-        現在地から {formatDistance(spot.distance_meters)}
+        {distancePrefix} {formatDistance(spot.distance_meters)}
       </span>
       <Link
         href={href}
@@ -329,10 +374,12 @@ function SpotInfo({
 function StatusPanel({
   geo,
   fetchState,
+  outsideKyoto,
   onRetry,
 }: {
   geo: GeoState;
   fetchState: FetchState;
+  outsideKyoto: boolean;
   onRetry: () => void;
 }) {
   if (geo.status === "requesting") {
@@ -352,24 +399,42 @@ function StatusPanel({
       </Notice>
     );
   }
+
+  // 京都圏外の案内は fetch の状態(検索中/失敗/0件)を隠さず併記する。
+  const notices: React.ReactNode[] = [];
+  if (outsideKyoto) {
+    notices.push(
+      <Notice key="outside" tone="info">
+        現在地が京都府の外のようです。掲載スポットは京都のみのため、京都市中心部のまわりを表示しています。
+      </Notice>,
+    );
+  }
   if (fetchState.status === "loading") {
-    return <Notice tone="info">近隣スポットを検索中…</Notice>;
-  }
-  if (fetchState.status === "error") {
-    return <Notice tone="warn">{fetchState.message}</Notice>;
-  }
-  if (fetchState.status === "success") {
+    notices.push(
+      <Notice key="loading" tone="info">
+        近隣スポットを検索中…
+      </Notice>,
+    );
+  } else if (fetchState.status === "error") {
+    notices.push(
+      <Notice key="error" tone="warn">
+        {fetchState.message}
+      </Notice>,
+    );
+  } else if (fetchState.status === "success") {
     const total =
       fetchState.data.greenteas.length + fetchState.data.temples.length;
     if (total === 0) {
-      return (
-        <Notice tone="info">
+      notices.push(
+        <Notice key="empty" tone="info">
           指定した範囲には登録されたスポットがありません。半径を広げてお試しください。
-        </Notice>
+        </Notice>,
       );
     }
   }
-  return null;
+
+  if (notices.length === 0) return null;
+  return <div className="flex flex-col gap-3">{notices}</div>;
 }
 
 function Notice({
@@ -406,26 +471,36 @@ function Notice({
 
 function SpotLists({
   data,
+  outsideKyoto,
   onSelect,
 }: {
   data: NearbyResponse;
+  outsideKyoto: boolean;
   onSelect: (s: SelectedSpot) => void;
 }) {
   return (
-    <section className="grid gap-6 lg:grid-cols-2">
-      <SpotColumn
-        title="抹茶店"
-        kind="greentea"
-        spots={data.greenteas}
-        onSelect={onSelect}
-      />
-      <SpotColumn
-        title="神社仏閣"
-        kind="temple"
-        spots={data.temples}
-        onSelect={onSelect}
-      />
-    </section>
+    <div className="flex flex-col gap-3">
+      {/* 京都圏外では距離の基準が現在地ではなく京都市中心部であることを明示する。 */}
+      {outsideKyoto && (
+        <p className="font-serif-jp text-xs leading-relaxed text-muted">
+          ※ 距離は京都市中心部からの目安です（現在地が京都府外のため）。
+        </p>
+      )}
+      <section className="grid gap-6 lg:grid-cols-2">
+        <SpotColumn
+          title="抹茶店"
+          kind="greentea"
+          spots={data.greenteas}
+          onSelect={onSelect}
+        />
+        <SpotColumn
+          title="神社仏閣"
+          kind="temple"
+          spots={data.temples}
+          onSelect={onSelect}
+        />
+      </section>
+    </div>
   );
 }
 

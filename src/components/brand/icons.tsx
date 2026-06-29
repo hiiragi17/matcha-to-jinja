@@ -12,7 +12,7 @@ export function ToriiIcon({
   color = "#905050",
   className,
 }: IconProps) {
-  const sw = 1.6;
+  const sw = 2.4;
   return (
     <svg
       viewBox="0 0 32 32"
@@ -36,7 +36,7 @@ export function ChawanIcon({
   color = "#608060",
   className,
 }: IconProps) {
-  const sw = 1.6;
+  const sw = 2.4;
   return (
     <svg
       viewBox="0 0 32 32"
@@ -46,9 +46,10 @@ export function ChawanIcon({
       className={className}
       aria-hidden="true"
     >
+      <path d="M 5 13 Q 6 26, 16 28 Q 26 26, 27 13 Z" fill={color} fillOpacity="0.14" />
       <ellipse cx="16" cy="13" rx="11" ry="2.4" stroke={color} strokeWidth={sw} fill="none" />
       <path d="M 5 13 Q 6 26, 16 28 Q 26 26, 27 13" stroke={color} strokeWidth={sw} fill="none" strokeLinecap="round" />
-      <path d="M 11 13 Q 14 11.5, 17 12.5 T 21 12.7" stroke={color} strokeWidth={sw * 0.7} fill="none" strokeLinecap="round" opacity="0.6" />
+      <path d="M 11 13 Q 14 11.5, 17 12.5 T 21 12.7" stroke={color} strokeWidth={sw * 0.7} fill="none" strokeLinecap="round" opacity="0.7" />
     </svg>
   );
 }
