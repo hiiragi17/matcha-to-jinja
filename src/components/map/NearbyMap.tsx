@@ -19,8 +19,26 @@ import Hairline from "@/components/brand/Hairline";
 const RADIUS_OPTIONS = [0.5, 1.0, 1.5, 2.0] as const;
 type Radius = (typeof RADIUS_OPTIONS)[number];
 
-// 京都市中心部のフォールバック（位置情報拒否時の初期表示）
+// 京都市中心部のフォールバック（位置情報拒否時・京都圏外時の初期表示）
 const KYOTO_CENTER = { lat: 35.0116, lng: 135.7681 };
+
+// 収録スポットは京都のみのため、現在地がこの範囲外なら京都中心へ寄せる。
+// 京都市〜周辺をゆるく覆う緯度経度ボックス（嵐山・伏見・鞍馬あたりまで含む）。
+const KYOTO_BOUNDS = {
+  minLat: 34.85,
+  maxLat: 35.25,
+  minLng: 135.6,
+  maxLng: 135.95,
+} as const;
+
+function isInKyoto(lat: number, lng: number): boolean {
+  return (
+    lat >= KYOTO_BOUNDS.minLat &&
+    lat <= KYOTO_BOUNDS.maxLat &&
+    lng >= KYOTO_BOUNDS.minLng &&
+    lng <= KYOTO_BOUNDS.maxLng
+  );
+}
 
 type Origin = { lat: number; lng: number };
 type SelectedSpot = { kind: "greentea" | "temple"; spot: NearbySpot };
@@ -28,7 +46,7 @@ type SelectedSpot = { kind: "greentea" | "temple"; spot: NearbySpot };
 type GeoState =
   | { status: "idle" }
   | { status: "requesting" }
-  | { status: "granted"; origin: Origin }
+  | { status: "granted"; origin: Origin; outsideKyoto: boolean }
   | { status: "denied" }
   | { status: "error"; message: string };
 
@@ -62,9 +80,13 @@ export default function NearbyMap() {
     setGeo({ status: "requesting" });
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        const { latitude, longitude } = pos.coords;
+        // 京都圏内なら実際の現在地、圏外なら収録範囲の京都中心へ寄せる。
+        const inKyoto = isInKyoto(latitude, longitude);
         setGeo({
           status: "granted",
-          origin: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+          origin: inKyoto ? { lat: latitude, lng: longitude } : KYOTO_CENTER,
+          outsideKyoto: !inKyoto,
         });
       },
       (err) => {
@@ -87,6 +109,7 @@ export default function NearbyMap() {
   }, [hasMapsConfig, requestLocation]);
 
   const origin = geo.status === "granted" ? geo.origin : null;
+  const outsideKyoto = geo.status === "granted" && geo.outsideKyoto;
 
   useEffect(() => {
     if (!hasMapsConfig || !origin) return;
@@ -141,7 +164,9 @@ export default function NearbyMap() {
                 disableDefaultUI={false}
                 clickableIcons={false}
               >
-                {origin && <OriginMarker origin={origin} />}
+                {origin && (
+                  <OriginMarker origin={origin} outsideKyoto={outsideKyoto} />
+                )}
                 {fetchState.status === "success" && (
                   <SpotMarkers
                     spots={fetchState.data}
@@ -182,6 +207,7 @@ export default function NearbyMap() {
       <StatusPanel
         geo={geo}
         fetchState={fetchState}
+        outsideKyoto={outsideKyoto}
         onRetry={requestLocation}
       />
 
@@ -239,9 +265,18 @@ function RadiusSelector({
   );
 }
 
-function OriginMarker({ origin }: { origin: Origin }) {
+function OriginMarker({
+  origin,
+  outsideKyoto,
+}: {
+  origin: Origin;
+  outsideKyoto: boolean;
+}) {
   return (
-    <AdvancedMarker position={origin} title="現在地">
+    <AdvancedMarker
+      position={origin}
+      title={outsideKyoto ? "京都市中心部" : "現在地"}
+    >
       <Pin background="#4a90a4" borderColor="#3d3322" glyphColor="#fbf6e5" />
     </AdvancedMarker>
   );
@@ -329,14 +364,23 @@ function SpotInfo({
 function StatusPanel({
   geo,
   fetchState,
+  outsideKyoto,
   onRetry,
 }: {
   geo: GeoState;
   fetchState: FetchState;
+  outsideKyoto: boolean;
   onRetry: () => void;
 }) {
   if (geo.status === "requesting") {
     return <Notice tone="info">現在地を取得中…</Notice>;
+  }
+  if (outsideKyoto) {
+    return (
+      <Notice tone="info">
+        現在地が京都の外のようです。掲載スポットは京都のみのため、京都市中心部のまわりを表示しています。
+      </Notice>
+    );
   }
   if (geo.status === "denied") {
     return (
