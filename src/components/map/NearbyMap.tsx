@@ -189,7 +189,11 @@ export default function NearbyMap() {
                       }}
                       onCloseClick={() => setSelected(null)}
                     >
-                      <SpotInfo kind={selected.kind} spot={selected.spot} />
+                      <SpotInfo
+                        kind={selected.kind}
+                        spot={selected.spot}
+                        outsideKyoto={outsideKyoto}
+                      />
                     </InfoWindow>
                   </>
                 )}
@@ -215,6 +219,7 @@ export default function NearbyMap() {
       {fetchState.status === "success" && (
         <SpotLists
           data={fetchState.data}
+          outsideKyoto={outsideKyoto}
           onSelect={setSelected}
         />
       )}
@@ -337,12 +342,16 @@ function MarkerBadge({ kind }: { kind: "greentea" | "temple" }) {
 function SpotInfo({
   kind,
   spot,
+  outsideKyoto,
 }: {
   kind: "greentea" | "temple";
   spot: NearbySpot;
+  outsideKyoto: boolean;
 }) {
   const href = kind === "greentea" ? `/greenteas/${spot.id}` : `/temples/${spot.id}`;
   const label = kind === "greentea" ? "抹茶店" : "神社仏閣";
+  // 京都圏外では検索の基準が現在地ではなく京都市中心部になるため文言を切り替える。
+  const distancePrefix = outsideKyoto ? "京都市中心部から" : "現在地から";
   return (
     <div className="flex min-w-[180px] flex-col gap-2 font-serif-jp text-ink">
       <span className="font-sans-jp text-[10px] tracking-[0.2em] text-muted">
@@ -350,7 +359,7 @@ function SpotInfo({
       </span>
       <span className="font-mincho text-base leading-tight">{spot.name}</span>
       <span className="font-sans-jp text-xs text-muted">
-        現在地から {formatDistance(spot.distance_meters)}
+        {distancePrefix} {formatDistance(spot.distance_meters)}
       </span>
       <Link
         href={href}
@@ -376,13 +385,6 @@ function StatusPanel({
   if (geo.status === "requesting") {
     return <Notice tone="info">現在地を取得中…</Notice>;
   }
-  if (outsideKyoto) {
-    return (
-      <Notice tone="info">
-        現在地が京都府の外のようです。掲載スポットは京都のみのため、京都市中心部のまわりを表示しています。
-      </Notice>
-    );
-  }
   if (geo.status === "denied") {
     return (
       <Notice tone="warn" action={{ label: "もう一度試す", onClick: onRetry }}>
@@ -397,24 +399,42 @@ function StatusPanel({
       </Notice>
     );
   }
+
+  // 京都圏外の案内は fetch の状態(検索中/失敗/0件)を隠さず併記する。
+  const notices: React.ReactNode[] = [];
+  if (outsideKyoto) {
+    notices.push(
+      <Notice key="outside" tone="info">
+        現在地が京都府の外のようです。掲載スポットは京都のみのため、京都市中心部のまわりを表示しています。
+      </Notice>,
+    );
+  }
   if (fetchState.status === "loading") {
-    return <Notice tone="info">近隣スポットを検索中…</Notice>;
-  }
-  if (fetchState.status === "error") {
-    return <Notice tone="warn">{fetchState.message}</Notice>;
-  }
-  if (fetchState.status === "success") {
+    notices.push(
+      <Notice key="loading" tone="info">
+        近隣スポットを検索中…
+      </Notice>,
+    );
+  } else if (fetchState.status === "error") {
+    notices.push(
+      <Notice key="error" tone="warn">
+        {fetchState.message}
+      </Notice>,
+    );
+  } else if (fetchState.status === "success") {
     const total =
       fetchState.data.greenteas.length + fetchState.data.temples.length;
     if (total === 0) {
-      return (
-        <Notice tone="info">
+      notices.push(
+        <Notice key="empty" tone="info">
           指定した範囲には登録されたスポットがありません。半径を広げてお試しください。
-        </Notice>
+        </Notice>,
       );
     }
   }
-  return null;
+
+  if (notices.length === 0) return null;
+  return <div className="flex flex-col gap-3">{notices}</div>;
 }
 
 function Notice({
@@ -451,26 +471,36 @@ function Notice({
 
 function SpotLists({
   data,
+  outsideKyoto,
   onSelect,
 }: {
   data: NearbyResponse;
+  outsideKyoto: boolean;
   onSelect: (s: SelectedSpot) => void;
 }) {
   return (
-    <section className="grid gap-6 lg:grid-cols-2">
-      <SpotColumn
-        title="抹茶店"
-        kind="greentea"
-        spots={data.greenteas}
-        onSelect={onSelect}
-      />
-      <SpotColumn
-        title="神社仏閣"
-        kind="temple"
-        spots={data.temples}
-        onSelect={onSelect}
-      />
-    </section>
+    <div className="flex flex-col gap-3">
+      {/* 京都圏外では距離の基準が現在地ではなく京都市中心部であることを明示する。 */}
+      {outsideKyoto && (
+        <p className="font-serif-jp text-xs leading-relaxed text-muted">
+          ※ 距離は京都市中心部からの目安です（現在地が京都府外のため）。
+        </p>
+      )}
+      <section className="grid gap-6 lg:grid-cols-2">
+        <SpotColumn
+          title="抹茶店"
+          kind="greentea"
+          spots={data.greenteas}
+          onSelect={onSelect}
+        />
+        <SpotColumn
+          title="神社仏閣"
+          kind="temple"
+          spots={data.temples}
+          onSelect={onSelect}
+        />
+      </section>
+    </div>
   );
 }
 
