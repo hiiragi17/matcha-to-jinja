@@ -17,7 +17,7 @@ Vercel のビルドは `next build` を実行する。事前にローカルで�
 |----------|------|-----------|
 | `pnpm install --frozen-lockfile` | 依存をクリーンインストール | ✅ |
 | `pnpm lint` | ESLint | ✅ warning/error なし |
-| `pnpm test` | 単体テスト（Vitest） | ✅ 188 passed |
+| `pnpm test` | 単体テスト（Vitest） | ✅ 205 passed |
 | `pnpm build` | 本番ビルド（Vercel と同じ） | ✅ 22 ルート生成 |
 | `pnpm test:e2e` | E2E（Playwright） | ⚠️ ブラウザバイナリ依存。CI/ローカルでブラウザが入っていれば通る（Vercel デプロイ自体は E2E を実行しない） |
 
