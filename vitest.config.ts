@@ -9,7 +9,7 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./tests/setup/vitest.setup.ts"],
     // テストは常に実 API パス（MSW で intercept）を経由させる。
-    // 開発者の .env.local が NEXT_PUBLIC_USE_MOCK=true でも npm test が
+    // 開発者の .env.local が NEXT_PUBLIC_USE_MOCK=true でも pnpm test が
     // モック実装に迂回しないようにし、契約テストの hermetic 性を担保する。
     env: {
       NEXT_PUBLIC_USE_MOCK: "false",

@@ -15,11 +15,11 @@ Vercel のビルドは `next build` を実行する。事前にローカルで�
 
 | コマンド | 内容 | 直近の状態 |
 |----------|------|-----------|
-| `npm ci` | 依存をクリーンインストール | ✅ |
-| `npm run lint` | ESLint | ✅ warning/error なし |
-| `npm run test` | 単体テスト（Vitest） | ✅ 188 passed |
-| `npm run build` | 本番ビルド（Vercel と同じ） | ✅ 22 ルート生成 |
-| `npm run test:e2e` | E2E（Playwright） | ⚠️ ブラウザバイナリ依存。CI/ローカルでブラウザが入っていれば通る（Vercel デプロイ自体は E2E を実行しない） |
+| `pnpm install --frozen-lockfile` | 依存をクリーンインストール | ✅ |
+| `pnpm lint` | ESLint | ✅ warning/error なし |
+| `pnpm test` | 単体テスト（Vitest） | ✅ 205 passed |
+| `pnpm build` | 本番ビルド（Vercel と同じ） | ✅ 22 ルート生成 |
+| `pnpm test:e2e` | E2E（Playwright） | ⚠️ ブラウザバイナリ依存。CI/ローカルでブラウザが入っていれば通る（Vercel デプロイ自体は E2E を実行しない） |
 
 > 📌 E2E はローカル環境にブラウザが無いと `Executable doesn't exist` で落ちるが、
 > これは**テスト内容ではなく実行環境の問題**。Vercel のビルドには影響しない。
@@ -54,7 +54,7 @@ Vercel のビルドは `next build` を実行する。事前にローカルで�
 > ⚠️ **Vercel 上ではモックログインは使えない**（`/mypage` `/admin` などログイン必須ページはこの段階では確認不可）。
 > 開発用モックログイン（`src/lib/auth.ts` の Credentials provider）は **`NODE_ENV !== "production"` のときだけ**有効で、
 > Vercel は Preview / Production とも production ビルドで動くため無効化される。
-> - **ログイン必須ページの確認はローカル（`npm run dev`）で行う**（`docs/frontend-setup-runbook.md` Phase 0）。そこではモックログインが出る。
+> - **ログイン必須ページの確認はローカル（`pnpm dev`）で行う**（`docs/frontend-setup-runbook.md` Phase 0）。そこではモックログインが出る。
 > - Vercel 上でログインを通すには **OAuth 設定（Phase 2）＋ Rails JWT 連携（Phase 3 以降）** が必要。
 > - 補足: `NEXT_PUBLIC_USE_MOCK`（API の**データ**をモックにする）と、モック**ログイン**（認証を省略する）は別物。前者は Vercel でも効くが、後者は本番ビルドでは無効。
 

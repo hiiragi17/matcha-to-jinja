@@ -60,7 +60,7 @@ curl は CORS を無視するので、**curl が 200 でもブラウザで CORS 
 cd path/to/matcha-to-jinja
 
 # 初回のみ
-npm install
+pnpm install
 
 # .env.local の用意
 cp .env.example .env.local
@@ -70,7 +70,7 @@ cp .env.example .env.local
 #   ※ 実 API へ繋ぐ（false）のは読み取り/認証/社交系がすべて契約一致になってから
 
 # サーバ起動（ポート 3000）
-npm run dev
+pnpm dev
 ```
 
 ブラウザで <http://localhost:3000/greenteas> を開き、一覧が描画されれば起動成功。
@@ -82,7 +82,7 @@ npm run dev
 - **`true`**: `src/lib/api/mock` のインメモリ実装が応答する。Rails 未起動で UI 開発できる。
 - **`false`**: `NEXT_PUBLIC_API_URL` に対して実 fetch する。本作業（実 API 連携）モード。
 
-両モードを行き来する場合は `.env.local` を書き換えて `npm run dev` を再起動する
+両モードを行き来する場合は `.env.local` を書き換えて `pnpm dev` を再起動する
 （`NEXT_PUBLIC_*` はビルド時に埋め込まれるため、HMR では切り替わらない）。
 
 ### ⚠️ 現状（実 API 連携の進捗）
