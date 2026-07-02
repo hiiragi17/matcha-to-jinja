@@ -32,7 +32,7 @@ Phase 5  本番ドメイン切替                ← #27
 
 1. 🧑 依存インストールと env 用意
    ```bash
-   npm install
+   pnpm install
    cp .env.example .env.local
    ```
 2. 🧑 `.env.local` は既定のまま（`NEXT_PUBLIC_USE_MOCK=true`）で OK。`AUTH_SECRET` だけ入れておくと認証 UI も確認しやすい：
@@ -41,7 +41,7 @@ Phase 5  本番ドメイン切替                ← #27
    ```
 3. 🧑 起動して確認
    ```bash
-   npm run dev
+   pnpm dev
    ```
 4. ✅ <http://localhost:3000> で各ページ（`/greenteas` `/temples` `/nearby` `/mypage`）が表示される。OAuth 未設定なので、ログインは**開発用モックログイン**が出る。
 
@@ -111,7 +111,7 @@ Phase 5  本番ドメイン切替                ← #27
    NEXT_PUBLIC_API_URL=http://localhost:3001
    NEXT_PUBLIC_USE_MOCK=false
    ```
-3. 🧑 `npm run dev` で再起動（`NEXT_PUBLIC_*` はビルド時埋め込みのため HMR では切り替わらない）。
+3. 🧑 `pnpm dev` で再起動（`NEXT_PUBLIC_*` はビルド時埋め込みのため HMR では切り替わらない）。
 4. ✅ `/greenteas` `/temples` `/greenteas/[id]` `/nearby` が実データで描画される。
 5. ✅ 認証を試す場合は Rails #15（JWT）も起動し、Google / LINE ログイン → `session.railsJwt` に JWT が入ることを確認。
 

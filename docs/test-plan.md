@@ -180,7 +180,7 @@ playwright.config.ts
 **目標: 1 日。モックモードで起動し、最小 3 シナリオだけ。**
 
 ```bash
-NEXT_PUBLIC_USE_MOCK=true AUTH_SECRET=test npm run dev
+NEXT_PUBLIC_USE_MOCK=true AUTH_SECRET=test pnpm dev
 ```
 
 を Playwright の `webServer` で起動する。
@@ -204,7 +204,7 @@ NEXT_PUBLIC_USE_MOCK=true AUTH_SECRET=test npm run dev
 ## 5. CI 連携
 
 - GitHub Actions に `.github/workflows/test.yml` を追加
-  - `npm ci` → `npm run lint` → `npm run test` → `npm run build`
+  - `pnpm install --frozen-lockfile` → `pnpm lint` → `pnpm test` → `pnpm build`
   - E2E は別ジョブ（`playwright install --with-deps` を含む）
 - PR で全部 green を必須にする（main 直接 push なしの運用は既存）
 - カバレッジは初期は **しきい値なし**。Phase 1 完了後に
@@ -249,7 +249,7 @@ Phase 3 は重複が多いので独立 issue にせず、Phase 2 のついでに
 
 | Phase | 工数 | 完了条件 |
 |-------|------|---------|
-| インフラ | 0.5 日 | `npm test` が空テストで通る + CI green |
+| インフラ | 0.5 日 | `pnpm test` が空テストで通る + CI green |
 | Phase 1 | 1.5 日 | `lib/api/**` のテスト 30 件以上 |
 | Phase 2 | 1.5 日 | 4 コンポーネントのテスト各 4〜6 件 |
 | Phase 3 | 0.5 日 | `notFound` / `redirect` の 2〜3 ケース |
