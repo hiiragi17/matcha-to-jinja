@@ -108,6 +108,12 @@ describe("mockClient POST /routes", () => {
     ).rejects.toMatchObject({ status: 422 });
   });
 
+  it("非オブジェクトの spot 要素（[null]）は TypeError ではなく 422", async () => {
+    await expect(
+      createBad("mock-alice", { name: "x", spots: [null] }),
+    ).rejects.toMatchObject({ status: 422 });
+  });
+
   it("route キー欠落は 400", async () => {
     await expect(
       mockClient("/routes", jsonBody("mock-alice", { name: "x" })),

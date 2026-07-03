@@ -9,7 +9,7 @@ export default async function RoutesPage({
   searchParams: Promise<SearchParams>;
 }) {
   const sp = await searchParams;
-  const page = Math.max(1, Number(sp.page) || 1);
+  const page = Math.max(1, Math.floor(Number(sp.page)) || 1);
 
   return (
     <section className="mx-auto w-full max-w-3xl px-6 py-16">

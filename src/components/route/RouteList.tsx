@@ -54,6 +54,12 @@ export default function RouteList({ page = 1 }: RouteListProps) {
             ? {
                 ...current,
                 data: current.data.filter((r) => r.id !== id),
+                // 件数表示・Pagination が参照する meta も併せて減算し、
+                // 再検証までの間に古い件数を見せないようにする。
+                meta: {
+                  ...current.meta,
+                  total_count: Math.max(0, current.meta.total_count - 1),
+                },
               }
             : current,
         { revalidate: false },

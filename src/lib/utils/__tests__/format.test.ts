@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  formatDistance,
-  formatDuration,
-  transportLabel,
-} from "@/lib/utils/format";
+import { formatDistance, formatDuration, transportLabel } from "../format";
 
 describe("formatDistance", () => {
   it("1000m 未満は m 表記", () => {

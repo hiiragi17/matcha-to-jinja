@@ -778,6 +778,11 @@ function parseRouteSpots(
     routeUnprocessable(["Spots can't be blank"]);
   }
   return raw.map((entry): StoredRouteSpot => {
+    // null や非オブジェクト（spots: [null] 等）は型アサーション前に弾く。
+    // これがないと spot.spot_type 参照で TypeError になり 422 にならない。
+    if (typeof entry !== "object" || entry === null) {
+      routeUnprocessable([`Invalid spot: ${JSON.stringify(entry)}`]);
+    }
     const spot = entry as {
       spot_type?: unknown;
       spot_id?: unknown;
