@@ -19,6 +19,17 @@ export type {
   TempleLikeResponse,
 } from "./like";
 export type {
+  SpotType,
+  Transport,
+  RouteSpotInput,
+  RouteInput,
+  RouteSpot,
+  RouteDetail,
+  RouteListItem,
+  RouteListResponse,
+  RouteDetailResponse,
+} from "./route";
+export type {
   Meta,
   NearbySpot,
   GreenteaDetail,

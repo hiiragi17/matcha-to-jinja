@@ -7,12 +7,36 @@
 // Next.js dev サーバーは HMR で module-level の変数がリセットされてしまい、
 // 開発中にいいね・コメントが突然消えて混乱するため、globalThis にぶら下げる。
 
-import type { Comment, Greentea, GreenteaInput, Temple, TempleInput } from "@/types";
+import type {
+  Comment,
+  Greentea,
+  GreenteaInput,
+  SpotType,
+  Temple,
+  TempleInput,
+  Transport,
+} from "@/types";
 
 type UserId = string;
 type CommentRecord = { comment: Comment; ownerId: UserId };
 
 export type DeleteResult = "deleted" | "not_found" | "forbidden";
+
+export type StoredRouteSpot = {
+  spot_type: SpotType;
+  spot_id: number;
+  transport: Transport;
+};
+
+export type StoredRoute = {
+  id: number;
+  ownerId: UserId;
+  name: string;
+  description: string | null;
+  spots: StoredRouteSpot[];
+  created_at: string;
+  updated_at: string;
+};
 
 type MockStore = {
   greenteaLikes: Map<UserId, Set<number>>;
@@ -23,8 +47,10 @@ type MockStore = {
   templeLikeCountDelta: Map<number, number>;
   nextCommentId: { value: number };
   nextResourceId: { value: number };
+  nextRouteId: { value: number };
   greenteas: Greentea[] | null;
   temples: Temple[] | null;
+  routes: StoredRoute[];
 };
 
 const globalKey = Symbol.for("matcha-to-jinja.mock-store");
@@ -42,8 +68,10 @@ const store: MockStore = ((): MockStore => {
       templeLikeCountDelta: new Map(),
       nextCommentId: { value: 1000 },
       nextResourceId: { value: 9000 },
+      nextRouteId: { value: 1 },
       greenteas: null,
       temples: null,
+      routes: [],
     };
   }
   return g[globalKey]!;
@@ -60,8 +88,10 @@ export function resetMockStore(): void {
   store.templeLikeCountDelta.clear();
   store.nextCommentId.value = 1000;
   store.nextResourceId.value = 9000;
+  store.nextRouteId.value = 1;
   store.greenteas = null;
   store.temples = null;
+  store.routes = [];
 }
 
 function ensureSet<K, V>(map: Map<K, Set<V>>, key: K): Set<V> {
@@ -411,4 +441,70 @@ export function listAllComments(): Array<{
     }
   }
   return result;
+}
+
+// --- モデルルート（routes）: ユーザーごとの CRUD ---
+
+export function listRoutesByOwner(ownerId: UserId): StoredRoute[] {
+  return store.routes.filter((r) => r.ownerId === ownerId);
+}
+
+// 見つからない or 所有者が異なる場合は null（呼び出し側は 404 として扱う）。
+export function getRouteForOwner(
+  id: number,
+  ownerId: UserId,
+): StoredRoute | null {
+  return (
+    store.routes.find((r) => r.id === id && r.ownerId === ownerId) ?? null
+  );
+}
+
+export function createRouteRecord(
+  ownerId: UserId,
+  input: {
+    name: string;
+    description: string | null;
+    spots: StoredRouteSpot[];
+  },
+): StoredRoute {
+  const now = new Date().toISOString();
+  const route: StoredRoute = {
+    id: store.nextRouteId.value++,
+    ownerId,
+    name: input.name,
+    description: input.description,
+    spots: input.spots,
+    created_at: now,
+    updated_at: now,
+  };
+  store.routes.push(route);
+  return route;
+}
+
+// spots を渡すと総入れ替え、渡さない（undefined）と name/description のみ部分更新。
+export function updateRouteRecord(
+  id: number,
+  ownerId: UserId,
+  input: {
+    name?: string;
+    description?: string | null;
+    spots?: StoredRouteSpot[];
+  },
+): StoredRoute | null {
+  const route = getRouteForOwner(id, ownerId);
+  if (!route) return null;
+  if (input.name !== undefined) route.name = input.name;
+  if (input.description !== undefined) route.description = input.description;
+  if (input.spots !== undefined) route.spots = input.spots;
+  route.updated_at = new Date().toISOString();
+  return route;
+}
+
+export function deleteRouteRecord(id: number, ownerId: UserId): boolean {
+  const idx = store.routes.findIndex(
+    (r) => r.id === id && r.ownerId === ownerId,
+  );
+  if (idx < 0) return false;
+  store.routes.splice(idx, 1);
+  return true;
 }

@@ -12,12 +12,18 @@ import type {
   GreenteaListResponse,
   NearbyResponse,
   NearbySpot,
+  RouteDetail,
+  RouteDetailResponse,
+  RouteListItem,
+  RouteListResponse,
+  RouteSpot,
   Temple,
   TempleDetailResponse,
   TempleLike,
   TempleLikeListResponse,
   TempleLikeResponse,
   TempleListResponse,
+  Transport,
 } from "@/types";
 import { distanceMeters } from "@/lib/utils/distance";
 import type { AdminCommentListResponse } from "@/types";
@@ -41,25 +47,31 @@ import {
   adminDeleteTempleComment,
   createMockGreentea,
   createMockTemple,
+  createRouteRecord,
   deleteGreenteaComment,
   deleteMockGreentea,
   deleteMockTemple,
+  deleteRouteRecord,
   deleteTempleComment,
   extractMockUserId,
   getMockGreenteas,
   getMockTemples,
   getGreenteaLikeDelta,
   getGreenteaLikedIds,
+  getRouteForOwner,
   getTempleLikeDelta,
   getTempleLikedIds,
   listAllComments,
   listGreenteaComments,
+  listRoutesByOwner,
   listTempleComments,
   removeGreenteaLike,
   removeTempleLike,
   updateMockGreentea,
   updateMockTemple,
+  updateRouteRecord,
 } from "./state";
+import type { StoredRoute, StoredRouteSpot } from "./state";
 
 const PER_PAGE = 12;
 
@@ -624,7 +636,233 @@ export async function mockClient<T>(
     }
   }
 
+  // --- モデルルート（routes）: 全メソッド認証必須・自分のルートのみ操作可 ---
+  {
+    const isRouteList = path === "/routes";
+    const routeIdMatch = path.match(/^\/routes\/(\d+)$/);
+    if (isRouteList || routeIdMatch) {
+      const uid = requireMockUser(headers);
+
+      if (isRouteList && method === "GET") {
+        const page = Number(params.get("page")) || 1;
+        const all = listRoutesByOwner(uid);
+        const { items, meta } = paginate(all, page);
+        const data: RouteListItem[] = items.map((r) => ({
+          id: r.id,
+          name: r.name,
+          description: r.description,
+          spot_count: r.spots.length,
+          created_at: r.created_at,
+          updated_at: r.updated_at,
+        }));
+        return { data, meta } satisfies RouteListResponse as T;
+      }
+
+      if (isRouteList && method === "POST") {
+        const body = parseRouteBody(options?.body);
+        const name = parseRouteName(body.name, true)!;
+        const description = parseRouteDescription(body.description) ?? null;
+        const spots = parseRouteSpots(body.spots, mockGreenteas, mockTemples);
+        const record = createRouteRecord(uid, { name, description, spots });
+        return {
+          data: buildRouteDetail(record, mockGreenteas, mockTemples),
+        } satisfies RouteDetailResponse as T;
+      }
+
+      if (routeIdMatch) {
+        const id = Number(routeIdMatch[1]);
+
+        if (method === "GET") {
+          const record = getRouteForOwner(id, uid);
+          if (!record) routeNotFound();
+          return {
+            data: buildRouteDetail(record, mockGreenteas, mockTemples),
+          } satisfies RouteDetailResponse as T;
+        }
+
+        if (method === "PATCH") {
+          if (!getRouteForOwner(id, uid)) routeNotFound();
+          const body = parseRouteBody(options?.body);
+          const name = parseRouteName(body.name, false);
+          const description = parseRouteDescription(body.description);
+          const spots =
+            body.spots === undefined
+              ? undefined
+              : parseRouteSpots(body.spots, mockGreenteas, mockTemples);
+          const updated = updateRouteRecord(id, uid, { name, description, spots });
+          if (!updated) routeNotFound();
+          return {
+            data: buildRouteDetail(updated, mockGreenteas, mockTemples),
+          } satisfies RouteDetailResponse as T;
+        }
+
+        if (method === "DELETE") {
+          if (!deleteRouteRecord(id, uid)) routeNotFound();
+          return undefined as T;
+        }
+      }
+    }
+  }
+
   notFound(endpoint);
+}
+
+// --- routes 用ヘルパー ---
+
+const VALID_TRANSPORTS = new Set<string>(["walk", "train", "bus", "car"]);
+
+// 移動手段ごとの mock 概算速度(m/秒)。Directions API 未接続のため所要時間の擬似算出に使う。
+const SPEED_M_PER_SEC: Record<Exclude<Transport, null>, number> = {
+  walk: 1.33,
+  bus: 5,
+  train: 11,
+  car: 8,
+};
+
+type RawRouteBody = {
+  name?: unknown;
+  description?: unknown;
+  spots?: unknown;
+};
+
+function routeUnprocessable(details: string[]): never {
+  throw new ApiError(422, { error: "Unprocessable Entity", details });
+}
+
+function routeNotFound(): never {
+  throw new ApiError(404, { error: "Not Found" });
+}
+
+function parseRouteBody(body: BodyInit | null | undefined): RawRouteBody {
+  const parsed = parseJsonBody<{ route?: unknown }>(body);
+  if (!parsed.route || typeof parsed.route !== "object") {
+    throw new ApiError(400, { error: "Bad Request" });
+  }
+  return parsed.route as RawRouteBody;
+}
+
+function parseRouteName(
+  raw: unknown,
+  required: boolean,
+): string | undefined {
+  if (raw === undefined) {
+    if (required) routeUnprocessable(["Name can't be blank"]);
+    return undefined;
+  }
+  const name = typeof raw === "string" ? raw.trim() : "";
+  if (name.length === 0) routeUnprocessable(["Name can't be blank"]);
+  return name;
+}
+
+// description は「キー欠落＝据え置き（undefined）」「null/空＝クリア」を区別する。
+function parseRouteDescription(raw: unknown): string | null | undefined {
+  if (raw === undefined) return undefined;
+  if (raw === null) return null;
+  return String(raw);
+}
+
+function normalizeTransport(value: unknown): Transport {
+  if (value === undefined || value === null) return null;
+  if (typeof value === "string" && VALID_TRANSPORTS.has(value)) {
+    return value as Transport;
+  }
+  routeUnprocessable([`Invalid transport: ${String(value)}`]);
+}
+
+function parseRouteSpots(
+  raw: unknown,
+  greenteas: Greentea[],
+  temples: Temple[],
+): StoredRouteSpot[] {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    routeUnprocessable(["Spots can't be blank"]);
+  }
+  return raw.map((entry): StoredRouteSpot => {
+    const spot = entry as {
+      spot_type?: unknown;
+      spot_id?: unknown;
+      transport?: unknown;
+    };
+    if (spot.spot_type !== "greentea" && spot.spot_type !== "temple") {
+      routeUnprocessable([`Invalid spot_type: ${String(spot.spot_type)}`]);
+    }
+    const spotId = Number(spot.spot_id);
+    const exists =
+      spot.spot_type === "greentea"
+        ? greenteas.some((g) => g.id === spotId)
+        : temples.some((t) => t.id === spotId);
+    if (!Number.isFinite(spotId) || !exists) {
+      routeUnprocessable([
+        `Spot not found: ${spot.spot_type} #${String(spot.spot_id)}`,
+      ]);
+    }
+    return {
+      spot_type: spot.spot_type,
+      spot_id: spotId,
+      transport: normalizeTransport(spot.transport),
+    };
+  });
+}
+
+// StoredRoute を詳細レスポンス形へ。スポット座標を解決し、各 leg の直線距離・
+// 経路距離(≈直線×1.3)・所要時間(移動手段別の概算速度)を算出する。
+function buildRouteDetail(
+  route: StoredRoute,
+  greenteas: Greentea[],
+  temples: Temple[],
+): RouteDetail {
+  const lastIndex = route.spots.length - 1;
+  const spots: RouteSpot[] = route.spots.map((s, idx) => {
+    const src =
+      s.spot_type === "greentea"
+        ? greenteas.find((g) => g.id === s.spot_id)
+        : temples.find((t) => t.id === s.spot_id);
+    return {
+      position: idx + 1,
+      spot_type: s.spot_type,
+      // 移動手段は「次スポットへの手段」。最後の要素は null。
+      transport: idx === lastIndex ? null : s.transport,
+      id: s.spot_id,
+      name: src?.name ?? "(削除されたスポット)",
+      address: src?.address ?? "",
+      access: src?.access ?? "",
+      latitude: src?.latitude ?? 0,
+      longitude: src?.longitude ?? 0,
+      img: src?.img ?? "",
+      distance_to_next_meters: null,
+      route_distance_to_next_meters: null,
+      duration_to_next_seconds: null,
+    };
+  });
+
+  let totalDistance = 0;
+  let totalDuration = 0;
+  let hasLeg = false;
+  for (let i = 0; i < spots.length - 1; i++) {
+    const a = spots[i];
+    const b = spots[i + 1];
+    const straight = distanceMeters(a, b);
+    const routeDistance = Math.round(straight * 1.3);
+    const speed = SPEED_M_PER_SEC[a.transport ?? "walk"];
+    const duration = Math.round(routeDistance / speed);
+    a.distance_to_next_meters = straight;
+    a.route_distance_to_next_meters = routeDistance;
+    a.duration_to_next_seconds = duration;
+    totalDistance += routeDistance;
+    totalDuration += duration;
+    hasLeg = true;
+  }
+
+  return {
+    id: route.id,
+    name: route.name,
+    description: route.description,
+    created_at: route.created_at,
+    updated_at: route.updated_at,
+    spots,
+    total_distance_meters: totalDistance,
+    total_duration_seconds: hasLeg ? totalDuration : null,
+  };
 }
 
 function parseJsonBody<T>(body: BodyInit | null | undefined): T {

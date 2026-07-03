@@ -81,6 +81,18 @@ export default function MyPage() {
             参拝・散策で気に入った社寺をいつでも見返せます。
           </p>
         </Link>
+        <Link
+          href="/routes"
+          className="border border-line-soft bg-paper px-6 py-7 transition-colors hover:bg-washi-bg sm:col-span-2"
+        >
+          <p className="font-sans-jp text-[10px] tracking-[0.3em] text-olive">
+            MODEL COURSE
+          </p>
+          <p className="mt-3 font-mincho text-xl text-ink">モデルコース</p>
+          <p className="mt-3 font-serif-jp text-xs leading-[1.9] text-muted">
+            抹茶スイーツ店と神社仏閣を組み合わせて、自分だけの巡りコースを作成・保存できます。
+          </p>
+        </Link>
       </div>
     </section>
   );
