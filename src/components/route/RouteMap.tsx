@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   AdvancedMarker,
   APIProvider,
@@ -23,7 +23,9 @@ function hasCoords(spot: RouteSpot): boolean {
 
 export default function RouteMap({ spots }: RouteMapProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-  const points = spots.filter(hasCoords);
+  // 参照を安定させ、RoutePolyline / FitBounds の effect が親の再描画で
+  // 無駄に再実行されないようにする（ユーザーの pan/zoom を保持）。
+  const points = useMemo(() => spots.filter(hasCoords), [spots]);
 
   if (!apiKey) {
     return (

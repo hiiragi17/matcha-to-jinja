@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import RouteDetailView from "@/components/route/RouteDetailView";
+
+// コース名は認証必須（JWT）でクライアント取得のため、サーバー側では静的な
+// フォールバックタイトルを設定する（new / edit と同様にタブ・SEO 文脈を揃える）。
+export const metadata: Metadata = {
+  title: "コース詳細",
+};
 
 type RouteParams = { id: string };
 

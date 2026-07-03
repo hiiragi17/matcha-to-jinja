@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { ChawanIcon, ToriiIcon } from "@/components/brand/icons";
 import {
@@ -92,11 +92,25 @@ export default function RouteBuilder({ mode, initial }: RouteBuilderProps) {
 
   const initialSelected = useMemo(() => toSelected(initial), [initial]);
 
+  // transport は「そのスポットから次のスポットへの手段」。並び替え・削除で
+  // 「次のスポット」が変わると手段が別の区間に付いたままになるため、
+  // 隣接が変化したスポットの transport はクリアして状態の整合を保つ。
+  const clearTransportAt = (spots: SelectedSpot[], index: number) => {
+    if (index >= 0 && index < spots.length && spots[index].transport !== null) {
+      spots[index] = { ...spots[index], transport: null };
+    }
+  };
+
   const addSpot = (spot: SelectedSpot) =>
     setSelected((prev) => [...prev, spot]);
 
   const removeSpot = (index: number) =>
-    setSelected((prev) => prev.filter((_, i) => i !== index));
+    setSelected((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      // 削除位置の直前スポットの「次」が変わるため transport をクリア
+      clearTransportAt(next, index - 1);
+      return next;
+    });
 
   const moveSpot = (index: number, dir: -1 | 1) =>
     setSelected((prev) => {
@@ -104,6 +118,11 @@ export default function RouteBuilder({ mode, initial }: RouteBuilderProps) {
       const target = index + dir;
       if (target < 0 || target >= next.length) return prev;
       [next[index], next[target]] = [next[target], next[index]];
+      // 入れ替えに関与した2要素と、その直前要素の「次」が変わるためクリア
+      const lo = Math.min(index, target);
+      clearTransportAt(next, lo - 1);
+      clearTransportAt(next, lo);
+      clearTransportAt(next, lo + 1);
       return next;
     });
 
@@ -397,6 +416,14 @@ function SpotPicker({
   onSearch: (v: string) => void;
   onAdd: (spot: SelectedSpot) => void;
 }) {
+  // 実 API 連携時にキー入力ごとのリクエストを抑えるため、SWR キーに渡す
+  // 検索語をデバウンスする（入力自体は即時反映しつつ、フェッチだけ遅らせる）。
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 250);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const fetcher = ([, kind, term]: readonly [
     string,
     SpotType,
@@ -410,7 +437,7 @@ function SpotPicker({
     CandidateResponse,
     ApiError,
     readonly [string, SpotType, string]
-  >(["/route-candidates", tab, search] as const, fetcher, {
+  >(["/route-candidates", tab, debouncedSearch] as const, fetcher, {
     keepPreviousData: true,
   });
 
@@ -439,6 +466,7 @@ function SpotPicker({
         value={search}
         onChange={(e) => onSearch(e.target.value)}
         placeholder="名前で絞り込み"
+        aria-label="スポットを名前で絞り込み"
         className="h-10 border border-line bg-paper px-3 font-serif-jp text-sm text-ink placeholder:text-muted/60 focus:border-olive focus:outline-none"
       />
       {error ? (

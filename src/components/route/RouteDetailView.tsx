@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { ChawanIcon, ToriiIcon } from "@/components/brand/icons";
 import Hairline from "@/components/brand/Hairline";
-import RouteMap from "@/components/route/RouteMap";
+import RouteMap from "./RouteMap";
 import {
   ApiError,
   deleteRoute,

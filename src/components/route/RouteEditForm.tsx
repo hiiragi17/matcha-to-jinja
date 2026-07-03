@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import useSWR from "swr";
-import RouteBuilder from "@/components/route/RouteBuilder";
+import RouteBuilder from "./RouteBuilder";
 import { ApiError, getErrorStatus, getRoute, isUnauthorized } from "@/lib/api";
 import { useAuthToken } from "@/lib/api/useAuthToken";
 import { useSessionExpiredHandler } from "@/lib/api/useSessionExpired";

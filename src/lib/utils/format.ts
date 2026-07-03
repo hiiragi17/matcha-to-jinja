@@ -1,3 +1,5 @@
+import type { Transport } from "@/types";
+
 // 距離・所要時間の表示フォーマット。routes（モデルルート）の距離/時間表示や
 // nearby の距離表示など、複数箇所で共通利用する。
 
@@ -19,9 +21,7 @@ export function formatDuration(seconds: number | null): string {
 }
 
 // 移動手段の日本語ラベル。null（＝ルート末尾など）は空表示にできるよう "" を返す。
-export function transportLabel(
-  transport: "walk" | "train" | "bus" | "car" | null,
-): string {
+export function transportLabel(transport: Transport): string {
   switch (transport) {
     case "walk":
       return "徒歩";

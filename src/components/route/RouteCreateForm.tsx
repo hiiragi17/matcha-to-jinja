@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import RouteBuilder from "@/components/route/RouteBuilder";
+import RouteBuilder from "./RouteBuilder";
 import { useAuthToken } from "@/lib/api/useAuthToken";
 
 // 作成フォームは list/detail/edit と同様に、未ログインでは
