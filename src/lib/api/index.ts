@@ -32,6 +32,13 @@ export {
   deleteGreenteaComment,
   deleteTempleComment,
 } from "./comments";
+export {
+  getRoutes,
+  getRoute,
+  createRoute,
+  updateRoute,
+  deleteRoute,
+} from "./routes";
 export { exchangeOAuthForJwt, getCurrentUser, revokeJwt } from "./auth";
 export type {
   AuthProvider,

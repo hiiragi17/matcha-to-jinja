@@ -1,0 +1,53 @@
+import { z } from "zod";
+import type { RouteInput, SpotType, Transport } from "@/types";
+
+// zod enum の値は types/route.ts の union を単一の真実として派生させる
+// （新しい spot_type / transport を追加しても両者がずれないようにする）。
+const SPOT_TYPES = ["greentea", "temple"] as const satisfies readonly SpotType[];
+const TRANSPORTS = [
+  "walk",
+  "train",
+  "bus",
+  "car",
+] as const satisfies readonly Exclude<Transport, null>[];
+
+// モデルルート作成/編集フォームのスキーマ。
+// name は必須（非空）、spots は 1 件以上。transport は任意（未設定は null 扱い）。
+export const transportSchema = z.enum(TRANSPORTS).nullable();
+
+export const routeSpotSchema = z.object({
+  spot_type: z.enum(SPOT_TYPES),
+  spot_id: z.number(),
+  transport: transportSchema,
+});
+
+export const routeFormSchema = z.object({
+  name: z.string().trim().min(1, { error: "コース名は必須です" }),
+  description: z.string(),
+  spots: z
+    .array(routeSpotSchema)
+    .min(1, { error: "スポットを1件以上追加してください" }),
+});
+
+export type RouteFormValues = z.infer<typeof routeFormSchema>;
+
+// フォーム値を API の RouteInput に整形する。
+// includeSpots=false のときは spots を省略し、name/description のみの部分更新にする
+// （ハンドオフ doc: spots を渡さない PATCH は経路再計算を行わない）。
+export function toRouteInput(
+  values: RouteFormValues,
+  includeSpots = true,
+): RouteInput {
+  const input: RouteInput = {
+    name: values.name.trim(),
+    description: values.description,
+  };
+  if (includeSpots) {
+    input.spots = values.spots.map((s) => ({
+      spot_type: s.spot_type,
+      spot_id: s.spot_id,
+      transport: s.transport,
+    }));
+  }
+  return input;
+}
