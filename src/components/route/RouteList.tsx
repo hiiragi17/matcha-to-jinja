@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
+import Pagination from "@/components/common/Pagination";
 import {
   ApiError,
   deleteRoute,
@@ -13,21 +14,25 @@ import { useAuthToken } from "@/lib/api/useAuthToken";
 import { useSessionExpiredHandler } from "@/lib/api/useSessionExpired";
 import type { RouteListResponse } from "@/types";
 
-type SwrKey = readonly [string, string];
+type RouteListProps = {
+  page?: number;
+};
 
-export default function RouteList() {
+type SwrKey = readonly [string, string, number];
+
+export default function RouteList({ page = 1 }: RouteListProps) {
   const authToken = useAuthToken();
   const handleSessionExpired = useSessionExpiredHandler("/routes");
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const fetcher = ([, token]: SwrKey): Promise<RouteListResponse> =>
-    getRoutes(token);
+  const fetcher = ([, token, p]: SwrKey): Promise<RouteListResponse> =>
+    getRoutes(token, p);
 
   const { data, error, isLoading, mutate } = useSWR<
     RouteListResponse,
     ApiError,
     SwrKey | null
-  >(authToken ? (["/routes", authToken] as const) : null, fetcher);
+  >(authToken ? (["/routes", authToken, page] as const) : null, fetcher);
 
   const sessionExpired = !!error && isUnauthorized(error);
   useEffect(() => {
@@ -150,6 +155,14 @@ export default function RouteList() {
             </li>
           ))}
         </ul>
+      )}
+
+      {data && data.meta.total_pages > 1 && (
+        <Pagination
+          basePath="/routes"
+          currentPage={data.meta.current_page}
+          totalPages={data.meta.total_pages}
+        />
       )}
     </div>
   );

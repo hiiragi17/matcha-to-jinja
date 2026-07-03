@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Hairline from "@/components/brand/Hairline";
-import RouteBuilder from "@/components/route/RouteBuilder";
+import RouteCreateForm from "@/components/route/RouteCreateForm";
 
 export const metadata: Metadata = {
   title: "コースを作成",
@@ -27,7 +27,7 @@ export default function NewRoutePage() {
       <Hairline width={40} className="mt-5" />
 
       <div className="mt-10">
-        <RouteBuilder mode="create" />
+        <RouteCreateForm />
       </div>
     </section>
   );

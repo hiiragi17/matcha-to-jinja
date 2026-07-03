@@ -1,7 +1,16 @@
 import Hairline from "@/components/brand/Hairline";
 import RouteList from "@/components/route/RouteList";
 
-export default function RoutesPage() {
+type SearchParams = { page?: string };
+
+export default async function RoutesPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const sp = await searchParams;
+  const page = Math.max(1, Number(sp.page) || 1);
+
   return (
     <section className="mx-auto w-full max-w-3xl px-6 py-16">
       <p className="font-sans-jp text-[10px] font-medium tracking-[0.4em] text-olive">
@@ -16,7 +25,7 @@ export default function RoutesPage() {
       </p>
 
       <div className="mt-10">
-        <RouteList />
+        <RouteList page={page} />
       </div>
     </section>
   );
