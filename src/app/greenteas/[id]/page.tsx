@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { HiArrowLeft } from "react-icons/hi2";
@@ -10,6 +10,7 @@ import ShareButtons from "@/components/common/ShareButtons";
 import { ApiError, getGreentea } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { imageSrcOrPlaceholder } from "@/lib/utils/image";
+import { buildSpotMetadata } from "@/lib/utils/metadata";
 import type { GreenteaDetail, NearbySpot } from "@/types";
 
 type RouteParams = { id: string };
@@ -27,18 +28,14 @@ async function fetchGreentea(
   }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<RouteParams>;
-}): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: { params: Promise<RouteParams> },
+  parent: ResolvingMetadata,
+): Promise<Metadata> {
   const { id } = await params;
   try {
     const { greentea } = await getGreentea(id);
-    return {
-      title: greentea.name,
-      description: greentea.description,
-    };
+    return await buildSpotMetadata(greentea.name, greentea.description, parent);
   } catch {
     return { title: "抹茶店の詳細" };
   }
