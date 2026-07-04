@@ -10,6 +10,7 @@ import ShareButtons from "@/components/common/ShareButtons";
 import { ApiError, getTemple } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { imageSrcOrPlaceholder } from "@/lib/utils/image";
+import { buildSpotMetadata } from "@/lib/utils/metadata";
 import type { NearbySpot, TempleDetail } from "@/types";
 
 type RouteParams = { id: string };
@@ -35,24 +36,7 @@ export async function generateMetadata({
   const { id } = await params;
   try {
     const { temple } = await getTemple(id);
-    // OGP 画像はルートの opengraph-image（サイト共通）を継承する。
-    // 実 API の画像 URL が用意でき次第、ここに openGraph.images を追加する。
-    return {
-      title: temple.name,
-      description: temple.description,
-      openGraph: {
-        type: "article",
-        locale: "ja_JP",
-        siteName: "抹茶と神社。",
-        title: temple.name,
-        description: temple.description,
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: temple.name,
-        description: temple.description,
-      },
-    };
+    return buildSpotMetadata(temple.name, temple.description);
   } catch {
     return { title: "神社の詳細" };
   }

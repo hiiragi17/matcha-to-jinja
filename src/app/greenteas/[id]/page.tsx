@@ -10,6 +10,7 @@ import ShareButtons from "@/components/common/ShareButtons";
 import { ApiError, getGreentea } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { imageSrcOrPlaceholder } from "@/lib/utils/image";
+import { buildSpotMetadata } from "@/lib/utils/metadata";
 import type { GreenteaDetail, NearbySpot } from "@/types";
 
 type RouteParams = { id: string };
@@ -35,24 +36,7 @@ export async function generateMetadata({
   const { id } = await params;
   try {
     const { greentea } = await getGreentea(id);
-    // OGP 画像はルートの opengraph-image（サイト共通）を継承する。
-    // 実 API の店舗画像 URL が用意でき次第、ここに openGraph.images を追加する。
-    return {
-      title: greentea.name,
-      description: greentea.description,
-      openGraph: {
-        type: "article",
-        locale: "ja_JP",
-        siteName: "抹茶と神社。",
-        title: greentea.name,
-        description: greentea.description,
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: greentea.name,
-        description: greentea.description,
-      },
-    };
+    return buildSpotMetadata(greentea.name, greentea.description);
   } catch {
     return { title: "抹茶店の詳細" };
   }
