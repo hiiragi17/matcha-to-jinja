@@ -1,30 +1,21 @@
 import { describe, expect, it } from "vitest";
-import {
-  NO_IMAGE_PLACEHOLDER,
-  imageSrcOrPlaceholder,
-} from "@/lib/utils/image";
+import { hasImage } from "@/lib/utils/image";
 
-describe("imageSrcOrPlaceholder", () => {
-  it("URL があればそのまま返す", () => {
-    expect(imageSrcOrPlaceholder("https://example.com/x.png")).toBe(
-      "https://example.com/x.png",
-    );
+describe("hasImage", () => {
+  it("URL があれば true", () => {
+    expect(hasImage("https://example.com/x.png")).toBe(true);
   });
 
-  it("空文字はプレースホルダにフォールバックする", () => {
-    expect(imageSrcOrPlaceholder("")).toBe(NO_IMAGE_PLACEHOLDER);
+  it("空文字は false", () => {
+    expect(hasImage("")).toBe(false);
   });
 
-  it("空白のみもプレースホルダにフォールバックする", () => {
-    expect(imageSrcOrPlaceholder("   ")).toBe(NO_IMAGE_PLACEHOLDER);
+  it("空白のみも false", () => {
+    expect(hasImage("   ")).toBe(false);
   });
 
-  it("null / undefined もプレースホルダにフォールバックする", () => {
-    expect(imageSrcOrPlaceholder(null)).toBe(NO_IMAGE_PLACEHOLDER);
-    expect(imageSrcOrPlaceholder(undefined)).toBe(NO_IMAGE_PLACEHOLDER);
-  });
-
-  it("プレースホルダは data:image/svg+xml の URI", () => {
-    expect(NO_IMAGE_PLACEHOLDER.startsWith("data:image/svg+xml,")).toBe(true);
+  it("null / undefined も false", () => {
+    expect(hasImage(null)).toBe(false);
+    expect(hasImage(undefined)).toBe(false);
   });
 });

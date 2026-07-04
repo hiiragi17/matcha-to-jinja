@@ -1,7 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import TempleCard from "@/components/temple/TempleCard";
-import { NO_IMAGE_PLACEHOLDER } from "@/lib/utils/image";
 import type { Temple } from "@/types";
 
 const baseTemple: Temple = {
@@ -52,13 +51,10 @@ describe("TempleCard", () => {
     );
   });
 
-  it("img が空文字ならプレースホルダ画像を表示する", () => {
+  it("img が空文字なら画像を表示しない", () => {
     render(<TempleCard temple={{ ...baseTemple, img: "" }} />);
 
-    expect(screen.getByRole("img", { name: "伏見稲荷大社" })).toHaveAttribute(
-      "src",
-      NO_IMAGE_PLACEHOLDER,
-    );
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 
   it("エリアが空でも壊れない", () => {

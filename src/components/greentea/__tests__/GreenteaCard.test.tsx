@@ -1,7 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import GreenteaCard from "@/components/greentea/GreenteaCard";
-import { NO_IMAGE_PLACEHOLDER } from "@/lib/utils/image";
 import type { Greentea } from "@/types";
 
 const baseGreentea: Greentea = {
@@ -58,13 +57,10 @@ describe("GreenteaCard", () => {
     );
   });
 
-  it("img が空文字ならプレースホルダ画像を表示する", () => {
+  it("img が空文字なら画像を表示しない", () => {
     render(<GreenteaCard greentea={{ ...baseGreentea, img: "" }} />);
 
-    expect(screen.getByRole("img", { name: "中村藤吉本店" })).toHaveAttribute(
-      "src",
-      NO_IMAGE_PLACEHOLDER,
-    );
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 
   it("ジャンルが空でも壊れない", () => {
