@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { HiHeart } from "react-icons/hi2";
-import { imageSrcOrPlaceholder } from "@/lib/utils/image";
+import { hasImage } from "@/lib/utils/image";
 import type { Temple } from "@/types";
 
 type TempleCardProps = {
@@ -13,16 +13,19 @@ export default function TempleCard({ temple }: TempleCardProps) {
       href={`/temples/${temple.id}`}
       className="block border border-line-soft bg-paper transition-colors hover:bg-washi-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bengara"
     >
-      <figure className="aspect-[4/3] overflow-hidden border-b border-line-soft">
-        {/* 画像は Rails(CarrierWave)/外部 URL をそのまま表示するため next/image を使わない */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={imageSrcOrPlaceholder(temple.img)}
-          alt={temple.name}
-          loading="lazy"
-          className="h-full w-full object-cover"
-        />
-      </figure>
+      {/* 画像未登録のスポットでは画像枠ごと表示しない。実 API の画像 URL が入れば表示される。 */}
+      {hasImage(temple.img) && (
+        <figure className="aspect-[4/3] overflow-hidden border-b border-line-soft">
+          {/* 画像は Rails(CarrierWave)/外部 URL をそのまま表示するため next/image を使わない */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={temple.img}
+            alt={temple.name}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
+        </figure>
+      )}
       <div className="flex flex-col gap-2 p-4">
         <h3 className="font-mincho text-lg font-semibold tracking-[0.04em] text-ink">
           {temple.name}

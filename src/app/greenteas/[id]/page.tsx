@@ -9,7 +9,7 @@ import LikeButton from "@/components/common/LikeButton";
 import ShareButtons from "@/components/common/ShareButtons";
 import { ApiError, getGreentea } from "@/lib/api";
 import { auth } from "@/lib/auth";
-import { imageSrcOrPlaceholder } from "@/lib/utils/image";
+import { hasImage } from "@/lib/utils/image";
 import { buildSpotMetadata } from "@/lib/utils/metadata";
 import type { GreenteaDetail, NearbySpot } from "@/types";
 
@@ -147,16 +147,19 @@ export default async function GreenteaDetailPage({
         <ShareButtons title={greentea.name} />
       </div>
 
-      <figure className="mt-10 overflow-hidden border border-line-soft bg-paper">
-        <div className="aspect-[16/9] w-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imageSrcOrPlaceholder(greentea.img)}
-            alt={greentea.name}
-            className="h-full w-full object-cover"
-          />
-        </div>
-      </figure>
+      {/* 画像未登録のスポットでは画像枠ごと表示しない。実 API の画像 URL が入れば表示される。 */}
+      {hasImage(greentea.img) && (
+        <figure className="mt-10 overflow-hidden border border-line-soft bg-paper">
+          <div className="aspect-[16/9] w-full">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={greentea.img}
+              alt={greentea.name}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        </figure>
+      )}
 
       <section className="mt-10">
         <p className="font-serif-jp text-base leading-[2.1] text-ink">
