@@ -35,9 +35,27 @@ export async function generateMetadata({
   const { id } = await params;
   try {
     const { greentea } = await getGreentea(id);
+    // 店舗画像があれば OGP 画像に使う。無ければルートの opengraph-image を継承する。
+    const images = greentea.img?.trim()
+      ? [{ url: greentea.img, alt: greentea.name }]
+      : undefined;
     return {
       title: greentea.name,
       description: greentea.description,
+      openGraph: {
+        type: "article",
+        locale: "ja_JP",
+        siteName: "抹茶と神社。",
+        title: greentea.name,
+        description: greentea.description,
+        ...(images ? { images } : {}),
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: greentea.name,
+        description: greentea.description,
+        ...(images ? { images } : {}),
+      },
     };
   } catch {
     return { title: "抹茶店の詳細" };

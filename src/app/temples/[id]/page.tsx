@@ -35,9 +35,27 @@ export async function generateMetadata({
   const { id } = await params;
   try {
     const { temple } = await getTemple(id);
+    // 神社仏閣の画像があれば OGP 画像に使う。無ければルートの opengraph-image を継承する。
+    const images = temple.img?.trim()
+      ? [{ url: temple.img, alt: temple.name }]
+      : undefined;
     return {
       title: temple.name,
       description: temple.description,
+      openGraph: {
+        type: "article",
+        locale: "ja_JP",
+        siteName: "抹茶と神社。",
+        title: temple.name,
+        description: temple.description,
+        ...(images ? { images } : {}),
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: temple.name,
+        description: temple.description,
+        ...(images ? { images } : {}),
+      },
     };
   } catch {
     return { title: "神社の詳細" };
