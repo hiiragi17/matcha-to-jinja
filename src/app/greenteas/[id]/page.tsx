@@ -35,10 +35,8 @@ export async function generateMetadata({
   const { id } = await params;
   try {
     const { greentea } = await getGreentea(id);
-    // 店舗画像があれば OGP 画像に使う。無ければルートの opengraph-image を継承する。
-    const images = greentea.img?.trim()
-      ? [{ url: greentea.img, alt: greentea.name }]
-      : undefined;
+    // OGP 画像はルートの opengraph-image（サイト共通）を継承する。
+    // 実 API の店舗画像 URL が用意でき次第、ここに openGraph.images を追加する。
     return {
       title: greentea.name,
       description: greentea.description,
@@ -48,13 +46,11 @@ export async function generateMetadata({
         siteName: "抹茶と神社。",
         title: greentea.name,
         description: greentea.description,
-        ...(images ? { images } : {}),
       },
       twitter: {
         card: "summary_large_image",
         title: greentea.name,
         description: greentea.description,
-        ...(images ? { images } : {}),
       },
     };
   } catch {
