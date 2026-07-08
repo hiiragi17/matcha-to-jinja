@@ -36,6 +36,7 @@ namespace :api do
     resources :temple_likes, only: [:index, :create, :destroy]
     resources :greenteacomments, only: [:index, :create, :destroy]
     resources :templecomments, only: [:index, :create, :destroy]
+    resources :routes, only: [:index, :show, :create, :update, :destroy] # モデルコース（JWT 必須）
     get 'nearby', to: 'nearby#search'
     resource :current_user, only: [:show]
     post 'auth/:provider', to: 'auth#create'
@@ -58,6 +59,7 @@ app/controllers/api/v1/
 ├── greenteacomments_controller.rb
 ├── templecomments_controller.rb
 ├── nearby_controller.rb        # 近隣検索
+├── routes_controller.rb        # モデルコース CRUD（JWT 必須）
 ├── current_user_controller.rb  # ログインユーザー情報
 └── auth_controller.rb          # OAuth認証
 ```
@@ -142,7 +144,7 @@ app/controllers/api/v1/
 お気に入りの抹茶店・神社を並べて「自分だけの京都モデルコース」を作る機能。
 **全エンドポイント JWT 認証必須**（`Authorization: Bearer <token>`）で、自分が作成したコースのみ取得・編集・削除できる。
 
-```
+```text
 GET    /api/v1/routes            # 自分のコース一覧（ページネーション）
 GET    /api/v1/routes/:id        # コース詳細（スポット・距離・所要時間）
 POST   /api/v1/routes            # コース作成
