@@ -42,6 +42,8 @@ src/
     temples/                  # 神社 一覧 + [id]/ 詳細
     nearby/                   # 現在地検索（CSR）
     mypage/                   # マイページ + お気に入り（認証必須）
+    routes/                   # モデルコース 一覧/詳細/作成(new)/編集([id]/edit)（認証必須・CSR）
+    admin/                    # 管理画面（greenteas/temples CRUD + comments モデレーション、AdminGuard）
     terms/, privacy/          # 静的ページ
     auth/login/, auth/callback/
     api/auth/[...nextauth]/   # NextAuth.js ルート
@@ -50,13 +52,15 @@ src/
     layout/                   # Header, Footer, Navigation
     greentea/, temple/        # Card / List / Detail / Search
     map/                      # GoogleMap, LocationMarker
+    route/                    # RouteList / RouteBuilder / RouteCreateForm / RouteEditForm / RouteDetailView / RouteMap
+    admin/                    # AdminNav / GreenteaForm / TempleForm / *AdminTable / CommentModerationList / DeleteConfirmDialog
     common/                   # LikeButton, CommentSection, Pagination, ShareButtons 等
     auth/                     # LoginButton, UserMenu
   lib/
-    api/                      # client.ts + 各リソースの API 関数
+    api/                      # client.ts + 各リソースの API 関数（routes.ts / admin/ 含む）
     auth.ts                   # NextAuth 設定
     utils/                    # distance.ts, format.ts
-  types/                      # greentea / temple / user / comment / api
+  types/                      # greentea / temple / user / comment / route / api
 ```
 
 エイリアス: `@/*` → `./src/*`（`tsconfig.json`）。
@@ -65,9 +69,10 @@ src/
 
 - ベースURL: `process.env.NEXT_PUBLIC_API_URL` + `/api/v1`
 - レスポンスの JSON 形は `docs/migration-plan.md` の 1-3 が「契約」。これを型定義（`types/`）と一致させる。
-- 主な型: `Greentea`, `Temple`, `Genre`, `Area`, `User`, `Comment`, `PaginatedResponse<T>`。
+- 主な型: `Greentea`, `Temple`, `Genre`, `Area`, `User`, `Comment`, `RouteDetail` / `RouteListItem`, `PaginatedResponse<T>`。
 - 一覧は `meta`（`current_page` / `total_pages` / `total_count`）付き。詳細は近隣スポット（1.5km以内）と距離情報を含む。
 - 検索パラメータは Ransack 形式（例: `q[name_cont]`）。
+- **モデルコース（`/api/v1/routes`）**は全エンドポイント JWT 認証必須（自分のコースのみ CRUD）。契約は `docs/migration-plan.md` 1-3「モデルコース（routes）」。リクエストボディは `route` キー配下で、`spots` の配列順がコース順になる。
 
 ### フロント先行のためのモック戦略
 - Rails API が未完成でも進められるよう、API クライアントは **環境変数でモック / 実 API を切り替えられる** 形にする。
@@ -85,6 +90,7 @@ src/
 | 詳細 | SSR | SEO + 動的（コメント等） |
 | 現在地検索 | CSR | Geolocation API 依存 |
 | マイページ | CSR | 認証必須・SEO不要 |
+| モデルコース（一覧/詳細/作成/編集） | CSR | 全 API が JWT 認証必須・自分のデータのみ、SEO不要 |
 | ログイン / 利用規約 / プライバシー | SSG | 静的 |
 
 ## コーディング規約

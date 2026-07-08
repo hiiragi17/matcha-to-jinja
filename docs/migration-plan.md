@@ -137,6 +137,108 @@ app/controllers/api/v1/
 }
 ```
 
+#### モデルコース（routes）
+
+お気に入りの抹茶店・神社を並べて「自分だけの京都モデルコース」を作る機能。
+**全エンドポイント JWT 認証必須**（`Authorization: Bearer <token>`）で、自分が作成したコースのみ取得・編集・削除できる。
+
+```
+GET    /api/v1/routes            # 自分のコース一覧（ページネーション）
+GET    /api/v1/routes/:id        # コース詳細（スポット・距離・所要時間）
+POST   /api/v1/routes            # コース作成
+PATCH  /api/v1/routes/:id        # コース更新（spots 省略で name/description のみ部分更新）
+DELETE /api/v1/routes/:id        # コース削除
+```
+
+##### GET /api/v1/routes（一覧）
+一覧は軽量シリアライザで `spots` を返さず件数（`spot_count`）のみ含める。
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "祇園さんぽ",
+      "description": "抹茶と建仁寺めぐり",
+      "spot_count": 3,
+      "created_at": "2026-06-01T10:00:00Z",
+      "updated_at": "2026-06-01T10:00:00Z"
+    }
+  ],
+  "meta": { "current_page": 1, "total_pages": 2, "total_count": 15 }
+}
+```
+
+##### GET /api/v1/routes/:id（詳細）
+`spots` は `position` 昇順。各スポットは次スポットへの移動手段（`transport`）と距離・所要時間を持つ。
+`distance_to_next_meters` は直線距離、`route_distance_to_next_meters` / `duration_to_next_seconds` は Google Directions API の経路値（未算出・失敗時は `null`）。配列末尾のスポットはこれらが `null`。
+
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "祇園さんぽ",
+    "description": "抹茶と建仁寺めぐり",
+    "created_at": "2026-06-01T10:00:00Z",
+    "updated_at": "2026-06-01T10:00:00Z",
+    "spots": [
+      {
+        "position": 1,
+        "spot_type": "greentea",
+        "transport": "walk",
+        "id": 1,
+        "name": "茶寮都路里",
+        "address": "京都市東山区...",
+        "access": "祇園四条駅から徒歩5分",
+        "latitude": 35.0036,
+        "longitude": 135.7714,
+        "img": "https://...",
+        "distance_to_next_meters": 450,
+        "route_distance_to_next_meters": 520,
+        "duration_to_next_seconds": 360
+      },
+      {
+        "position": 2,
+        "spot_type": "temple",
+        "transport": null,
+        "id": 3,
+        "name": "建仁寺",
+        "address": "京都市東山区...",
+        "access": "祇園四条駅から徒歩7分",
+        "latitude": 35.0000,
+        "longitude": 135.7740,
+        "img": "https://...",
+        "distance_to_next_meters": null,
+        "route_distance_to_next_meters": null,
+        "duration_to_next_seconds": null
+      }
+    ],
+    "total_distance_meters": 520,
+    "total_duration_seconds": 360
+  }
+}
+```
+
+##### POST /api/v1/routes / PATCH /api/v1/routes/:id（作成・更新）
+リクエストボディは `route` キー配下。`spots` の配列順がそのままコース順になる。
+`transport` は各スポットから**次のスポットへの**移動手段（`"walk" | "train" | "bus" | "car" | null`）。
+PATCH で `spots` を省略すると既存スポットを保持したまま `name` / `description` のみ部分更新する。
+
+```json
+{
+  "route": {
+    "name": "祇園さんぽ",
+    "description": "抹茶と建仁寺めぐり",
+    "spots": [
+      { "spot_type": "greentea", "spot_id": 1, "transport": "walk" },
+      { "spot_type": "temple", "spot_id": 3, "transport": null }
+    ]
+  }
+}
+```
+
+作成・更新の成功レスポンスは詳細（`GET /api/v1/routes/:id`）と同形。`DELETE` は 204。
+
 ### 1-4. 認証方式の変更
 
 現在の Sorcery セッションベース認証から、**JWT トークン認証**に移行する。
@@ -258,6 +360,14 @@ src/
 │   │   │   └── page.tsx              # お気に入り抹茶店
 │   │   └── temple-likes/
 │   │       └── page.tsx              # お気に入り神社
+│   ├── routes/                       # モデルコース（認証必須・CSR）
+│   │   ├── page.tsx                  # コース一覧
+│   │   ├── new/
+│   │   │   └── page.tsx              # コース作成
+│   │   └── [id]/
+│   │       ├── page.tsx              # コース詳細
+│   │       └── edit/
+│   │           └── page.tsx          # コース編集
 │   ├── terms/
 │   │   └── page.tsx                  # 利用規約
 │   ├── privacy/
@@ -290,6 +400,13 @@ src/
 │   ├── map/
 │   │   ├── GoogleMap.tsx             # Google Maps コンポーネント
 │   │   └── LocationMarker.tsx        # マーカー
+│   ├── route/
+│   │   ├── RouteList.tsx             # コース一覧
+│   │   ├── RouteBuilder.tsx          # コース組み立て（スポット選択・並べ替え）
+│   │   ├── RouteCreateForm.tsx       # コース作成フォーム
+│   │   ├── RouteEditForm.tsx         # コース編集フォーム
+│   │   ├── RouteDetailView.tsx       # コース詳細表示
+│   │   └── RouteMap.tsx              # コース地図
 │   ├── common/
 │   │   ├── LikeButton.tsx            # いいねボタン
 │   │   ├── CommentSection.tsx        # コメントセクション
@@ -307,6 +424,7 @@ src/
 │   │   ├── temples.ts                # 神社 API
 │   │   ├── likes.ts                  # いいね API
 │   │   ├── comments.ts               # コメント API
+│   │   ├── routes.ts                 # モデルコース API（JWT 必須）
 │   │   └── auth.ts                   # 認証 API
 │   ├── auth.ts                       # NextAuth 設定
 │   └── utils/
@@ -317,6 +435,7 @@ src/
     ├── temple.ts                     # 神社型定義
     ├── user.ts                       # ユーザー型定義
     ├── comment.ts                    # コメント型定義
+    ├── route.ts                      # モデルコース型定義
     └── api.ts                        # API レスポンス型定義
 ```
 
@@ -384,6 +503,7 @@ export interface PaginatedResponse<T> {
 | 神社詳細 | SSR | 同上 |
 | 現在地検索 | CSR | ブラウザの Geolocation API 依存 |
 | マイページ | CSR | 認証必須、SEO不要 |
+| モデルコース（一覧/詳細/作成/編集） | CSR | 全 API が JWT 認証必須・自分のデータのみ、SEO不要 |
 | ログイン | SSG | 静的ページ |
 | 利用規約/プライバシーポリシー | SSG | 静的コンテンツ |
 
