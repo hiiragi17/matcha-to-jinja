@@ -10,6 +10,11 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // `eslint .` はビルド成果物も対象にするため明示的に無視する。
+  // （`next lint` はこれらを既定で除外していた。）
+  {
+    ignores: [".next/", "out/", "build/", "coverage/", "next-env.d.ts"],
+  },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
