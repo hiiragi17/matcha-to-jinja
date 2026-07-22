@@ -60,6 +60,33 @@ describe("error ユーティリティ", () => {
       ).toBe("むり");
     });
 
+    it("{ errors: { field: [...] } }（Rails 標準ハッシュ）を連結する", () => {
+      const err = new ApiError(422, {
+        errors: {
+          name: ["を入力してください"],
+          spots: ["は1件以上必要です", "の並び順が不正です"],
+        },
+      });
+      expect(getApiErrorMessage(err, "fb")).toBe(
+        "を入力してください / は1件以上必要です / の並び順が不正です",
+      );
+    });
+
+    it("{ errors: { field: '...' } }（値が単一文字列）も拾う", () => {
+      const err = new ApiError(422, { errors: { base: "保存できません" } });
+      expect(getApiErrorMessage(err, "fb")).toBe("保存できません");
+    });
+
+    it("{ details: [...] }（mock 形式）を拾い、汎用 error より優先する", () => {
+      const err = new ApiError(422, {
+        error: "Unprocessable Entity",
+        details: ["name は必須です", "spots は空にできません"],
+      });
+      expect(getApiErrorMessage(err, "fb")).toBe(
+        "name は必須です / spots は空にできません",
+      );
+    });
+
     it("errors が空配列・非文字列のみなら fallback", () => {
       expect(getApiErrorMessage(new ApiError(422, { errors: [] }), "fb")).toBe(
         "fb",
