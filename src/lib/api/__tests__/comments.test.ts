@@ -1,5 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
+import { endpoint } from "@tests/msw/endpoint";
 import { server } from "@tests/msw/server";
 import {
   createGreenteaComment,
@@ -10,15 +11,13 @@ import {
   getTempleComments,
 } from "../comments";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
-const endpoint = (path: string) => `${API_BASE_URL}/api/v1${path}`;
-
-// 記録した最後のリクエストのメソッド/クエリ/ボディ/認可ヘッダを検証するためのヘルパ。
+// 記録した最後のリクエストのメソッド/クエリ/ボディ/認可ヘッダ/path id を検証するためのヘルパ。
 type Captured = {
   method?: string;
   url?: URL;
   auth?: string | null;
   body?: unknown;
+  id?: string;
 };
 
 describe("comments API クライアント", () => {
@@ -126,7 +125,7 @@ describe("comments API クライアント", () => {
           ({ request, params }) => {
             captured.method = request.method;
             captured.auth = request.headers.get("Authorization");
-            (captured as Captured & { id?: string }).id = params.id as string;
+            captured.id = params.id as string;
             return new HttpResponse(null, { status: 204 });
           },
         ),
@@ -136,7 +135,7 @@ describe("comments API クライアント", () => {
 
       expect(captured.method).toBe("DELETE");
       expect(captured.auth).toBe("Bearer tok-abc");
-      expect((captured as Captured & { id?: string }).id).toBe("200");
+      expect(captured.id).toBe("200");
       expect(res).toBeUndefined();
     });
 

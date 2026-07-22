@@ -1,5 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
+import { endpoint } from "@tests/msw/endpoint";
 import { server } from "@tests/msw/server";
 import type { RouteInput } from "@/types";
 import {
@@ -9,9 +10,6 @@ import {
   getRoutes,
   updateRoute,
 } from "../routes";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
-const endpoint = (path: string) => `${API_BASE_URL}/api/v1${path}`;
 
 type Captured = {
   method?: string;
