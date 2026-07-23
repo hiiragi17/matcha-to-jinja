@@ -24,7 +24,10 @@ describe("ShareButtons", () => {
     render(<ShareButtons title="伏見稲荷大社" />);
 
     const twitter = await screen.findByLabelText("X（Twitter）でシェア");
+    const line = screen.getByLabelText("LINEでシェア");
     expect(twitter).toHaveAttribute("target", "_blank");
     expect(twitter).toHaveAttribute("rel", "noopener noreferrer");
+    expect(line).toHaveAttribute("target", "_blank");
+    expect(line).toHaveAttribute("rel", "noopener noreferrer");
   });
 });

@@ -26,7 +26,9 @@ describe("buildSpotMetadata", () => {
     expect(meta.title).toBe("中村藤吉本店");
     expect(meta.description).toBe("宇治の老舗抹茶店。");
     expect(meta.openGraph?.title).toBe("中村藤吉本店");
+    expect(meta.openGraph?.description).toBe("宇治の老舗抹茶店。");
     expect(meta.twitter?.title).toBe("中村藤吉本店");
+    expect(meta.twitter?.description).toBe("宇治の老舗抹茶店。");
   });
 
   it("親のサイト共通 og:image / twitter:image を継承する（画像継承の回帰防止）", async () => {

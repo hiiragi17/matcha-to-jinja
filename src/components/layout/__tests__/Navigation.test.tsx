@@ -53,5 +53,7 @@ describe("Navigation", () => {
     render(<Navigation orientation="vertical" />);
 
     expect(screen.getAllByRole("link")).toHaveLength(NAV_LINKS.length);
+    // prop が無視されて横並びになったら落ちるよう、縦並びのクラスも検証する。
+    expect(screen.getByRole("list")).toHaveClass("flex-col");
   });
 });
