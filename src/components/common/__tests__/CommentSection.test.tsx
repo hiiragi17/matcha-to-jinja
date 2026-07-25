@@ -4,7 +4,11 @@ import { http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CommentSection from "@/components/common/CommentSection";
 import { server } from "@tests/msw/server";
-import { commentDeleted, writeError } from "@tests/msw/writeApiHandlers";
+import {
+  commentCreated,
+  commentDeleted,
+  writeError,
+} from "@tests/msw/writeApiHandlers";
 import type { Comment } from "@/types";
 
 const useSessionMock = vi.fn();
@@ -326,5 +330,151 @@ describe("CommentSection", () => {
     });
     // ロールバックされ、コメントは残る。
     expect(screen.getByText("消せない")).toBeInTheDocument();
+  });
+
+  it("投稿が 5xx だと汎用エラーを表示しリストは変わらない", async () => {
+    mockLoggedIn();
+    server.use(writeError("post", "greenteacomments", 500));
+
+    const user = userEvent.setup();
+    render(
+      <CommentSection
+        kind="greentea"
+        targetId={1}
+        initialComments={[]}
+        callbackUrl="/greenteas/1"
+      />,
+    );
+
+    await user.type(
+      screen.getByRole("textbox", { name: /コメントを書く/ }),
+      "感想",
+    );
+    await user.click(screen.getByRole("button", { name: /投稿する/ }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(/投稿に失敗しました/);
+    });
+    expect(signOutMock).not.toHaveBeenCalled();
+    expect(screen.getByText(/まだコメントはありません/)).toBeInTheDocument();
+  });
+
+  it("削除が 5xx だとロールバックして汎用エラーを表示する", async () => {
+    mockLoggedIn();
+    server.use(writeError("delete", "greenteacomments", 500));
+
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const user = userEvent.setup();
+    render(
+      <CommentSection
+        kind="greentea"
+        targetId={1}
+        initialComments={[
+          baseComment({ id: 2, body: "消えない", owned_by_current_user: true }),
+        ]}
+        callbackUrl="/greenteas/1"
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /削除/ }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(/削除に失敗しました/);
+    });
+    expect(screen.getByText("消えない")).toBeInTheDocument();
+  });
+
+  it("削除が 401 だと signOut してログインへ誘導する", async () => {
+    mockLoggedIn();
+    server.use(writeError("delete", "greenteacomments", 401));
+
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const user = userEvent.setup();
+    render(
+      <CommentSection
+        kind="greentea"
+        targetId={1}
+        initialComments={[
+          baseComment({ id: 2, body: "対象", owned_by_current_user: true }),
+        ]}
+        callbackUrl="/greenteas/1"
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /削除/ }));
+
+    await waitFor(() => {
+      expect(signOutMock).toHaveBeenCalledWith({ redirect: false });
+    });
+    expect(pushMock).toHaveBeenCalledWith(
+      "/auth/login?callbackUrl=%2Fgreenteas%2F1",
+    );
+  });
+
+  it("temple 種別でも投稿が templecomments API 経由でリスト先頭に追加される", async () => {
+    mockLoggedIn();
+    server.use(commentCreated("temple"));
+
+    const user = userEvent.setup();
+    render(
+      <CommentSection
+        kind="temple"
+        targetId={3}
+        initialComments={[baseComment({ id: 1, body: "既存" })]}
+        callbackUrl="/temples/3"
+      />,
+    );
+
+    await user.type(
+      screen.getByRole("textbox", { name: /コメントを書く/ }),
+      "神社の感想",
+    );
+    await user.click(screen.getByRole("button", { name: /投稿する/ }));
+
+    await waitFor(() => {
+      expect(screen.getByText("神社の感想")).toBeInTheDocument();
+    });
+    const items = screen.getAllByRole("listitem");
+    expect(items[0]).toHaveTextContent("神社の感想");
+  });
+
+  it("temple 種別でも自分のコメントを templecomments API 経由で削除できる", async () => {
+    mockLoggedIn();
+    server.use(commentDeleted("temple"));
+
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const user = userEvent.setup();
+    render(
+      <CommentSection
+        kind="temple"
+        targetId={3}
+        initialComments={[
+          baseComment({ id: 2, body: "削除対象", owned_by_current_user: true }),
+        ]}
+        callbackUrl="/temples/3"
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /削除/ }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("削除対象")).not.toBeInTheDocument();
+    });
+  });
+
+  it("不正な日付でも例外を投げず元の文字列を表示する", () => {
+    mockLoggedIn();
+    render(
+      <CommentSection
+        kind="greentea"
+        targetId={1}
+        initialComments={[
+          baseComment({ id: 1, body: "日付おかしい", created_at: "not-a-date" }),
+        ]}
+        callbackUrl="/greenteas/1"
+      />,
+    );
+
+    expect(screen.getByText("日付おかしい")).toBeInTheDocument();
   });
 });
