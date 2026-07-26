@@ -65,7 +65,8 @@ export const AVAILABLE_PROVIDERS = {
   mock: enableMock,
 } as const;
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+// callbacks / events を単体テストから直接呼べるよう、設定を切り出して export する。
+export const authConfig = {
   providers,
   pages: {
     signIn: "/auth/login",
@@ -152,4 +153,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
     },
   },
-});
+} satisfies NextAuthConfig;
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
