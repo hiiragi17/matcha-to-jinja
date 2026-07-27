@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import RouteDetailView from "@/components/route/RouteDetailView";
 import { endpoint } from "@tests/msw/endpoint";
 import { server } from "@tests/msw/server";
+import type { RouteDetail } from "@/types";
 
 const useSessionMock = vi.fn();
 const pushMock = vi.fn();
@@ -35,7 +36,8 @@ const authedSession = {
   status: "authenticated" as const,
 };
 
-const routeDetail = {
+// API 契約（types/route.ts）とずれたらコンパイルエラーになるよう型を付ける。
+const routeDetail: RouteDetail = {
   id: 7,
   name: "祇園抹茶巡り",
   description: "神社とお茶屋さんを巡る半日コース",
@@ -111,6 +113,11 @@ function routeFound() {
 // dt ラベルから、同じ dt-dd を包む div を取り出す。
 function stat(label: string) {
   return screen.getByText(label).closest("div") as HTMLElement;
+}
+
+// 一覧取得の完了を待ってから削除ボタンを押す（削除系テストで共通）。
+async function clickDelete() {
+  await userEvent.click(await screen.findByRole("button", { name: "削除" }));
 }
 
 describe("RouteDetailView", () => {
@@ -256,9 +263,7 @@ describe("RouteDetailView", () => {
 
     renderWithSwr(<RouteDetailView id="7" />);
 
-    await userEvent.click(
-      await screen.findByRole("button", { name: "削除" }),
-    );
+    await clickDelete();
 
     await waitFor(() => {
       expect(pushMock).toHaveBeenCalledWith("/routes");
@@ -280,9 +285,7 @@ describe("RouteDetailView", () => {
 
     renderWithSwr(<RouteDetailView id="7" />);
 
-    await userEvent.click(
-      await screen.findByRole("button", { name: "削除" }),
-    );
+    await clickDelete();
 
     expect(onDelete).not.toHaveBeenCalled();
     expect(pushMock).not.toHaveBeenCalled();
@@ -300,9 +303,7 @@ describe("RouteDetailView", () => {
 
     renderWithSwr(<RouteDetailView id="7" />);
 
-    await userEvent.click(
-      await screen.findByRole("button", { name: "削除" }),
-    );
+    await clickDelete();
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(
@@ -325,9 +326,7 @@ describe("RouteDetailView", () => {
 
     renderWithSwr(<RouteDetailView id="7" />);
 
-    await userEvent.click(
-      await screen.findByRole("button", { name: "削除" }),
-    );
+    await clickDelete();
 
     await waitFor(() => {
       expect(signOutMock).toHaveBeenCalledWith({ redirect: false });

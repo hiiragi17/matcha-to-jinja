@@ -170,10 +170,16 @@ function selectedSection() {
     .closest("section") as HTMLElement;
 }
 
+const SPOT_NAMES = initialRoute.spots.map((s) => s.name);
+
+// 並び順はスタイル用クラスではなく可視テキストから読む
+// （Tailwind のクラス名変更でテストが黙って壊れないように）。
 function selectedNames() {
   return within(selectedSection())
     .getAllByRole("listitem")
-    .map((li) => li.querySelector(".font-mincho")?.textContent);
+    .map(
+      (li) => SPOT_NAMES.find((name) => within(li).queryByText(name)) ?? null,
+    );
 }
 
 function routeDetailResponse(id: number, name: string) {

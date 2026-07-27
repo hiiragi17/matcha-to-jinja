@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import RouteEditForm from "@/components/route/RouteEditForm";
 import { endpoint } from "@tests/msw/endpoint";
 import { server } from "@tests/msw/server";
+import type { RouteDetail } from "@/types";
 
 const useSessionMock = vi.fn();
 const pushMock = vi.fn();
@@ -20,7 +21,8 @@ vi.mock("next-auth/react", () => ({
   signOut: (...args: unknown[]) => signOutMock(...args),
 }));
 
-const routeDetail = {
+// API 契約（types/route.ts）とずれたらコンパイルエラーになるよう型を付ける。
+const routeDetail: RouteDetail = {
   id: 7,
   name: "祇園抹茶巡り",
   description: "神社とお茶屋さんを巡る半日コース",
