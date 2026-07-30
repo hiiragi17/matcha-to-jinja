@@ -71,7 +71,9 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllEnvs();
-  vi.restoreAllMocks();
+  // このファイルは vi.spyOn を使わず vi.fn() のみのため restoreAllMocks は無効。
+  // vi.fn の呼び出し履歴をクリアして次テストへ持ち越さない。
+  vi.clearAllMocks();
 });
 
 describe("NearbyMap", () => {
