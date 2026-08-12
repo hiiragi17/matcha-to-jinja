@@ -36,6 +36,8 @@ vi.mock("next/link", () => ({
 // 京都圏内 / 圏外の座標。
 const KYOTO_POINT = { latitude: 35.02, longitude: 135.77 };
 const OUTSIDE_POINT = { latitude: 35.68, longitude: 139.76 }; // 東京
+// 京都府に隣接し、緯度だけ見ると京都と重なりうる兵庫県の地点（回帰防止）。
+const NEIGHBORING_PREF_POINT = { latitude: 34.7376, longitude: 135.3417 }; // 兵庫県西宮市
 
 const nearbyData: NearbyResponse = {
   greenteas: [
@@ -100,42 +102,50 @@ describe("NearbyMap", () => {
     ).toBeInTheDocument();
   });
 
-  it("位置情報が拒否されると案内を出し、再試行できる", async () => {
+  it("位置情報が拒否されても京都市中心部のスポットを取得・表示し、再試行できる", async () => {
     const { getCurrentPosition } = installGeolocation();
     rejectWith(getCurrentPosition, permissionDeniedError());
+    server.use(nearbyHandler(nearbyData));
 
     render(<NearbyMap />);
 
     expect(
       await screen.findByText(/位置情報の利用が拒否されました/),
     ).toBeInTheDocument();
-    // 地図は京都市中心部で描画される。
+    // 地図は京都市中心部で描画され、スポットも取得される（京都にいなくても見られる）。
     expect(screen.getByTestId("map")).toHaveAttribute(
       "data-center",
       JSON.stringify({ lat: 35.0116, lng: 135.7681 }),
     );
-    // 半径ボタンは位置未取得なので無効。
-    expect(screen.getByRole("button", { name: "1.5 km" })).toBeDisabled();
+    expect(screen.getByTitle("京都市中心部")).toBeInTheDocument();
+    expect(await screen.findByText("一保堂茶舗")).toBeInTheDocument();
+    // 起点は確定しているので半径ボタンは有効。
+    expect(screen.getByRole("button", { name: "1.5 km" })).toBeEnabled();
 
-    // 再試行で今度は成功させる。
+    // 再試行すると実際の現在地（京都圏内）に切り替わる。
     resolveWith(getCurrentPosition, KYOTO_POINT);
-    server.use(nearbyHandler(nearbyData));
     await userEvent.click(
       screen.getByRole("button", { name: "もう一度試す" }),
     );
 
-    expect(await screen.findByText("一保堂茶舗")).toBeInTheDocument();
+    expect(
+      screen.queryByText(/位置情報の利用が拒否されました/),
+    ).not.toBeInTheDocument();
+    expect(await screen.findByTitle("現在地")).toBeInTheDocument();
   });
 
-  it("現在地取得の失敗（拒否以外）ではエラー案内を出す", async () => {
+  it("現在地取得の失敗（拒否以外）でも京都市中心部のスポットを取得・表示する", async () => {
     const { getCurrentPosition } = installGeolocation();
     rejectWith(getCurrentPosition, positionUnavailableError());
+    server.use(nearbyHandler(nearbyData));
 
     render(<NearbyMap />);
 
     expect(
       await screen.findByText(/現在地を取得できませんでした/),
     ).toBeInTheDocument();
+    expect(screen.getByTitle("京都市中心部")).toBeInTheDocument();
+    expect(await screen.findByText("一保堂茶舗")).toBeInTheDocument();
   });
 
   it("京都圏内で現在地取得に成功すると近隣スポットを取得・表示する", async () => {
@@ -243,10 +253,28 @@ describe("NearbyMap", () => {
     expect(
       await screen.findByText(/現在地が京都府の外のようです/),
     ).toBeInTheDocument();
+    // 近隣スポット一覧（SpotLists）はフェッチ成功後に描画されるため await で待つ。
     expect(
-      screen.getByText(/距離は京都市中心部からの目安です/),
+      await screen.findByText(/距離は京都市中心部からの目安です/),
     ).toBeInTheDocument();
     // origin は京都中心へ寄る（現在地ではなく京都市中心部マーカー）。
+    expect(screen.getByTitle("京都市中心部")).toBeInTheDocument();
+    expect(screen.getByTestId("map")).toHaveAttribute(
+      "data-center",
+      JSON.stringify({ lat: 35.0116, lng: 135.7681 }),
+    );
+  });
+
+  it("隣接県（兵庫県）の現在地も京都圏外として京都市中心部へ寄せる", async () => {
+    const { getCurrentPosition } = installGeolocation();
+    resolveWith(getCurrentPosition, NEIGHBORING_PREF_POINT);
+    server.use(nearbyHandler(nearbyData));
+
+    render(<NearbyMap />);
+
+    expect(
+      await screen.findByText(/現在地が京都府の外のようです/),
+    ).toBeInTheDocument();
     expect(screen.getByTitle("京都市中心部")).toBeInTheDocument();
     expect(screen.getByTestId("map")).toHaveAttribute(
       "data-center",

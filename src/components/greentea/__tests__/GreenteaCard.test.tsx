@@ -34,18 +34,29 @@ describe("GreenteaCard", () => {
     );
   });
 
-  it("名前・説明・likes_count・ジャンルを表示する", () => {
+  it("名前・likes_count・ジャンルを表示する", () => {
     render(<GreenteaCard greentea={baseGreentea} />);
 
     expect(
       screen.getByRole("heading", { name: "中村藤吉本店" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("宇治の老舗が営む抹茶スイーツ店。"),
-    ).toBeInTheDocument();
     expect(screen.getByText("42")).toBeInTheDocument();
     expect(screen.getByText("スイーツ")).toBeInTheDocument();
     expect(screen.getByText("カフェ")).toBeInTheDocument();
+  });
+
+  it("住所・アクセス・定休日を表示する", () => {
+    render(<GreenteaCard greentea={baseGreentea} />);
+
+    expect(screen.getByText("京都府宇治市宇治壱番10")).toBeInTheDocument();
+    expect(screen.getByText("JR宇治駅から徒歩3分")).toBeInTheDocument();
+    expect(screen.getByText("無休")).toBeInTheDocument();
+  });
+
+  it("access が無ければアクセス欄自体を表示しない", () => {
+    render(<GreenteaCard greentea={{ ...baseGreentea, access: "" }} />);
+
+    expect(screen.queryByText("アクセス")).not.toBeInTheDocument();
   });
 
   it("img が指定されていればそのURLを表示する", () => {

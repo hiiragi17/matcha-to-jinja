@@ -3,15 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { HiArrowLeft } from "react-icons/hi2";
 import Hairline from "@/components/brand/Hairline";
-import { ChawanIcon } from "@/components/brand/icons";
 import CommentSection from "@/components/common/CommentSection";
 import LikeButton from "@/components/common/LikeButton";
 import ShareButtons from "@/components/common/ShareButtons";
+import NearbySpotsMap from "@/components/map/NearbySpotsMap";
 import { ApiError, getTemple } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { hasImage } from "@/lib/utils/image";
 import { buildSpotMetadata } from "@/lib/utils/metadata";
-import type { NearbySpot, TempleDetail } from "@/types";
+import type { TempleDetail } from "@/types";
 
 type RouteParams = { id: string };
 
@@ -41,11 +41,6 @@ export async function generateMetadata(
   }
 }
 
-function formatDistance(meters: number): string {
-  if (meters < 1000) return `${meters} m`;
-  return `${(meters / 1000).toFixed(1)} km`;
-}
-
 // 外部リンクとして表示してよい URL かを判定する（javascript: 等の危険スキームを除外）。
 function isSafeExternalUrl(url: string): boolean {
   try {
@@ -64,39 +59,6 @@ function InfoRow({ label, children }: { label: string; children: React.ReactNode
       </dt>
       <dd className="font-serif-jp text-sm leading-[1.9] text-ink">{children}</dd>
     </div>
-  );
-}
-
-function NearbyGreenteas({ greenteas }: { greenteas: NearbySpot[] }) {
-  if (greenteas.length === 0) {
-    return (
-      <p className="border border-line-soft bg-paper px-5 py-6 text-center font-serif-jp text-sm text-muted">
-        近隣 1.5km 以内に登録された抹茶店はありません。
-      </p>
-    );
-  }
-  return (
-    <ul className="divide-y divide-line-soft border border-line-soft bg-paper">
-      {greenteas.map((greentea) => (
-        <li key={greentea.id}>
-          <Link
-            href={`/greenteas/${greentea.id}`}
-            className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-washi-bg"
-          >
-            <ChawanIcon size={22} color="#608060" />
-            <span className="flex-1 font-mincho text-base text-ink">
-              {greentea.name}
-            </span>
-            <span className="font-sans-jp text-xs tracking-[0.1em] text-muted">
-              {formatDistance(greentea.distance_meters)}
-            </span>
-            <span aria-hidden="true" className="font-mincho text-base text-muted">
-              →
-            </span>
-          </Link>
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -214,7 +176,16 @@ export default async function TempleDetailPage({
           </span>
         </h2>
         <div className="mt-4">
-          <NearbyGreenteas greenteas={temple.nearby_greenteas} />
+          <NearbySpotsMap
+            origin={{
+              lat: temple.latitude,
+              lng: temple.longitude,
+              name: temple.name,
+            }}
+            spots={temple.nearby_greenteas}
+            kind="greentea"
+            emptyMessage="近隣 1.5km 以内に登録された抹茶店はありません。"
+          />
         </div>
       </section>
 

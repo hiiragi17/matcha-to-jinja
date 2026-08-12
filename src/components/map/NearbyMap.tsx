@@ -23,13 +23,15 @@ type Radius = (typeof RADIUS_OPTIONS)[number];
 const KYOTO_CENTER = { lat: 35.0116, lng: 135.7681 };
 
 // 収録スポットは京都のみのため、現在地がこの範囲外なら京都中心へ寄せる。
-// 京都府全体をゆるく覆う緯度経度ボックス（北は丹後半島〜日本海側、南は奈良府境、
-// 西は兵庫府境、東は滋賀・三重府境あたりまで含む）。
+// 京都府は南北に長く形も複雑なため、府全体をゆるく覆う矩形にすると兵庫県
+// （西宮市など）や大阪府・滋賀県の一部まで「京都府内」に含んでしまう。
+// そのため収録スポットが実際に分布する京都市街地〜宇治・嵐山周辺に絞った
+// 矩形にする（丹後半島など府北部の一部は対象外になるが、そこに収録スポットはない）。
 const KYOTO_BOUNDS = {
-  minLat: 34.7,
-  maxLat: 35.8,
-  minLng: 134.85,
-  maxLng: 136.05,
+  minLat: 34.8,
+  maxLat: 35.2,
+  minLng: 135.55,
+  maxLng: 135.9,
 } as const;
 
 function isInKyoto(lat: number, lng: number): boolean {
@@ -109,8 +111,19 @@ export default function NearbyMap() {
     requestLocation();
   }, [hasMapsConfig, requestLocation]);
 
-  const origin = geo.status === "granted" ? geo.origin : null;
-  const outsideKyoto = geo.status === "granted" && geo.outsideKyoto;
+  // 位置情報を許可された場合は判定済みの origin をそのまま使う。拒否・取得失敗の
+  // 場合も「京都にいなくても京都のスポットは見られる」ようにするため、取得を諦めず
+  // 京都市中心部へフォールバックしてスポット取得を続行する。
+  const origin =
+    geo.status === "granted"
+      ? geo.origin
+      : geo.status === "denied" || geo.status === "error"
+        ? KYOTO_CENTER
+        : null;
+  const outsideKyoto =
+    geo.status === "granted"
+      ? geo.outsideKyoto
+      : geo.status === "denied" || geo.status === "error";
 
   useEffect(() => {
     if (!hasMapsConfig || !origin) return;
@@ -144,11 +157,7 @@ export default function NearbyMap() {
 
   return (
     <div className="flex flex-col gap-6">
-      <RadiusSelector
-        value={radius}
-        onChange={setRadius}
-        disabled={geo.status !== "granted"}
-      />
+      <RadiusSelector value={radius} onChange={setRadius} disabled={!origin} />
 
       <APIProvider apiKey={apiKey} libraries={["marker"]}>
         <div className="relative">
@@ -188,6 +197,12 @@ export default function NearbyMap() {
                         lng: selected.spot.longitude,
                       }}
                       onCloseClick={() => setSelected(null)}
+                      headerContent={
+                        <SpotInfoHeader
+                          kind={selected.kind}
+                          name={selected.spot.name}
+                        />
+                      }
                     >
                       <SpotInfo
                         kind={selected.kind}
@@ -326,7 +341,7 @@ function MarkerBadge({ kind }: { kind: "greentea" | "temple" }) {
   return (
     <div
       className={[
-        "flex h-9 w-9 items-center justify-center border bg-paper shadow-[0_2px_0_rgba(61,51,34,0.15)]",
+        "flex h-9 w-9 items-center justify-center rounded-full border bg-paper shadow-[0_2px_0_rgba(61,51,34,0.15)]",
         isGreentea ? "border-matcha" : "border-bengara",
       ].join(" ")}
     >
@@ -335,6 +350,24 @@ function MarkerBadge({ kind }: { kind: "greentea" | "temple" }) {
       ) : (
         <ToriiIcon size={22} color="#905050" />
       )}
+    </div>
+  );
+}
+
+function SpotInfoHeader({
+  kind,
+  name,
+}: {
+  kind: "greentea" | "temple";
+  name: string;
+}) {
+  const label = kind === "greentea" ? "抹茶店" : "神社仏閣";
+  return (
+    <div className="flex min-w-[180px] flex-col gap-1 pr-1 font-serif-jp text-ink">
+      <span className="font-sans-jp text-[10px] tracking-[0.2em] text-muted">
+        {label}
+      </span>
+      <span className="font-mincho text-base leading-snug">{name}</span>
     </div>
   );
 }
@@ -349,21 +382,16 @@ function SpotInfo({
   outsideKyoto: boolean;
 }) {
   const href = kind === "greentea" ? `/greenteas/${spot.id}` : `/temples/${spot.id}`;
-  const label = kind === "greentea" ? "抹茶店" : "神社仏閣";
   // 京都圏外では検索の基準が現在地ではなく京都市中心部になるため文言を切り替える。
   const distancePrefix = outsideKyoto ? "京都市中心部から" : "現在地から";
   return (
-    <div className="flex min-w-[180px] flex-col gap-2 font-serif-jp text-ink">
-      <span className="font-sans-jp text-[10px] tracking-[0.2em] text-muted">
-        {label}
-      </span>
-      <span className="font-mincho text-base leading-tight">{spot.name}</span>
-      <span className="font-sans-jp text-xs text-muted">
+    <div className="flex min-w-[180px] flex-col gap-1 font-serif-jp text-ink">
+      <span className="font-sans-jp text-xs leading-snug text-muted">
         {distancePrefix} {formatDistance(spot.distance_meters)}
       </span>
       <Link
         href={href}
-        className="font-sans-jp text-xs tracking-[0.15em] text-olive underline underline-offset-4 hover:text-olive-dark"
+        className="font-sans-jp text-xs leading-snug tracking-[0.15em] text-olive underline underline-offset-4 hover:text-olive-dark"
       >
         詳細を見る →
       </Link>
@@ -385,24 +413,31 @@ function StatusPanel({
   if (geo.status === "requesting") {
     return <Notice tone="info">現在地を取得中…</Notice>;
   }
-  if (geo.status === "denied") {
-    return (
-      <Notice tone="warn" action={{ label: "もう一度試す", onClick: onRetry }}>
-        位置情報の利用が拒否されました。ブラウザの設定で位置情報を許可してから再度お試しください。地図は京都市中心部を表示しています。
-      </Notice>
-    );
-  }
-  if (geo.status === "error") {
-    return (
-      <Notice tone="warn" action={{ label: "もう一度試す", onClick: onRetry }}>
-        {geo.message}
-      </Notice>
-    );
-  }
 
-  // 京都圏外の案内は fetch の状態(検索中/失敗/0件)を隠さず併記する。
+  // 位置情報が拒否・取得失敗でも京都市中心部のスポットは取得・表示を続けるため、
+  // ここで return せず、fetch の状態(検索中/失敗/0件)と一緒に案内を積む。
   const notices: React.ReactNode[] = [];
-  if (outsideKyoto) {
+  if (geo.status === "denied") {
+    notices.push(
+      <Notice
+        key="denied"
+        tone="warn"
+        action={{ label: "もう一度試す", onClick: onRetry }}
+      >
+        位置情報の利用が拒否されました。ブラウザの設定で位置情報を許可してから再度お試しください。京都市中心部のスポットを表示しています。
+      </Notice>,
+    );
+  } else if (geo.status === "error") {
+    notices.push(
+      <Notice
+        key="geo-error"
+        tone="warn"
+        action={{ label: "もう一度試す", onClick: onRetry }}
+      >
+        {geo.message}
+      </Notice>,
+    );
+  } else if (outsideKyoto) {
     notices.push(
       <Notice key="outside" tone="info">
         現在地が京都府の外のようです。掲載スポットは京都のみのため、京都市中心部のまわりを表示しています。

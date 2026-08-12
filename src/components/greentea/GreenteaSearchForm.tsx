@@ -61,7 +61,7 @@ export default function GreenteaSearchForm({ genres }: GreenteaSearchFormProps) 
           type="search"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          placeholder="店名で探す"
+          placeholder="キーワードで検索"
           className="h-10 border border-line bg-washi px-3 font-serif-jp text-sm text-ink placeholder:text-muted/60 focus:border-olive focus:outline-none"
         />
       </label>

@@ -3,15 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { HiArrowLeft } from "react-icons/hi2";
 import Hairline from "@/components/brand/Hairline";
-import { ToriiIcon } from "@/components/brand/icons";
 import CommentSection from "@/components/common/CommentSection";
 import LikeButton from "@/components/common/LikeButton";
 import ShareButtons from "@/components/common/ShareButtons";
+import NearbySpotsMap from "@/components/map/NearbySpotsMap";
 import { ApiError, getGreentea } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { hasImage } from "@/lib/utils/image";
 import { buildSpotMetadata } from "@/lib/utils/metadata";
-import type { GreenteaDetail, NearbySpot } from "@/types";
+import type { GreenteaDetail } from "@/types";
 
 type RouteParams = { id: string };
 
@@ -41,11 +41,6 @@ export async function generateMetadata(
   }
 }
 
-function formatDistance(meters: number): string {
-  if (meters < 1000) return `${meters} m`;
-  return `${(meters / 1000).toFixed(1)} km`;
-}
-
 function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[7em_1fr] gap-3 border-b border-line-soft py-3 last:border-b-0 sm:grid-cols-[8em_1fr]">
@@ -54,39 +49,6 @@ function InfoRow({ label, children }: { label: string; children: React.ReactNode
       </dt>
       <dd className="font-serif-jp text-sm leading-[1.9] text-ink">{children}</dd>
     </div>
-  );
-}
-
-function NearbyTemples({ temples }: { temples: NearbySpot[] }) {
-  if (temples.length === 0) {
-    return (
-      <p className="border border-line-soft bg-paper px-5 py-6 text-center font-serif-jp text-sm text-muted">
-        近隣 1.5km 以内に登録された神社仏閣はありません。
-      </p>
-    );
-  }
-  return (
-    <ul className="divide-y divide-line-soft border border-line-soft bg-paper">
-      {temples.map((temple) => (
-        <li key={temple.id}>
-          <Link
-            href={`/temples/${temple.id}`}
-            className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-washi-bg"
-          >
-            <ToriiIcon size={22} color="#905050" />
-            <span className="flex-1 font-mincho text-base text-ink">
-              {temple.name}
-            </span>
-            <span className="font-sans-jp text-xs tracking-[0.1em] text-muted">
-              {formatDistance(temple.distance_meters)}
-            </span>
-            <span aria-hidden="true" className="font-mincho text-base text-muted">
-              →
-            </span>
-          </Link>
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -205,7 +167,16 @@ export default async function GreenteaDetailPage({
           </span>
         </h2>
         <div className="mt-4">
-          <NearbyTemples temples={greentea.nearby_temples} />
+          <NearbySpotsMap
+            origin={{
+              lat: greentea.latitude,
+              lng: greentea.longitude,
+              name: greentea.name,
+            }}
+            spots={greentea.nearby_temples}
+            kind="temple"
+            emptyMessage="近隣 1.5km 以内に登録された神社仏閣はありません。"
+          />
         </div>
       </section>
 
