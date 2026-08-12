@@ -268,6 +268,34 @@ describe("authConfig.callbacks.jwt", () => {
     expect(exchangeOAuthForJwt).not.toHaveBeenCalled();
     expect(result.railsJwt).toBeUndefined();
   });
+
+  it("trigger=update かつ session.name があれば token.name を更新する（プロフィール編集後の反映）", async () => {
+    const { authConfig } = await loadAuthModule();
+    const token = { name: "旧名前", railsJwt: "existing-jwt" };
+
+    const result = await authConfig.callbacks.jwt({
+      token,
+      trigger: "update",
+      session: { name: "新しい名前" },
+    } as JwtParams);
+
+    expect(result.name).toBe("新しい名前");
+    expect(result.railsJwt).toBe("existing-jwt");
+    expect(exchangeOAuthForJwt).not.toHaveBeenCalled();
+  });
+
+  it("trigger=update でも session.name が無ければ token.name を変更しない", async () => {
+    const { authConfig } = await loadAuthModule();
+    const token = { name: "旧名前" };
+
+    const result = await authConfig.callbacks.jwt({
+      token,
+      trigger: "update",
+      session: {},
+    } as JwtParams);
+
+    expect(result.name).toBe("旧名前");
+  });
 });
 
 describe("authConfig.callbacks.session", () => {

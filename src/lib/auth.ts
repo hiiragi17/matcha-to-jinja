@@ -75,7 +75,13 @@ export const authConfig = {
     strategy: "jwt",
   },
   callbacks: {
-    async jwt({ token, account, user }) {
+    async jwt({ token, account, user, trigger, session }) {
+      // useSession().update({ name }) から呼ばれる（プロフィール編集後の反映）。
+      // Rails への書き込みは呼び出し側で完了済みで、ここではセッション表示用に
+      // token.name を更新するだけ。
+      if (trigger === "update" && typeof session?.name === "string") {
+        token.name = session.name;
+      }
       if (account?.provider) {
         token.provider = account.provider;
         // モック provider は Rails が無いので、ここで擬似 JWT を発行して

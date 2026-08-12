@@ -51,6 +51,7 @@ type MockStore = {
   greenteas: Greentea[] | null;
   temples: Temple[] | null;
   routes: StoredRoute[];
+  profileNames: Map<UserId, string>;
 };
 
 const globalKey = Symbol.for("matcha-to-jinja.mock-store");
@@ -72,6 +73,7 @@ const store: MockStore = ((): MockStore => {
       greenteas: null,
       temples: null,
       routes: [],
+      profileNames: new Map(),
     };
   }
   return g[globalKey]!;
@@ -92,6 +94,7 @@ export function resetMockStore(): void {
   store.greenteas = null;
   store.temples = null;
   store.routes = [];
+  store.profileNames.clear();
 }
 
 function ensureSet<K, V>(map: Map<K, Set<V>>, key: K): Set<V> {
@@ -507,4 +510,16 @@ export function deleteRouteRecord(id: number, ownerId: UserId): boolean {
   if (idx < 0) return false;
   store.routes.splice(idx, 1);
   return true;
+}
+
+// --- プロフィール編集（表示名のみ） ---
+// mock ユーザーの表示名は本来 uid から導出する（mockUserName）だけだが、
+// PATCH /current_user で上書きされた分だけここに保持する。
+
+export function getMockUserName(userId: UserId, fallback: string): string {
+  return store.profileNames.get(userId) ?? fallback;
+}
+
+export function setMockUserName(userId: UserId, name: string): void {
+  store.profileNames.set(userId, name);
 }

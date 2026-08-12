@@ -39,10 +39,16 @@ export {
   updateRoute,
   deleteRoute,
 } from "./routes";
-export { exchangeOAuthForJwt, getCurrentUser, revokeJwt } from "./auth";
+export {
+  exchangeOAuthForJwt,
+  getCurrentUser,
+  revokeJwt,
+  updateCurrentUser,
+} from "./auth";
 export type {
   AuthProvider,
   OAuthExchangePayload,
   AuthExchangeResponse,
   CurrentUserResponse,
+  UpdateCurrentUserPayload,
 } from "./auth";

@@ -13,6 +13,7 @@ import {
   getTemple,
   getTemples,
   revokeJwt,
+  updateCurrentUser,
 } from "..";
 
 import areasFixture from "./fixtures/areas.list.json";
@@ -358,6 +359,70 @@ describe("API contract: 認証系", () => {
       await expect(getCurrentUser("expired-token")).rejects.toMatchObject({
         status: 401,
       });
+    });
+  });
+
+  describe("PATCH /current_user", () => {
+    it("user キー配下で name を送り、Authorization を付与する", async () => {
+      let authHeader: string | null = null;
+      let receivedBody: unknown = null;
+      server.use(
+        http.patch(endpoint("/current_user"), async ({ request }) => {
+          authHeader = request.headers.get("Authorization");
+          receivedBody = await request.json();
+          return HttpResponse.json({
+            user: { id: 42, name: "新しい表示名", role: "general" },
+          });
+        }),
+      );
+
+      const res = await updateCurrentUser(
+        { name: "新しい表示名" },
+        "rails.jwt.example-token",
+      );
+
+      expect(authHeader).toBe("Bearer rails.jwt.example-token");
+      expect(receivedBody).toEqual({ user: { name: "新しい表示名" } });
+      expect(res.user).toEqual({ id: 42, name: "新しい表示名", role: "general" });
+    });
+
+    it("422（name が空）で ApiError を throw する", async () => {
+      server.use(
+        http.patch(endpoint("/current_user"), () =>
+          HttpResponse.json(
+            { error: "Name can't be blank" },
+            { status: 422 },
+          ),
+        ),
+      );
+
+      await expect(
+        updateCurrentUser({ name: "" }, "rails.jwt.example-token"),
+      ).rejects.toMatchObject({ status: 422 });
+    });
+
+    it("400（不正なリクエスト形式）で ApiError を throw する", async () => {
+      server.use(
+        http.patch(endpoint("/current_user"), () =>
+          HttpResponse.json({ error: "Bad Request" }, { status: 400 }),
+        ),
+      );
+
+      await expect(
+        updateCurrentUser({ name: "x" }, "rails.jwt.example-token"),
+      ).rejects.toMatchObject({ status: 400 });
+    });
+
+    it("401（未認証）で ApiError を throw する", async () => {
+      server.use(
+        http.patch(endpoint("/current_user"), () =>
+          HttpResponse.json({ error: "Unauthorized" }, { status: 401 }),
+        ),
+      );
+
+      await expect(
+        updateCurrentUser({ name: "x" }, "expired-token"),
+      ).rejects.toMatchObject({ status: 401 });
     });
   });
 
