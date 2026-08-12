@@ -109,8 +109,19 @@ export default function NearbyMap() {
     requestLocation();
   }, [hasMapsConfig, requestLocation]);
 
-  const origin = geo.status === "granted" ? geo.origin : null;
-  const outsideKyoto = geo.status === "granted" && geo.outsideKyoto;
+  // 位置情報を許可された場合は判定済みの origin をそのまま使う。拒否・取得失敗の
+  // 場合も「京都にいなくても京都のスポットは見られる」ようにするため、取得を諦めず
+  // 京都市中心部へフォールバックしてスポット取得を続行する。
+  const origin =
+    geo.status === "granted"
+      ? geo.origin
+      : geo.status === "denied" || geo.status === "error"
+        ? KYOTO_CENTER
+        : null;
+  const outsideKyoto =
+    geo.status === "granted"
+      ? geo.outsideKyoto
+      : geo.status === "denied" || geo.status === "error";
 
   useEffect(() => {
     if (!hasMapsConfig || !origin) return;
@@ -144,11 +155,7 @@ export default function NearbyMap() {
 
   return (
     <div className="flex flex-col gap-6">
-      <RadiusSelector
-        value={radius}
-        onChange={setRadius}
-        disabled={geo.status !== "granted"}
-      />
+      <RadiusSelector value={radius} onChange={setRadius} disabled={!origin} />
 
       <APIProvider apiKey={apiKey} libraries={["marker"]}>
         <div className="relative">
@@ -385,24 +392,31 @@ function StatusPanel({
   if (geo.status === "requesting") {
     return <Notice tone="info">現在地を取得中…</Notice>;
   }
-  if (geo.status === "denied") {
-    return (
-      <Notice tone="warn" action={{ label: "もう一度試す", onClick: onRetry }}>
-        位置情報の利用が拒否されました。ブラウザの設定で位置情報を許可してから再度お試しください。地図は京都市中心部を表示しています。
-      </Notice>
-    );
-  }
-  if (geo.status === "error") {
-    return (
-      <Notice tone="warn" action={{ label: "もう一度試す", onClick: onRetry }}>
-        {geo.message}
-      </Notice>
-    );
-  }
 
-  // 京都圏外の案内は fetch の状態(検索中/失敗/0件)を隠さず併記する。
+  // 位置情報が拒否・取得失敗でも京都市中心部のスポットは取得・表示を続けるため、
+  // ここで return せず、fetch の状態(検索中/失敗/0件)と一緒に案内を積む。
   const notices: React.ReactNode[] = [];
-  if (outsideKyoto) {
+  if (geo.status === "denied") {
+    notices.push(
+      <Notice
+        key="denied"
+        tone="warn"
+        action={{ label: "もう一度試す", onClick: onRetry }}
+      >
+        位置情報の利用が拒否されました。ブラウザの設定で位置情報を許可してから再度お試しください。京都市中心部のスポットを表示しています。
+      </Notice>,
+    );
+  } else if (geo.status === "error") {
+    notices.push(
+      <Notice
+        key="geo-error"
+        tone="warn"
+        action={{ label: "もう一度試す", onClick: onRetry }}
+      >
+        {geo.message}
+      </Notice>,
+    );
+  } else if (outsideKyoto) {
     notices.push(
       <Notice key="outside" tone="info">
         現在地が京都府の外のようです。掲載スポットは京都のみのため、京都市中心部のまわりを表示しています。
