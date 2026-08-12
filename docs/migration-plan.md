@@ -317,26 +317,26 @@ gem 'jsonapi-serializer'  # または gem 'active_model_serializers'
 
 ```bash
 # API通信
-npm install axios swr
+pnpm add axios swr
 # または
-npm install @tanstack/react-query
+pnpm add @tanstack/react-query
 
 # 地図
-npm install @react-google-maps/api
+pnpm add @react-google-maps/api
 # または
-npm install @vis.gl/react-google-maps
+pnpm add @vis.gl/react-google-maps
 
 # UI コンポーネント
-npm install daisyui@latest  # Tailwind CSS プラグイン（元のデザイン踏襲）
+pnpm add daisyui@latest  # Tailwind CSS プラグイン（元のデザイン踏襲）
 
 # 認証
-npm install next-auth  # OAuth フロー管理
+pnpm add next-auth  # OAuth フロー管理
 
 # アイコン
-npm install react-icons
+pnpm add react-icons
 
 # フォーム
-npm install react-hook-form zod @hookform/resolvers
+pnpm add react-hook-form zod @hookform/resolvers
 ```
 
 ### 2-2. ディレクトリ構成
