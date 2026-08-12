@@ -30,16 +30,31 @@ describe("TempleCard", () => {
     expect(screen.getByRole("link")).toHaveAttribute("href", "/temples/1");
   });
 
-  it("名前・説明・likes_count・エリアを表示する", () => {
+  it("名前・likes_count・エリアを表示する", () => {
     render(<TempleCard temple={baseTemple} />);
 
     expect(
       screen.getByRole("heading", { name: "伏見稲荷大社" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("千本鳥居で知られる神社。")).toBeInTheDocument();
     expect(screen.getByText("88")).toBeInTheDocument();
     expect(screen.getByText("伏見")).toBeInTheDocument();
     expect(screen.getByText("東山")).toBeInTheDocument();
+  });
+
+  it("住所・アクセス・定休日を表示する", () => {
+    render(<TempleCard temple={baseTemple} />);
+
+    expect(
+      screen.getByText("京都府京都市伏見区深草藪之内町68"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("JR稲荷駅すぐ")).toBeInTheDocument();
+    expect(screen.getByText("無休")).toBeInTheDocument();
+  });
+
+  it("access が無ければアクセス欄自体を表示しない", () => {
+    render(<TempleCard temple={{ ...baseTemple, access: "" }} />);
+
+    expect(screen.queryByText("アクセス")).not.toBeInTheDocument();
   });
 
   it("img が指定されていればそのURLを表示する", () => {

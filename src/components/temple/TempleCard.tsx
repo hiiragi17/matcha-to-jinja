@@ -35,9 +35,22 @@ export default function TempleCard({ temple }: TempleCardProps) {
         <h3 className="line-clamp-1 font-mincho text-lg font-semibold tracking-[0.04em] text-ink">
           {temple.name}
         </h3>
-        <p className="line-clamp-2 font-serif-jp text-sm leading-[1.9] text-muted">
-          {temple.description}
-        </p>
+        <dl className="flex flex-col gap-1 font-sans-jp text-xs leading-relaxed text-muted">
+          <div className="flex gap-1.5">
+            <dt className="shrink-0 text-olive">住所</dt>
+            <dd className="line-clamp-1">{temple.address}</dd>
+          </div>
+          {temple.access && (
+            <div className="flex gap-1.5">
+              <dt className="shrink-0 text-olive">アクセス</dt>
+              <dd className="line-clamp-1">{temple.access}</dd>
+            </div>
+          )}
+          <div className="flex gap-1.5">
+            <dt className="shrink-0 text-olive">定休日</dt>
+            <dd className="line-clamp-1">{temple.holiday}</dd>
+          </div>
+        </dl>
         <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-2">
           {temple.areas.map((area) => (
             <span
