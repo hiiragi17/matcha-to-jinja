@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { HiBars3 } from "react-icons/hi2";
+import { useCloseOnOutsideClick } from "@/lib/utils/useCloseOnOutsideClick";
 import HeaderAuth from "../auth/HeaderAuth";
 import Navigation from "./Navigation";
 
@@ -14,6 +15,9 @@ export default function MobileNav() {
   const close = () => {
     if (detailsRef.current) detailsRef.current.open = false;
   };
+
+  // 外側クリックでも閉じる（<details> はネイティブでは summary の再クリックでしか閉じない）。
+  useCloseOnOutsideClick(detailsRef);
 
   // 入れ子の UserMenu（アバターの details）の summary クリックもこの div まで
   // バブリングしてくる。a/button 以外（= summary の開閉トグル）まで閉じてしまうと

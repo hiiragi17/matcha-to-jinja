@@ -71,4 +71,23 @@ describe("UserMenu", () => {
 
     expect(details.open).toBe(false);
   });
+
+  it("メニュー外をクリックすると閉じる", async () => {
+    const user = userEvent.setup();
+    render(
+      <div>
+        <UserMenu user={{ name: "中村さん", email: null, image: null }} />
+        <p>外側</p>
+      </div>,
+    );
+
+    const details = screen
+      .getByLabelText("ユーザーメニューを開く")
+      .closest("details")!;
+    details.open = true;
+
+    await user.click(screen.getByText("外側"));
+
+    expect(details.open).toBe(false);
+  });
 });

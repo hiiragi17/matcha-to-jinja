@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef } from "react";
 import { signOut } from "next-auth/react";
 import type { Session } from "next-auth";
+import { useCloseOnOutsideClick } from "@/lib/utils/useCloseOnOutsideClick";
 
 type UserMenuProps = {
   user: NonNullable<Session["user"]>;
@@ -18,6 +19,9 @@ export default function UserMenu({ user }: UserMenuProps) {
   const close = () => {
     if (detailsRef.current) detailsRef.current.open = false;
   };
+
+  // 外側クリックでも閉じる（<details> はネイティブでは summary の再クリックでしか閉じない）。
+  useCloseOnOutsideClick(detailsRef);
 
   return (
     <details ref={detailsRef} className="dropdown dropdown-end">

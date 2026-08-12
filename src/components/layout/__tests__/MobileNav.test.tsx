@@ -87,4 +87,22 @@ describe("MobileNav — ハンバーガーメニュー", () => {
     await user.click(screen.getByRole("button", { name: "ログアウト" }));
     expect(details.open).toBe(false);
   });
+
+  it("メニュー外をクリックすると閉じる", async () => {
+    useSessionMock.mockReturnValue({ data: null, status: "unauthenticated" });
+    const user = userEvent.setup();
+    render(
+      <div>
+        <MobileNav />
+        <p>外側</p>
+      </div>,
+    );
+
+    const details = getDetails();
+    details.open = true;
+
+    await user.click(screen.getByText("外側"));
+
+    expect(details.open).toBe(false);
+  });
 });
