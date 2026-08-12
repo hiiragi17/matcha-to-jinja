@@ -31,12 +31,12 @@
 Rails API を起動しなくても、インメモリのモック実装でフロント単独で動かせます。
 
 ```bash
-npm install
+pnpm install
 
 # 環境変数を用意（既定で NEXT_PUBLIC_USE_MOCK=true）
 cp .env.example .env.local
 
-npm run dev
+pnpm dev
 ```
 
 [http://localhost:3000](http://localhost:3000) を開くと、`src/lib/api/mock` が応答する状態で UI を確認できます。
@@ -51,7 +51,7 @@ npm run dev
 - **`true`** … `src/lib/api/mock` のインメモリ実装が応答する（Rails 未起動で開発可）
 - **`false`** … `NEXT_PUBLIC_API_URL` に対して実 fetch を行う
 
-`NEXT_PUBLIC_*` はビルド時に埋め込まれるため、切り替えたら `npm run dev` を再起動してください。
+`NEXT_PUBLIC_*` はビルド時に埋め込まれるため、切り替えたら `pnpm dev` を再起動してください。
 
 ## 環境変数
 
@@ -71,14 +71,14 @@ npm run dev
 
 | コマンド | 内容 |
 |----------|------|
-| `npm run dev` | 開発サーバ起動（:3000） |
-| `npm run build` | 本番ビルド |
-| `npm run start` | ビルド済みアプリの起動 |
-| `npm run lint` | ESLint |
-| `npm test` | Vitest（ユニット / 統合） |
-| `npm run test:watch` | Vitest ウォッチモード |
-| `npm run test:coverage` | カバレッジ付きで実行（`coverage/` に出力） |
-| `npm run test:e2e` | Playwright E2E（モックモードで起動） |
+| `pnpm dev` | 開発サーバ起動（:3000） |
+| `pnpm build` | 本番ビルド |
+| `pnpm start` | ビルド済みアプリの起動 |
+| `pnpm lint` | ESLint |
+| `pnpm test` | Vitest（ユニット / 統合） |
+| `pnpm test:watch` | Vitest ウォッチモード |
+| `pnpm test:coverage` | カバレッジ付きで実行（`coverage/` に出力） |
+| `pnpm test:e2e` | Playwright E2E（モックモードで起動） |
 
 ## ディレクトリ構成（抜粋）
 
