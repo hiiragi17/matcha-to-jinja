@@ -15,7 +15,7 @@ export default function GreenteaCard({ greentea }: GreenteaCardProps) {
       className="flex h-full flex-col border border-line-soft bg-paper transition-colors hover:bg-washi-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bengara"
     >
       {/* 画像の有無でカードの見た目が崩れないよう、枠は常に確保する（未登録時はプレースホルダー）。 */}
-      <figure className="aspect-[4/3] overflow-hidden border-b border-line-soft">
+      <figure className="aspect-[4/3] overflow-hidden border-b border-line">
         {hasImage(greentea.img) ? (
           // 画像は Rails(CarrierWave)/外部 URL をそのまま表示するため next/image を使わない
           // eslint-disable-next-line @next/next/no-img-element
@@ -26,8 +26,8 @@ export default function GreenteaCard({ greentea }: GreenteaCardProps) {
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-washi">
-            <ChawanIcon size={36} />
+          <div className="flex h-full w-full items-center justify-center bg-washi-bg">
+            <ChawanIcon size={64} />
           </div>
         )}
       </figure>
