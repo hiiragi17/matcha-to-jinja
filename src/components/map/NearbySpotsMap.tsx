@@ -86,7 +86,7 @@ export default function NearbySpotsMap({
                 onClick={() => setSelected(spot)}
               >
                 <div
-                  className="flex h-9 w-9 items-center justify-center border bg-paper shadow-[0_2px_0_rgba(61,51,34,0.15)]"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border bg-paper shadow-[0_2px_0_rgba(61,51,34,0.15)]"
                   style={{ borderColor: color }}
                 >
                   <Icon size={20} color={color} />
@@ -97,17 +97,19 @@ export default function NearbySpotsMap({
               <InfoWindow
                 position={{ lat: selected.latitude, lng: selected.longitude }}
                 onCloseClick={() => setSelected(null)}
-              >
-                <div className="flex min-w-[180px] flex-col gap-1.5 font-serif-jp text-ink">
-                  <span className="font-mincho text-sm leading-tight">
+                headerContent={
+                  <span className="pr-1 font-mincho text-sm leading-snug text-ink">
                     {selected.name}
                   </span>
-                  <span className="font-sans-jp text-xs text-muted">
+                }
+              >
+                <div className="flex min-w-[180px] flex-col gap-1 font-serif-jp text-ink">
+                  <span className="font-sans-jp text-xs leading-snug text-muted">
                     {formatDistance(selected.distance_meters)}
                   </span>
                   <Link
                     href={`${href}/${selected.id}`}
-                    className="font-sans-jp text-xs tracking-[0.15em] text-olive underline underline-offset-4 hover:text-olive-dark"
+                    className="font-sans-jp text-xs leading-snug tracking-[0.15em] text-olive underline underline-offset-4 hover:text-olive-dark"
                   >
                     詳細を見る →
                   </Link>

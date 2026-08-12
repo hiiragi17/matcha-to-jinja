@@ -139,12 +139,14 @@ export function Pin({ background, borderColor, glyphColor }: PinProps) {
 
 type InfoWindowProps = {
   children?: ReactNode;
+  headerContent?: ReactNode;
   position?: LatLng;
   onCloseClick?: () => void;
 };
 
 export function InfoWindow({
   children,
+  headerContent,
   position,
   onCloseClick,
 }: InfoWindowProps) {
@@ -158,6 +160,7 @@ export function InfoWindow({
         aria-label="情報ウィンドウを閉じる"
         onClick={onCloseClick}
       />
+      {headerContent}
       {children}
     </div>
   );

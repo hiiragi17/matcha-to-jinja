@@ -326,7 +326,7 @@ function MarkerBadge({ kind }: { kind: "greentea" | "temple" }) {
   return (
     <div
       className={[
-        "flex h-9 w-9 items-center justify-center border bg-paper shadow-[0_2px_0_rgba(61,51,34,0.15)]",
+        "flex h-9 w-9 items-center justify-center rounded-full border bg-paper shadow-[0_2px_0_rgba(61,51,34,0.15)]",
         isGreentea ? "border-matcha" : "border-bengara",
       ].join(" ")}
     >
