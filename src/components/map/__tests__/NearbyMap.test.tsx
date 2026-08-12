@@ -36,6 +36,8 @@ vi.mock("next/link", () => ({
 // 京都圏内 / 圏外の座標。
 const KYOTO_POINT = { latitude: 35.02, longitude: 135.77 };
 const OUTSIDE_POINT = { latitude: 35.68, longitude: 139.76 }; // 東京
+// 京都府に隣接し、緯度だけ見ると京都と重なりうる兵庫県の地点（回帰防止）。
+const NEIGHBORING_PREF_POINT = { latitude: 34.7376, longitude: 135.3417 }; // 兵庫県西宮市
 
 const nearbyData: NearbyResponse = {
   greenteas: [
@@ -255,6 +257,23 @@ describe("NearbyMap", () => {
       screen.getByText(/距離は京都市中心部からの目安です/),
     ).toBeInTheDocument();
     // origin は京都中心へ寄る（現在地ではなく京都市中心部マーカー）。
+    expect(screen.getByTitle("京都市中心部")).toBeInTheDocument();
+    expect(screen.getByTestId("map")).toHaveAttribute(
+      "data-center",
+      JSON.stringify({ lat: 35.0116, lng: 135.7681 }),
+    );
+  });
+
+  it("隣接県（兵庫県）の現在地も京都圏外として京都市中心部へ寄せる", async () => {
+    const { getCurrentPosition } = installGeolocation();
+    resolveWith(getCurrentPosition, NEIGHBORING_PREF_POINT);
+    server.use(nearbyHandler(nearbyData));
+
+    render(<NearbyMap />);
+
+    expect(
+      await screen.findByText(/現在地が京都府の外のようです/),
+    ).toBeInTheDocument();
     expect(screen.getByTitle("京都市中心部")).toBeInTheDocument();
     expect(screen.getByTestId("map")).toHaveAttribute(
       "data-center",

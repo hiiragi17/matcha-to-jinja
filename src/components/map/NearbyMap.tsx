@@ -23,13 +23,15 @@ type Radius = (typeof RADIUS_OPTIONS)[number];
 const KYOTO_CENTER = { lat: 35.0116, lng: 135.7681 };
 
 // 収録スポットは京都のみのため、現在地がこの範囲外なら京都中心へ寄せる。
-// 京都府全体をゆるく覆う緯度経度ボックス（北は丹後半島〜日本海側、南は奈良府境、
-// 西は兵庫府境、東は滋賀・三重府境あたりまで含む）。
+// 京都府は南北に長く形も複雑なため、府全体をゆるく覆う矩形にすると兵庫県
+// （西宮市など）や大阪府・滋賀県の一部まで「京都府内」に含んでしまう。
+// そのため収録スポットが実際に分布する京都市街地〜宇治・嵐山周辺に絞った
+// 矩形にする（丹後半島など府北部の一部は対象外になるが、そこに収録スポットはない）。
 const KYOTO_BOUNDS = {
-  minLat: 34.7,
-  maxLat: 35.8,
-  minLng: 134.85,
-  maxLng: 136.05,
+  minLat: 34.8,
+  maxLat: 35.2,
+  minLng: 135.55,
+  maxLng: 135.9,
 } as const;
 
 function isInKyoto(lat: number, lng: number): boolean {
