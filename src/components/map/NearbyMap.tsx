@@ -197,6 +197,12 @@ export default function NearbyMap() {
                         lng: selected.spot.longitude,
                       }}
                       onCloseClick={() => setSelected(null)}
+                      headerContent={
+                        <SpotInfoHeader
+                          kind={selected.kind}
+                          name={selected.spot.name}
+                        />
+                      }
                     >
                       <SpotInfo
                         kind={selected.kind}
@@ -348,6 +354,24 @@ function MarkerBadge({ kind }: { kind: "greentea" | "temple" }) {
   );
 }
 
+function SpotInfoHeader({
+  kind,
+  name,
+}: {
+  kind: "greentea" | "temple";
+  name: string;
+}) {
+  const label = kind === "greentea" ? "抹茶店" : "神社仏閣";
+  return (
+    <div className="flex min-w-[180px] flex-col gap-1 pr-1 font-serif-jp text-ink">
+      <span className="font-sans-jp text-[10px] tracking-[0.2em] text-muted">
+        {label}
+      </span>
+      <span className="font-mincho text-base leading-snug">{name}</span>
+    </div>
+  );
+}
+
 function SpotInfo({
   kind,
   spot,
@@ -358,21 +382,16 @@ function SpotInfo({
   outsideKyoto: boolean;
 }) {
   const href = kind === "greentea" ? `/greenteas/${spot.id}` : `/temples/${spot.id}`;
-  const label = kind === "greentea" ? "抹茶店" : "神社仏閣";
   // 京都圏外では検索の基準が現在地ではなく京都市中心部になるため文言を切り替える。
   const distancePrefix = outsideKyoto ? "京都市中心部から" : "現在地から";
   return (
-    <div className="flex min-w-[180px] flex-col gap-2 font-serif-jp text-ink">
-      <span className="font-sans-jp text-[10px] tracking-[0.2em] text-muted">
-        {label}
-      </span>
-      <span className="font-mincho text-base leading-tight">{spot.name}</span>
-      <span className="font-sans-jp text-xs text-muted">
+    <div className="flex min-w-[180px] flex-col gap-1 font-serif-jp text-ink">
+      <span className="font-sans-jp text-xs leading-snug text-muted">
         {distancePrefix} {formatDistance(spot.distance_meters)}
       </span>
       <Link
         href={href}
-        className="font-sans-jp text-xs tracking-[0.15em] text-olive underline underline-offset-4 hover:text-olive-dark"
+        className="font-sans-jp text-xs leading-snug tracking-[0.15em] text-olive underline underline-offset-4 hover:text-olive-dark"
       >
         詳細を見る →
       </Link>
