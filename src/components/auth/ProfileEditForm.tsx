@@ -25,7 +25,7 @@ type SwrKey = readonly [string, string];
 // OAuth プロバイダの表示名で、Rails 側で更新した名前と食い違いうるため）。
 export default function ProfileEditForm() {
   const authToken = useAuthToken();
-  const { update } = useSession();
+  const { status, update } = useSession();
   const callbackUrl = "/mypage/profile";
   const handleSessionExpired = useSessionExpiredHandler(callbackUrl);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -60,6 +60,17 @@ export default function ProfileEditForm() {
   useEffect(() => {
     if (sessionExpired) void handleSessionExpired();
   }, [sessionExpired, handleSessionExpired]);
+
+  // NextAuth セッション解決中はログイン CTA を出さない。解決前は railsJwt が
+  // 一時的に undefined になり、ログイン済みでも一瞬「ログインが必要」が見えてしまうため
+  // （CommentModerationList / mypage と同じガード）。
+  if (status === "loading") {
+    return (
+      <p className="font-sans-jp text-[10px] tracking-[0.3em] text-muted">
+        読み込み中…
+      </p>
+    );
+  }
 
   if (!authToken) {
     return (
@@ -98,12 +109,22 @@ export default function ProfileEditForm() {
     setSaved(false);
     try {
       const res = await updateCurrentUser(values, authToken);
-      // 直後の再取得に頼らず、PATCH のレスポンスでキャッシュとセッションを
-      // 直接更新する（キャッシュの取り回しで古い名前が一瞬見える事故を避ける）。
+      // 直後の再取得に頼らず、PATCH のレスポンスでキャッシュを直接更新する
+      // （キャッシュの取り回しで古い名前が一瞬見える事故を避ける）。
       await mutate(res, { revalidate: false });
-      await update({ name: res.user.name });
       reset({ name: res.user.name });
       setSaved(true);
+      // ヘッダー等のセッション表示名反映は best-effort。ここが失敗/null でも
+      // Rails 側の保存自体は成功しているため、保存失敗として扱わない
+      // （次回のセッション再検証で追いつく）。
+      try {
+        await update({ name: res.user.name });
+      } catch (sessionError) {
+        console.warn(
+          "[ProfileEditForm] session update failed",
+          sessionError,
+        );
+      }
     } catch (e) {
       if (isUnauthorized(e)) {
         await handleSessionExpired();

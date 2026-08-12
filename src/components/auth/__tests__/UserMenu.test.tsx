@@ -43,4 +43,32 @@ describe("UserMenu", () => {
 
     expect(signOutMock).toHaveBeenCalledWith({ redirectTo: "/" });
   });
+
+  it("マイページリンクをクリックするとドロップダウンが閉じる（別ページへ遷移してもメニューが開いたままにならない）", async () => {
+    const user = userEvent.setup();
+    render(<UserMenu user={{ name: "中村さん", email: null, image: null }} />);
+
+    const details = screen
+      .getByLabelText("ユーザーメニューを開く")
+      .closest("details")!;
+    details.open = true;
+
+    await user.click(screen.getByRole("link", { name: "マイページ" }));
+
+    expect(details.open).toBe(false);
+  });
+
+  it("ログアウトボタンをクリックするとドロップダウンが閉じる", async () => {
+    const user = userEvent.setup();
+    render(<UserMenu user={{ name: "中村さん", email: null, image: null }} />);
+
+    const details = screen
+      .getByLabelText("ユーザーメニューを開く")
+      .closest("details")!;
+    details.open = true;
+
+    await user.click(screen.getByRole("button", { name: "ログアウト" }));
+
+    expect(details.open).toBe(false);
+  });
 });

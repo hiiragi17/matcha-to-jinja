@@ -194,7 +194,7 @@ export default function CommentModerationList() {
                   </Link>
                 </td>
                 <td className="px-4 py-3 font-serif-jp text-xs text-muted">
-                  {comment.user.name}
+                  {comment.user?.name ?? "匿名ユーザー"}
                 </td>
                 <td className="px-4 py-3 font-serif-jp text-sm leading-[1.8] text-ink">
                   <span className="block max-w-md whitespace-pre-wrap break-words">
@@ -230,7 +230,7 @@ export default function CommentModerationList() {
         title="コメントを削除"
         message={
           target
-            ? `「${target.resource_name || `#${target.resource_id}`}」への ${target.user.name} さんのコメントを削除します。この操作は取り消せません。`
+            ? `「${target.resource_name || `#${target.resource_id}`}」への ${target.user?.name ?? "匿名ユーザー"} さんのコメントを削除します。この操作は取り消せません。`
             : ""
         }
         loading={deleting}

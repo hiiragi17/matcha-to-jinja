@@ -477,4 +477,21 @@ describe("CommentSection", () => {
 
     expect(screen.getByText("日付おかしい")).toBeInTheDocument();
   });
+
+  it("投稿者が欠落したコメント（user: null）でもクラッシュせず「匿名ユーザー」と表示する", () => {
+    mockLoggedIn();
+    render(
+      <CommentSection
+        kind="greentea"
+        targetId={1}
+        initialComments={[
+          baseComment({ id: 1, body: "投稿者不明", user: null }),
+        ]}
+        callbackUrl="/greenteas/1"
+      />,
+    );
+
+    expect(screen.getByText("投稿者不明")).toBeInTheDocument();
+    expect(screen.getByText("匿名ユーザー")).toBeInTheDocument();
+  });
 });

@@ -336,6 +336,29 @@ describe("mockClient comments", () => {
       }),
     ).rejects.toBeInstanceOf(ApiError);
   });
+
+  it("PATCH /current_user で改名すると、投稿済みコメントの表示名も遡って更新される", async () => {
+    const alice = auth("alice");
+
+    await mockClient<CommentResponse>("/greenteacomments", {
+      method: "POST",
+      body: JSON.stringify({ greentea_id: 1, body: "改名前の投稿" }),
+      ...alice,
+    });
+
+    await mockClient("/current_user", {
+      method: "PATCH",
+      body: JSON.stringify({ user: { name: "改名後" } }),
+      ...alice,
+    });
+
+    const list = await mockClient<CommentListResponse>(
+      "/greenteacomments?greentea_id=1",
+      alice,
+    );
+    const posted = list.comments.find((c) => c.body === "改名前の投稿");
+    expect(posted?.user?.name).toBe("改名後");
+  });
 });
 
 describe("mockClient GET/PATCH /current_user", () => {
