@@ -253,8 +253,9 @@ describe("NearbyMap", () => {
     expect(
       await screen.findByText(/現在地が京都府の外のようです/),
     ).toBeInTheDocument();
+    // 近隣スポット一覧（SpotLists）はフェッチ成功後に描画されるため await で待つ。
     expect(
-      screen.getByText(/距離は京都市中心部からの目安です/),
+      await screen.findByText(/距離は京都市中心部からの目安です/),
     ).toBeInTheDocument();
     // origin は京都中心へ寄る（現在地ではなく京都市中心部マーカー）。
     expect(screen.getByTitle("京都市中心部")).toBeInTheDocument();
