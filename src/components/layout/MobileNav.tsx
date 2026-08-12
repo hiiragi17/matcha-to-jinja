@@ -2,8 +2,8 @@
 
 import { useRef } from "react";
 import { HiBars3 } from "react-icons/hi2";
-import HeaderAuth from "@/components/auth/HeaderAuth";
-import Navigation from "@/components/layout/Navigation";
+import HeaderAuth from "../auth/HeaderAuth";
+import Navigation from "./Navigation";
 
 // <details> はページ遷移してもブラウザネイティブの開閉状態を保持したままになり、
 // 別ページに移動してもメニューが開いたまま残ってしまう。メニュー内のリンク/ボタンを
@@ -15,6 +15,19 @@ export default function MobileNav() {
     if (detailsRef.current) detailsRef.current.open = false;
   };
 
+  // 入れ子の UserMenu（アバターの details）の summary クリックもこの div まで
+  // バブリングしてくる。a/button 以外（= summary の開閉トグル）まで閉じてしまうと
+  // 認証済みユーザーが UserMenu を開けなくなるため、実際に遷移/操作するリンクと
+  // ボタンのクリックだけを閉鎖トリガーにする。
+  const handleContentClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (
+      event.target instanceof Element &&
+      event.target.closest("a, button")
+    ) {
+      close();
+    }
+  };
+
   return (
     <details ref={detailsRef} className="dropdown dropdown-end lg:hidden">
       <summary className="btn btn-ghost btn-square" aria-label="メニューを開く">
@@ -22,7 +35,7 @@ export default function MobileNav() {
       </summary>
       <div
         className="dropdown-content z-50 mt-3 flex w-60 flex-col gap-5 border border-line bg-paper p-5"
-        onClick={close}
+        onClick={handleContentClick}
       >
         <Navigation orientation="vertical" />
         <div className="flex items-center justify-between gap-3 border-t border-line pt-4">

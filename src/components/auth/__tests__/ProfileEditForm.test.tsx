@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import type { ReactElement } from "react";
-import { SWRConfig } from "swr";
+import { mutate as globalMutate, SWRConfig } from "swr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ProfileEditForm from "@/components/auth/ProfileEditForm";
 import { server } from "@tests/msw/server";
@@ -131,6 +131,33 @@ describe("ProfileEditForm — マイページの CSR ガード", () => {
     await waitFor(() => {
       expect(screen.getByLabelText(/表示名/)).toHaveValue("現在の名前");
     });
+  });
+
+  it("編集中（未保存）はバックグラウンド再検証で入力値が上書きされない", async () => {
+    const user = userEvent.setup();
+    useSessionMock.mockReturnValue(authedSession);
+    server.use(
+      http.get(endpoint("/current_user"), () =>
+        HttpResponse.json({
+          user: { id: 1, name: "サーバー側の名前", role: "general" },
+        }),
+      ),
+    );
+
+    // このテストだけは SWR のデフォルトキャッシュを使い、`mutate` で
+    // ウィンドウフォーカス復帰等によるバックグラウンド再検証を模す
+    // （isolated Map だと外部から同じキーで mutate できないため）。
+    render(<ProfileEditForm />);
+    await waitFor(() =>
+      expect(screen.getByLabelText(/表示名/)).toHaveValue("サーバー側の名前"),
+    );
+
+    await user.clear(screen.getByLabelText(/表示名/));
+    await user.type(screen.getByLabelText(/表示名/), "入力中の値");
+
+    await globalMutate(["/current_user", "jwt-token"]);
+
+    expect(screen.getByLabelText(/表示名/)).toHaveValue("入力中の値");
   });
 
   it("表示名を空にして送信するとバリデーションエラーになり API を呼ばない", async () => {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Logo from "@/components/brand/Logo";
-import MobileNav from "@/components/layout/MobileNav";
+import MobileNav from "./MobileNav";
 import Navigation from "@/components/layout/Navigation";
 import HeaderAuth from "@/components/auth/HeaderAuth";
 

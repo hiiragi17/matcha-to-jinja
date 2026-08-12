@@ -427,7 +427,7 @@ export async function mockClient<T>(
       }
       const comment = addGreenteaComment(greentea_id, uid, {
         body: body.trim(),
-        user: { id: hashUserId(uid), name: mockUserName(uid) },
+        user: { id: hashUserId(uid), name: getMockUserName(uid, mockUserName(uid)) },
       });
       return { comment } satisfies CommentResponse as T;
     }
@@ -445,7 +445,7 @@ export async function mockClient<T>(
       }
       const comment = addTempleComment(temple_id, uid, {
         body: body.trim(),
-        user: { id: hashUserId(uid), name: mockUserName(uid) },
+        user: { id: hashUserId(uid), name: getMockUserName(uid, mockUserName(uid)) },
       });
       return { comment } satisfies CommentResponse as T;
     }

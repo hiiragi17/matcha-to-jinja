@@ -359,6 +359,42 @@ describe("mockClient comments", () => {
     const posted = list.comments.find((c) => c.body === "改名前の投稿");
     expect(posted?.user?.name).toBe("改名後");
   });
+
+  it("PATCH /current_user で改名した後に投稿すると、POST 応答自体が改名後の表示名になる", async () => {
+    const alice = auth("alice");
+
+    await mockClient("/current_user", {
+      method: "PATCH",
+      body: JSON.stringify({ user: { name: "改名後" } }),
+      ...alice,
+    });
+
+    const posted = await mockClient<CommentResponse>("/greenteacomments", {
+      method: "POST",
+      body: JSON.stringify({ greentea_id: 1, body: "改名後の投稿" }),
+      ...alice,
+    });
+
+    expect(posted.comment.user?.name).toBe("改名後");
+  });
+
+  it("temple コメントの POST 応答も改名後の表示名になる", async () => {
+    const alice = auth("alice");
+
+    await mockClient("/current_user", {
+      method: "PATCH",
+      body: JSON.stringify({ user: { name: "改名後" } }),
+      ...alice,
+    });
+
+    const posted = await mockClient<CommentResponse>("/templecomments", {
+      method: "POST",
+      body: JSON.stringify({ temple_id: 1, body: "改名後の投稿" }),
+      ...alice,
+    });
+
+    expect(posted.comment.user?.name).toBe("改名後");
+  });
 });
 
 describe("mockClient GET/PATCH /current_user", () => {

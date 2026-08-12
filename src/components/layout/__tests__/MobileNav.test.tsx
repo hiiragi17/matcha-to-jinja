@@ -67,4 +67,24 @@ describe("MobileNav — ハンバーガーメニュー", () => {
 
     expect(details.open).toBe(false);
   });
+
+  it("入れ子の UserMenu を開く操作（summary クリック）では外側のメニューを閉じない", async () => {
+    useSessionMock.mockReturnValue({
+      data: { user: { name: "抹茶太郎" } },
+      status: "authenticated",
+    });
+    const user = userEvent.setup();
+    render(<MobileNav />);
+
+    const details = getDetails();
+    details.open = true;
+
+    await user.click(
+      screen.getByLabelText("ユーザーメニューを開く"),
+    );
+    expect(details.open).toBe(true);
+
+    await user.click(screen.getByRole("button", { name: "ログアウト" }));
+    expect(details.open).toBe(false);
+  });
 });

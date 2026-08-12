@@ -296,6 +296,34 @@ describe("authConfig.callbacks.jwt", () => {
 
     expect(result.name).toBe("旧名前");
   });
+
+  it("trigger=update の session.name は前後の空白を trim し 100 文字に切り詰める（Cookie 肥大化防止）", async () => {
+    const { authConfig } = await loadAuthModule();
+    const token = { name: "旧名前" };
+    const longName = "あ".repeat(150);
+
+    const result = await authConfig.callbacks.jwt({
+      token,
+      trigger: "update",
+      session: { name: `  ${longName}  ` },
+    } as JwtParams);
+
+    expect(result.name).toBe(longName.slice(0, 100));
+    expect(result.name).toHaveLength(100);
+  });
+
+  it("trigger=update の session.name が空白のみなら token.name を変更しない", async () => {
+    const { authConfig } = await loadAuthModule();
+    const token = { name: "旧名前" };
+
+    const result = await authConfig.callbacks.jwt({
+      token,
+      trigger: "update",
+      session: { name: "   " },
+    } as JwtParams);
+
+    expect(result.name).toBe("旧名前");
+  });
 });
 
 describe("authConfig.callbacks.session", () => {

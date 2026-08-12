@@ -78,9 +78,11 @@ export const authConfig = {
     async jwt({ token, account, user, trigger, session }) {
       // useSession().update({ name }) から呼ばれる（プロフィール編集後の反映）。
       // Rails への書き込みは呼び出し側で完了済みで、ここではセッション表示用に
-      // token.name を更新するだけ。
+      // token.name を更新するだけ。session はクライアントから直接呼び出せるため、
+      // Cookie 肥大化やなりすまし的な長大値の混入を防ぐ上限を掛けておく。
       if (trigger === "update" && typeof session?.name === "string") {
-        token.name = session.name;
+        const name = session.name.trim().slice(0, 100);
+        if (name.length > 0) token.name = name;
       }
       if (account?.provider) {
         token.provider = account.provider;

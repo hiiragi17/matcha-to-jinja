@@ -44,7 +44,7 @@ export default function ProfileEditForm() {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: { name: "" },
@@ -52,9 +52,11 @@ export default function ProfileEditForm() {
 
   // 取得完了時にフォームへ現在の表示名を反映する（defaultValues は初回マウント時点の
   // 値しか使えないため、非同期取得後は reset で明示的に流し込む）。
+  // SWR はウィンドウフォーカス時等に再検証するため、編集中（isDirty）に再取得が
+  // 走ると入力中の値が上書きされてしまう。編集中でないときだけ反映する。
   useEffect(() => {
-    if (data?.user) reset({ name: data.user.name });
-  }, [data, reset]);
+    if (data?.user && !isDirty) reset({ name: data.user.name });
+  }, [data, isDirty, reset]);
 
   const sessionExpired = !!error && isUnauthorized(error);
   useEffect(() => {
@@ -150,11 +152,17 @@ export default function ProfileEditForm() {
         <input
           id="profile-name"
           type="text"
+          aria-invalid={errors.name ? true : undefined}
+          aria-describedby={errors.name ? "profile-name-error" : undefined}
           className="h-10 border border-line bg-washi px-3 font-serif-jp text-sm text-ink placeholder:text-muted/60 focus:border-olive focus:outline-none"
           {...register("name")}
         />
         {errors.name && (
-          <p role="alert" className="font-sans-jp text-xs text-bengara">
+          <p
+            id="profile-name-error"
+            role="alert"
+            className="font-sans-jp text-xs text-bengara"
+          >
             {errors.name.message}
           </p>
         )}
