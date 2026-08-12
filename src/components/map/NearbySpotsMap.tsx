@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   AdvancedMarker,
@@ -8,6 +8,8 @@ import {
   InfoWindow,
   Map,
   Pin,
+  useMap,
+  useMapsLibrary,
 } from "@vis.gl/react-google-maps";
 import { ChawanIcon, ToriiIcon } from "@/components/brand/icons";
 import type { NearbySpot } from "@/types";
@@ -32,6 +34,30 @@ const KIND_CONFIG = {
 function formatDistance(meters: number): string {
   if (meters < 1000) return `${meters}m`;
   return `${(meters / 1000).toFixed(1)}km`;
+}
+
+// 固定ズームだと 1.5km 圏内の端のスポットが初期表示の枠外に出てしまう
+// （一覧を廃止し地図のみにしたため、枠外のスポットに気づく手段がない）。
+// origin + 全スポットが収まるよう地図をズーム/センタリングする。
+function FitBounds({
+  origin,
+  spots,
+}: {
+  origin: { lat: number; lng: number };
+  spots: NearbySpot[];
+}) {
+  const map = useMap();
+  const coreLib = useMapsLibrary("core");
+  useEffect(() => {
+    if (!map || !coreLib) return;
+    const bounds = new coreLib.LatLngBounds();
+    bounds.extend({ lat: origin.lat, lng: origin.lng });
+    for (const spot of spots) {
+      bounds.extend({ lat: spot.latitude, lng: spot.longitude });
+    }
+    map.fitBounds(bounds, 48);
+  }, [map, coreLib, origin.lat, origin.lng, spots]);
+  return null;
 }
 
 export default function NearbySpotsMap({
@@ -75,6 +101,7 @@ export default function NearbySpotsMap({
             disableDefaultUI={false}
             clickableIcons={false}
           >
+            <FitBounds origin={origin} spots={spots} />
             <AdvancedMarker position={origin} title={origin.name}>
               <Pin background="#4a90a4" borderColor="#3d3322" glyphColor="#fbf6e5" />
             </AdvancedMarker>

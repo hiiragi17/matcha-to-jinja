@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import NearbySpotsMap from "@/components/map/NearbySpotsMap";
 import type { NearbySpot } from "@/types";
-import { resetGoogleMapsMock } from "@tests/mocks/googleMaps";
+import { boundsInstances, mapInstance, resetGoogleMapsMock } from "@tests/mocks/googleMaps";
 import { vi } from "vitest";
 
 vi.mock("@vis.gl/react-google-maps", () => import("@tests/mocks/googleMaps"));
@@ -114,5 +114,25 @@ describe("NearbySpotsMap", () => {
       "href",
       "/temples/2",
     );
+  });
+
+  it("origin と全 spots が収まるよう fitBounds される", () => {
+    render(
+      <NearbySpotsMap
+        origin={origin}
+        spots={spots}
+        kind="temple"
+        emptyMessage="近隣に登録された神社仏閣はありません。"
+      />,
+    );
+
+    // 固定ズームだと 1.5km 圏内の端のスポットが枠外になりうるため、
+    // origin + 全スポットを extend した bounds で fitBounds されることを検証する。
+    expect(mapInstance.fitBounds).toHaveBeenCalledTimes(1);
+    expect(boundsInstances).toHaveLength(1);
+    expect(boundsInstances[0].points).toEqual([
+      { lat: origin.lat, lng: origin.lng },
+      { lat: spots[0].latitude, lng: spots[0].longitude },
+    ]);
   });
 });
