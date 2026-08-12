@@ -14,6 +14,7 @@ import type {
   TempleLikeResponse,
   TempleListResponse,
 } from "@/types";
+import type { CurrentUserResponse } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/error";
 import { mockClient } from "../index";
 import { resetMockStore } from "../state";
@@ -334,6 +335,151 @@ describe("mockClient comments", () => {
         ...auth("alice"),
       }),
     ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("PATCH /current_user で改名すると、投稿済みコメントの表示名も遡って更新される", async () => {
+    const alice = auth("alice");
+
+    await mockClient<CommentResponse>("/greenteacomments", {
+      method: "POST",
+      body: JSON.stringify({ greentea_id: 1, body: "改名前の投稿" }),
+      ...alice,
+    });
+
+    await mockClient("/current_user", {
+      method: "PATCH",
+      body: JSON.stringify({ user: { name: "改名後" } }),
+      ...alice,
+    });
+
+    const list = await mockClient<CommentListResponse>(
+      "/greenteacomments?greentea_id=1",
+      alice,
+    );
+    const posted = list.comments.find((c) => c.body === "改名前の投稿");
+    expect(posted?.user?.name).toBe("改名後");
+  });
+
+  it("PATCH /current_user で改名した後に投稿すると、POST 応答自体が改名後の表示名になる", async () => {
+    const alice = auth("alice");
+
+    await mockClient("/current_user", {
+      method: "PATCH",
+      body: JSON.stringify({ user: { name: "改名後" } }),
+      ...alice,
+    });
+
+    const posted = await mockClient<CommentResponse>("/greenteacomments", {
+      method: "POST",
+      body: JSON.stringify({ greentea_id: 1, body: "改名後の投稿" }),
+      ...alice,
+    });
+
+    expect(posted.comment.user?.name).toBe("改名後");
+  });
+
+  it("temple コメントの POST 応答も改名後の表示名になる", async () => {
+    const alice = auth("alice");
+
+    await mockClient("/current_user", {
+      method: "PATCH",
+      body: JSON.stringify({ user: { name: "改名後" } }),
+      ...alice,
+    });
+
+    const posted = await mockClient<CommentResponse>("/templecomments", {
+      method: "POST",
+      body: JSON.stringify({ temple_id: 1, body: "改名後の投稿" }),
+      ...alice,
+    });
+
+    expect(posted.comment.user?.name).toBe("改名後");
+  });
+});
+
+describe("mockClient GET/PATCH /current_user", () => {
+  it("GET は uid から導出した表示名を返す", async () => {
+    const res = await mockClient<CurrentUserResponse>(
+      "/current_user",
+      auth("alice"),
+    );
+    expect(res.user).toEqual({ id: expect.any(Number), name: "alice", role: "general" });
+  });
+
+  it("PATCH で name を更新すると以後の GET に反映される", async () => {
+    const u = auth("alice");
+
+    const patched = await mockClient<CurrentUserResponse>("/current_user", {
+      method: "PATCH",
+      body: JSON.stringify({ user: { name: "新しい名前" } }),
+      ...u,
+    });
+    expect(patched.user.name).toBe("新しい名前");
+
+    const after = await mockClient<CurrentUserResponse>("/current_user", u);
+    expect(after.user.name).toBe("新しい名前");
+  });
+
+  it("name を省略すると変更なしとして 200 を返す", async () => {
+    const u = auth("alice");
+
+    const res = await mockClient<CurrentUserResponse>("/current_user", {
+      method: "PATCH",
+      body: JSON.stringify({ user: {} }),
+      ...u,
+    });
+    expect(res.user.name).toBe("alice");
+  });
+
+  it("name が空文字だと ApiError(422)", async () => {
+    await expect(
+      mockClient("/current_user", {
+        method: "PATCH",
+        body: JSON.stringify({ user: { name: "   " } }),
+        ...auth("alice"),
+      }),
+    ).rejects.toMatchObject({ status: 422 });
+  });
+
+  it("user キーが無い / オブジェクトでないと ApiError(400)", async () => {
+    await expect(
+      mockClient("/current_user", {
+        method: "PATCH",
+        body: JSON.stringify({}),
+        ...auth("alice"),
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+
+    await expect(
+      mockClient("/current_user", {
+        method: "PATCH",
+        body: JSON.stringify({ user: "not-an-object" }),
+        ...auth("alice"),
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+  });
+
+  it("未認証は ApiError(401)", async () => {
+    await expect(
+      mockClient("/current_user", {
+        method: "PATCH",
+        body: JSON.stringify({ user: { name: "x" } }),
+      }),
+    ).rejects.toMatchObject({ status: 401 });
+  });
+
+  it("表示名の更新は他ユーザーに影響しない", async () => {
+    await mockClient("/current_user", {
+      method: "PATCH",
+      body: JSON.stringify({ user: { name: "アリス改名" } }),
+      ...auth("alice"),
+    });
+
+    const bob = await mockClient<CurrentUserResponse>(
+      "/current_user",
+      auth("bob"),
+    );
+    expect(bob.user.name).toBe("bob");
   });
 });
 

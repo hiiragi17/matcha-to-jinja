@@ -56,6 +56,7 @@ import {
   extractMockUserId,
   getMockGreenteas,
   getMockTemples,
+  getMockUserName,
   getGreenteaLikeDelta,
   getGreenteaLikedIds,
   getRouteForOwner,
@@ -67,6 +68,7 @@ import {
   listTempleComments,
   removeGreenteaLike,
   removeTempleLike,
+  setMockUserName,
   updateMockGreentea,
   updateMockTemple,
   updateRouteRecord,
@@ -362,7 +364,11 @@ export async function mockClient<T>(
     if (path === "/current_user") {
       const uid = requireMockUser(headers);
       return {
-        user: { id: hashUserId(uid), name: mockUserName(uid), role: "general" },
+        user: {
+          id: hashUserId(uid),
+          name: getMockUserName(uid, mockUserName(uid)),
+          role: "general",
+        },
       } satisfies CurrentUserResponse as T;
     }
   }
@@ -421,7 +427,7 @@ export async function mockClient<T>(
       }
       const comment = addGreenteaComment(greentea_id, uid, {
         body: body.trim(),
-        user: { id: hashUserId(uid), name: mockUserName(uid) },
+        user: { id: hashUserId(uid), name: getMockUserName(uid, mockUserName(uid)) },
       });
       return { comment } satisfies CommentResponse as T;
     }
@@ -439,7 +445,7 @@ export async function mockClient<T>(
       }
       const comment = addTempleComment(temple_id, uid, {
         body: body.trim(),
-        user: { id: hashUserId(uid), name: mockUserName(uid) },
+        user: { id: hashUserId(uid), name: getMockUserName(uid, mockUserName(uid)) },
       });
       return { comment } satisfies CommentResponse as T;
     }
@@ -603,6 +609,30 @@ export async function mockClient<T>(
   }
 
   if (method === "PATCH") {
+    // プロフィール編集: name のみ更新可。キー欠落は「変更なし」の部分更新として 200。
+    if (path === "/current_user") {
+      const uid = requireMockUser(headers);
+      const parsed = parseJsonBody<{ user?: unknown }>(options?.body);
+      if (!parsed.user || typeof parsed.user !== "object") {
+        throw new ApiError(400, { error: "Bad Request" });
+      }
+      const { name } = parsed.user as { name?: unknown };
+      if (name !== undefined) {
+        const trimmed = typeof name === "string" ? name.trim() : "";
+        if (trimmed.length === 0) {
+          throw new ApiError(422, { error: "Name can't be blank" });
+        }
+        setMockUserName(uid, trimmed);
+      }
+      return {
+        user: {
+          id: hashUserId(uid),
+          name: getMockUserName(uid, mockUserName(uid)),
+          role: "general",
+        },
+      } satisfies CurrentUserResponse as T;
+    }
+
     // Admin: greentea 更新
     const adminGreenteasPatchMatch = path.match(/^\/admin\/greenteas\/(\d+)$/);
     if (adminGreenteasPatchMatch) {

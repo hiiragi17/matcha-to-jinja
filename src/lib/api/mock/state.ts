@@ -51,6 +51,7 @@ type MockStore = {
   greenteas: Greentea[] | null;
   temples: Temple[] | null;
   routes: StoredRoute[];
+  profileNames: Map<UserId, string>;
 };
 
 const globalKey = Symbol.for("matcha-to-jinja.mock-store");
@@ -72,6 +73,7 @@ const store: MockStore = ((): MockStore => {
       greenteas: null,
       temples: null,
       routes: [],
+      profileNames: new Map(),
     };
   }
   return g[globalKey]!;
@@ -92,6 +94,7 @@ export function resetMockStore(): void {
   store.greenteas = null;
   store.temples = null;
   store.routes = [];
+  store.profileNames.clear();
 }
 
 function ensureSet<K, V>(map: Map<K, Set<V>>, key: K): Set<V> {
@@ -176,12 +179,24 @@ export function getTempleLikeDelta(templeId: number): number {
   return store.templeLikeCountDelta.get(templeId) ?? 0;
 }
 
+// 投稿時点の表示名をコメントに埋め込んだままだと、後から PATCH /current_user で
+// 改名しても過去のコメントに反映されない（実際の Rails は投稿者を都度 JOIN するため
+// 常に最新の表示名になる）。読み出し時に profileNames の上書きを都度反映することで
+// 挙動を揃える。
+function resolveCommentUser(comment: Comment, ownerId: UserId): Comment {
+  if (!comment.user) return comment;
+  return {
+    ...comment,
+    user: { ...comment.user, name: getMockUserName(ownerId, comment.user.name) },
+  };
+}
+
 export function listGreenteaComments(
   greenteaId: number,
   viewerId: UserId | null,
 ): Comment[] {
   return (store.greenteaComments.get(greenteaId) ?? []).map((r) => ({
-    ...r.comment,
+    ...resolveCommentUser(r.comment, r.ownerId),
     owned_by_current_user: viewerId !== null && r.ownerId === viewerId,
   }));
 }
@@ -191,7 +206,7 @@ export function listTempleComments(
   viewerId: UserId | null,
 ): Comment[] {
   return (store.templeComments.get(templeId) ?? []).map((r) => ({
-    ...r.comment,
+    ...resolveCommentUser(r.comment, r.ownerId),
     owned_by_current_user: viewerId !== null && r.ownerId === viewerId,
   }));
 }
@@ -432,12 +447,20 @@ export function listAllComments(): Array<{
 
   for (const [resourceId, records] of store.greenteaComments.entries()) {
     for (const r of records) {
-      result.push({ comment: r.comment, resourceType: "greentea", resourceId });
+      result.push({
+        comment: resolveCommentUser(r.comment, r.ownerId),
+        resourceType: "greentea",
+        resourceId,
+      });
     }
   }
   for (const [resourceId, records] of store.templeComments.entries()) {
     for (const r of records) {
-      result.push({ comment: r.comment, resourceType: "temple", resourceId });
+      result.push({
+        comment: resolveCommentUser(r.comment, r.ownerId),
+        resourceType: "temple",
+        resourceId,
+      });
     }
   }
   return result;
@@ -507,4 +530,16 @@ export function deleteRouteRecord(id: number, ownerId: UserId): boolean {
   if (idx < 0) return false;
   store.routes.splice(idx, 1);
   return true;
+}
+
+// --- プロフィール編集（表示名のみ） ---
+// mock ユーザーの表示名は本来 uid から導出する（mockUserName）だけだが、
+// PATCH /current_user で上書きされた分だけここに保持する。
+
+export function getMockUserName(userId: UserId, fallback: string): string {
+  return store.profileNames.get(userId) ?? fallback;
+}
+
+export function setMockUserName(userId: UserId, name: string): void {
+  store.profileNames.set(userId, name);
 }

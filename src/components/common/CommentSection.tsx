@@ -196,7 +196,7 @@ export default function CommentSection({
             <li key={comment.id} className="px-5 py-4">
               <div className="flex items-baseline justify-between gap-3">
                 <span className="font-mincho text-sm text-ink">
-                  {comment.user.name}
+                  {comment.user?.name ?? "匿名ユーザー"}
                 </span>
                 <span className="font-sans-jp text-[10px] tracking-[0.15em] text-muted">
                   {formatDate(comment.created_at)}

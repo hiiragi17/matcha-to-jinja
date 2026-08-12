@@ -167,6 +167,29 @@ describe("CommentModerationList — コメントモデレーション", () => {
     expect(listCalls).toBeGreaterThanOrEqual(2);
   });
 
+  it("投稿者が欠落したコメント（user: null）でもクラッシュせず「匿名ユーザー」と表示する", async () => {
+    const user = userEvent.setup();
+    useSessionMock.mockReturnValue({
+      data: { railsJwt: "jwt-token" },
+      status: "authenticated",
+    });
+    server.use(
+      http.get(endpoint("/admin/comments"), () =>
+        HttpResponse.json({
+          comments: [{ ...comments[0], user: null }],
+        }),
+      ),
+    );
+
+    renderWithSwr(<CommentModerationList />);
+
+    expect(await screen.findByText("匿名ユーザー")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /削除/ }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("匿名ユーザー さんのコメントを削除します");
+  });
+
   it("一覧取得が 401 だと signOut してログインへ誘導する", async () => {
     useSessionMock.mockReturnValue({
       data: { railsJwt: "jwt-token" },

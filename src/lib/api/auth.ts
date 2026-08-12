@@ -27,6 +27,11 @@ export type CurrentUserResponse = {
   user: AuthUser;
 };
 
+export type UpdateCurrentUserPayload = {
+  // name を省略すると Rails 側は「変更なし」の部分更新として扱う（200 を返す）。
+  name?: string;
+};
+
 // NextAuth の jwt callback で OAuth 成功直後に呼び出し、Rails 側の JWT に交換する。
 // 受け取った JWT は session.railsJwt に格納し、以後の API 呼び出しに添付する。
 export function exchangeOAuthForJwt(
@@ -43,6 +48,19 @@ export function getCurrentUser(
   authToken: string,
 ): Promise<CurrentUserResponse> {
   return apiClient<CurrentUserResponse>("/current_user", { authToken });
+}
+
+// プロフィール編集（表示名のみ更新可）。バリデーションエラーは 422、
+// user キー欠落等の不正なボディは 400 で ApiError を throw する。
+export function updateCurrentUser(
+  payload: UpdateCurrentUserPayload,
+  authToken: string,
+): Promise<CurrentUserResponse> {
+  return apiClient<CurrentUserResponse>("/current_user", {
+    method: "PATCH",
+    body: JSON.stringify({ user: payload }),
+    authToken,
+  });
 }
 
 // signOut 時に Rails 側の JWT を失効させる。失敗してもクライアント側のログアウトは

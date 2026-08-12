@@ -93,6 +93,18 @@ export default function MyPage() {
             抹茶スイーツ店と神社仏閣を組み合わせて、自分だけの巡りコースを作成・保存できます。
           </p>
         </Link>
+        <Link
+          href="/mypage/profile"
+          className="border border-line-soft bg-paper px-6 py-7 transition-colors hover:bg-washi-bg sm:col-span-2"
+        >
+          <p className="font-sans-jp text-[10px] tracking-[0.3em] text-olive">
+            PROFILE
+          </p>
+          <p className="mt-3 font-mincho text-xl text-ink">プロフィール編集</p>
+          <p className="mt-3 font-serif-jp text-xs leading-[1.9] text-muted">
+            表示名を変更できます。
+          </p>
+        </Link>
       </div>
     </section>
   );
