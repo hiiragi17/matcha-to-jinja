@@ -2,6 +2,7 @@ import Link from "next/link";
 import { HiHeart } from "react-icons/hi2";
 import { hasImage } from "@/lib/utils/image";
 import { ChawanIcon } from "@/components/brand/icons";
+import SpotPlaceholder from "../common/SpotPlaceholder";
 import type { Greentea } from "@/types";
 
 type GreenteaCardProps = {
@@ -26,9 +27,10 @@ export default function GreenteaCard({ greentea }: GreenteaCardProps) {
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-washi-bg">
-            <ChawanIcon size={64} />
-          </div>
+          <SpotPlaceholder
+            name={greentea.name}
+            icon={<ChawanIcon size={20} color="#fbf6e5" />}
+          />
         )}
       </figure>
       <div className="flex flex-1 flex-col gap-2 p-4">

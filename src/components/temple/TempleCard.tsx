@@ -2,6 +2,7 @@ import Link from "next/link";
 import { HiHeart } from "react-icons/hi2";
 import { hasImage } from "@/lib/utils/image";
 import { ToriiIcon } from "@/components/brand/icons";
+import SpotPlaceholder from "../common/SpotPlaceholder";
 import type { Temple } from "@/types";
 
 type TempleCardProps = {
@@ -26,9 +27,10 @@ export default function TempleCard({ temple }: TempleCardProps) {
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-washi-bg">
-            <ToriiIcon size={64} />
-          </div>
+          <SpotPlaceholder
+            name={temple.name}
+            icon={<ToriiIcon size={20} color="#fbf6e5" />}
+          />
         )}
       </figure>
       <div className="flex flex-1 flex-col gap-2 p-4">
