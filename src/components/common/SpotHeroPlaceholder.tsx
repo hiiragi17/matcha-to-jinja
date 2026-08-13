@@ -36,7 +36,7 @@ export default function SpotHeroPlaceholder({
         <p className="font-mincho text-3xl font-semibold leading-tight text-paper/95 sm:text-4xl">
           {name}
         </p>
-        <span className="shrink-0 text-paper/60">{icon}</span>
+        <span className="shrink-0 opacity-60">{icon}</span>
       </div>
     </div>
   );

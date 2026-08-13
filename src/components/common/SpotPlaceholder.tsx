@@ -21,7 +21,7 @@ export default function SpotPlaceholder({ name, icon }: SpotPlaceholderProps) {
       >
         {initial}
       </span>
-      <span className="absolute bottom-2 right-2 text-paper/60">{icon}</span>
+      <span className="absolute bottom-2 right-2 opacity-60">{icon}</span>
     </div>
   );
 }

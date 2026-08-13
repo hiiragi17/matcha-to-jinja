@@ -2,7 +2,7 @@ import Link from "next/link";
 import { HiHeart } from "react-icons/hi2";
 import { hasImage } from "@/lib/utils/image";
 import { ToriiIcon } from "@/components/brand/icons";
-import SpotPlaceholder from "@/components/common/SpotPlaceholder";
+import SpotPlaceholder from "../common/SpotPlaceholder";
 import type { Temple } from "@/types";
 
 type TempleCardProps = {
