@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Shippori_Mincho, Noto_Serif_JP, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
@@ -60,6 +60,15 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     // 画像は src/app/twitter-image.tsx（ファイル規約）で自動付与される
   },
+  appleWebApp: {
+    title: "抹茶と神社。",
+    // アイコンは src/app/apple-icon.png（ファイル規約）で自動付与される
+  },
+  // manifest, favicon, apple-touch-icon は src/app/manifest.ts, favicon.ico, apple-icon.png（ファイル規約）で自動付与される
+};
+
+export const viewport: Viewport = {
+  themeColor: "#fbf6e5",
 };
 
 export default function RootLayout({
