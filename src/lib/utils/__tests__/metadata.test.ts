@@ -53,7 +53,7 @@ describe("buildSpotMetadata", () => {
       locale: "ja_JP",
       siteName: "抹茶と神社。",
     });
-    expect(meta.twitter?.card).toBe("summary_large_image");
+    expect(meta.twitter).toMatchObject({ card: "summary_large_image" });
   });
 
   it("親に画像が無くても空配列にフォールバックして壊れない", async () => {
