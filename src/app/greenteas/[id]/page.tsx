@@ -2,10 +2,12 @@ import type { Metadata, ResolvingMetadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { HiArrowLeft } from "react-icons/hi2";
+import { ChawanIcon } from "@/components/brand/icons";
 import Hairline from "@/components/brand/Hairline";
 import CommentSection from "@/components/common/CommentSection";
 import LikeButton from "@/components/common/LikeButton";
 import ShareButtons from "@/components/common/ShareButtons";
+import SpotHeroPlaceholder from "@/components/common/SpotHeroPlaceholder";
 import NearbySpotsMap from "@/components/map/NearbySpotsMap";
 import { ApiError, getGreentea } from "@/lib/api";
 import { auth } from "@/lib/auth";
@@ -109,9 +111,8 @@ export default async function GreenteaDetailPage({
         <ShareButtons title={greentea.name} />
       </div>
 
-      {/* 画像未登録のスポットでは画像枠ごと表示しない。実 API の画像 URL が入れば表示される。 */}
-      {hasImage(greentea.img) && (
-        <figure className="mt-10 overflow-hidden border border-line-soft bg-paper">
+      <figure className="mt-10 overflow-hidden border border-line-soft bg-paper">
+        {hasImage(greentea.img) ? (
           <div className="aspect-[16/9] w-full">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -120,8 +121,14 @@ export default async function GreenteaDetailPage({
               className="h-full w-full object-cover"
             />
           </div>
-        </figure>
-      )}
+        ) : (
+          <SpotHeroPlaceholder
+            name={greentea.name}
+            tags={greentea.genres}
+            icon={<ChawanIcon size={28} color="#fbf6e5" />}
+          />
+        )}
+      </figure>
 
       <section className="mt-10">
         <p className="font-serif-jp text-base leading-[2.1] text-ink">
