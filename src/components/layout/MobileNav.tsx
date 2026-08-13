@@ -34,7 +34,10 @@ export default function MobileNav() {
 
   return (
     <details ref={detailsRef} className="dropdown dropdown-end lg:hidden">
-      <summary className="btn btn-ghost btn-square" aria-label="メニューを開く">
+      <summary
+        className="btn btn-ghost btn-square -mr-2"
+        aria-label="メニューを開く"
+      >
         <HiBars3 className="h-5 w-5" />
       </summary>
       <div
