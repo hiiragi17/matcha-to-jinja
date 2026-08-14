@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { ChawanIcon, ToriiIcon } from "@/components/brand/icons";
+import Loader from "@/components/common/Loader";
 import {
   ApiError,
   createRoute,
@@ -474,9 +475,7 @@ function SpotPicker({
           候補の取得に失敗しました。時間を置いてお試しください。
         </p>
       ) : isLoading ? (
-        <p className="font-sans-jp text-[10px] tracking-[0.3em] text-muted">
-          読み込み中…
-        </p>
+        <Loader />
       ) : items.length === 0 ? (
         <p className="font-serif-jp text-sm text-muted">
           該当するスポットがありません。
