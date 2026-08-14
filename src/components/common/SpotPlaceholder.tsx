@@ -4,15 +4,29 @@ import { latticeBackgroundStyle } from "./latticePattern";
 type SpotPlaceholderProps = {
   name: string;
   icon: ReactNode;
+  variant?: "matcha" | "shrine";
 };
 
-// 画像未登録時のカードプレースホルダー。緑地に格子柄を敷き、店名/社寺名の頭文字を大きく見せる。
-export default function SpotPlaceholder({ name, icon }: SpotPlaceholderProps) {
+const backgroundClassByVariant: Record<
+  NonNullable<SpotPlaceholderProps["variant"]>,
+  string
+> = {
+  matcha: "bg-matcha-dark",
+  shrine: "bg-bengara-dark",
+};
+
+// 画像未登録時のカードプレースホルダー。格子柄を敷き、店名/社寺名の頭文字を大きく見せる。
+// variant で背景色を切り替える（抹茶店=緑、神社仏閣=赤/弁柄）。
+export default function SpotPlaceholder({
+  name,
+  icon,
+  variant = "matcha",
+}: SpotPlaceholderProps) {
   const initial = [...name][0] ?? "";
 
   return (
     <div
-      className="relative flex h-full w-full items-center justify-center overflow-hidden bg-matcha-dark"
+      className={`relative flex h-full w-full items-center justify-center overflow-hidden ${backgroundClassByVariant[variant]}`}
       style={latticeBackgroundStyle}
     >
       <span

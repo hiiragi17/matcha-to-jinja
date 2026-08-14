@@ -8,6 +8,7 @@ import CommentSection from "@/components/common/CommentSection";
 import LikeButton from "@/components/common/LikeButton";
 import ShareButtons from "@/components/common/ShareButtons";
 import SpotHeroPlaceholder from "@/components/common/SpotHeroPlaceholder";
+import NearbySpotsList from "@/components/map/NearbySpotsList";
 import NearbySpotsMap from "@/components/map/NearbySpotsMap";
 import { ApiError, getGreentea } from "@/lib/api";
 import { auth } from "@/lib/auth";
@@ -184,6 +185,7 @@ export default async function GreenteaDetailPage({
             kind="temple"
             emptyMessage="近隣 1.5km 以内に登録された神社仏閣はありません。"
           />
+          <NearbySpotsList spots={greentea.nearby_temples} kind="temple" />
         </div>
       </section>
 

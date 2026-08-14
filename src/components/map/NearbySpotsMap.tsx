@@ -11,7 +11,7 @@ import {
   useMap,
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
-import { ChawanIcon, ToriiIcon } from "@/components/brand/icons";
+import { ChawanIcon, ToriiIcon } from "../brand/icons";
 import type { NearbySpot } from "@/types";
 
 type SpotKind = "greentea" | "temple";

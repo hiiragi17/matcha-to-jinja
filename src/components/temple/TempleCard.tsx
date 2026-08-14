@@ -30,6 +30,7 @@ export default function TempleCard({ temple }: TempleCardProps) {
           <SpotPlaceholder
             name={temple.name}
             icon={<ToriiIcon size={20} color="#fbf6e5" />}
+            variant="shrine"
           />
         )}
       </figure>

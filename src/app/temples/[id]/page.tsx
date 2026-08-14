@@ -8,6 +8,7 @@ import CommentSection from "@/components/common/CommentSection";
 import LikeButton from "@/components/common/LikeButton";
 import ShareButtons from "@/components/common/ShareButtons";
 import SpotHeroPlaceholder from "@/components/common/SpotHeroPlaceholder";
+import NearbySpotsList from "@/components/map/NearbySpotsList";
 import NearbySpotsMap from "@/components/map/NearbySpotsMap";
 import { ApiError, getTemple } from "@/lib/api";
 import { auth } from "@/lib/auth";
@@ -131,6 +132,7 @@ export default async function TempleDetailPage({
             name={temple.name}
             tags={temple.areas}
             icon={<ToriiIcon size={28} color="#fbf6e5" />}
+            variant="shrine"
           />
         )}
       </figure>
@@ -193,6 +195,7 @@ export default async function TempleDetailPage({
             kind="greentea"
             emptyMessage="近隣 1.5km 以内に登録された抹茶店はありません。"
           />
+          <NearbySpotsList spots={temple.nearby_greenteas} kind="greentea" />
         </div>
       </section>
 
