@@ -35,18 +35,17 @@ describe("Header — 共通ヘッダー", () => {
 
     render(<Header />);
 
-    // PC / モバイル両方にナビがあるため getAllByRole で確認する。
-    expect(
-      screen.getAllByRole("link", { name: "抹茶スイーツ" })[0],
-    ).toHaveAttribute("href", "/greenteas");
-    expect(
-      screen.getAllByRole("link", { name: "神社仏閣" })[0],
-    ).toHaveAttribute("href", "/temples");
-    expect(
-      screen.getAllByRole("link", { name: "お問い合わせ" })[0],
-    ).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "抹茶スイーツ" })).toHaveAttribute(
       "href",
-      "https://docs.google.com/forms/d/e/1FAIpQLSdYI7QDiZJ_WlBFuVsc6DCb-1s0JUwy_NGfLeqnWO_EP76pIQ/viewform?usp=dialog",
+      "/greenteas",
+    );
+    expect(screen.getByRole("link", { name: "神社仏閣" })).toHaveAttribute(
+      "href",
+      "/temples",
+    );
+    expect(screen.getByRole("link", { name: "現在地から" })).toHaveAttribute(
+      "href",
+      "/nearby",
     );
   });
 

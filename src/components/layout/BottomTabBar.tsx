@@ -3,14 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { HiChatBubbleLeftRight, HiHeart, HiHome } from "react-icons/hi2";
+import { HiHeart, HiHome, HiMapPin } from "react-icons/hi2";
 import { ChawanIcon, ToriiIcon } from "@/components/brand/icons";
 
 const ACTIVE_COLOR = "#3d3322"; // --color-ink
 const INACTIVE_COLOR = "#8a7a4e"; // --color-muted
-
-const CONTACT_FORM_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSdYI7QDiZJ_WlBFuVsc6DCb-1s0JUwy_NGfLeqnWO_EP76pIQ/viewform?usp=dialog";
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -82,16 +79,15 @@ export default function BottomTabBar() {
           />
         </Tab>
       </Link>
-      <a
-        href={CONTACT_FORM_URL}
-        target="_blank"
-        rel="noopener noreferrer"
+      <Link
+        href="/nearby"
         className="flex-1"
+        aria-current={isActive(pathname, "/nearby") ? "page" : undefined}
       >
-        <Tab active={false} label="問合せ">
-          <HiChatBubbleLeftRight className="h-5 w-5" aria-hidden="true" />
+        <Tab active={isActive(pathname, "/nearby")} label="現在地">
+          <HiMapPin className="h-5 w-5" aria-hidden="true" />
         </Tab>
-      </a>
+      </Link>
       <Link
         href={myHref}
         className="flex-1"

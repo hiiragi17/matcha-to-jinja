@@ -35,9 +35,9 @@ describe("BottomTabBar — モバイル用下部タブ", () => {
       "href",
       "/temples",
     );
-    expect(screen.getByRole("link", { name: /問合せ/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /現在地/ })).toHaveAttribute(
       "href",
-      "https://docs.google.com/forms/d/e/1FAIpQLSdYI7QDiZJ_WlBFuVsc6DCb-1s0JUwy_NGfLeqnWO_EP76pIQ/viewform?usp=dialog",
+      "/nearby",
     );
   });
 
