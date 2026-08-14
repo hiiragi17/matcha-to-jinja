@@ -4,6 +4,11 @@ const FOOTER_LINKS = [
   { href: "/terms", label: "利用規約" },
   { href: "/privacy", label: "プライバシー" },
   { href: "/nearby", label: "現在地から" },
+  {
+    href: "https://docs.google.com/forms/d/e/1FAIpQLSdYI7QDiZJ_WlBFuVsc6DCb-1s0JUwy_NGfLeqnWO_EP76pIQ/viewform?usp=dialog",
+    label: "お問い合わせ",
+    external: true,
+  },
 ] as const;
 
 export default function Footer() {
@@ -15,9 +20,20 @@ export default function Footer() {
           {FOOTER_LINKS.map((link, i) => (
             <span key={link.href} className="flex items-center gap-3">
               {i > 0 && <span aria-hidden="true">・</span>}
-              <Link href={link.href} className="transition-colors hover:text-ink">
-                {link.label}
-              </Link>
+              {"external" in link && link.external ? (
+                <a
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-ink"
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link href={link.href} className="transition-colors hover:text-ink">
+                  {link.label}
+                </Link>
+              )}
             </span>
           ))}
         </nav>
