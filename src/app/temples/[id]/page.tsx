@@ -131,6 +131,7 @@ export default async function TempleDetailPage({
             name={temple.name}
             tags={temple.areas}
             icon={<ToriiIcon size={28} color="#fbf6e5" />}
+            variant="shrine"
           />
         )}
       </figure>
