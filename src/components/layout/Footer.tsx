@@ -3,21 +3,36 @@ import Link from "next/link";
 const FOOTER_LINKS = [
   { href: "/terms", label: "利用規約" },
   { href: "/privacy", label: "プライバシー" },
-  { href: "/nearby", label: "現在地から" },
+  {
+    href: "https://docs.google.com/forms/d/e/1FAIpQLSdYI7QDiZJ_WlBFuVsc6DCb-1s0JUwy_NGfLeqnWO_EP76pIQ/viewform?usp=dialog",
+    label: "お問い合わせ",
+    external: true,
+  },
 ] as const;
 
 export default function Footer() {
   return (
-    <footer className="border-t border-line px-6 py-5 font-sans-jp text-[10px] tracking-[0.1em] text-muted md:px-12">
+    <footer className="border-t border-line px-6 py-5 pb-[calc(4.5rem+env(safe-area-inset-bottom))] font-sans-jp text-[10px] tracking-[0.1em] text-muted md:px-12 lg:pb-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <span>© {new Date().getFullYear()} 抹茶と神社。</span>
         <nav className="flex items-center gap-3">
           {FOOTER_LINKS.map((link, i) => (
             <span key={link.href} className="flex items-center gap-3">
               {i > 0 && <span aria-hidden="true">・</span>}
-              <Link href={link.href} className="transition-colors hover:text-ink">
-                {link.label}
-              </Link>
+              {"external" in link && link.external ? (
+                <a
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-ink"
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link href={link.href} className="transition-colors hover:text-ink">
+                  {link.label}
+                </Link>
+              )}
             </span>
           ))}
         </nav>

@@ -38,15 +38,26 @@ function ActionRow({ href, icon, bgClass, label, hint }: ActionRowProps) {
 export default function Home() {
   return (
     <section className="relative flex min-h-[78vh] flex-col items-center justify-center overflow-hidden px-6 py-16">
-      <PatternBackground id="home-asanoha" color="#706020" opacity={0.08} size={56} />
+      <PatternBackground id="home-asanoha" color="#706020" opacity={0.16} size={56} />
 
       <div className="relative flex flex-col items-center gap-7">
-        <Logo variant="full" size={300} priority />
+        {/* ロゴ裏だけ格子柄を透けさせないよう、淡いグラデーションでふわっと打ち消す。 */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-[150px] h-[340px] w-[340px] -translate-x-1/2 -translate-y-1/2"
+          style={{
+            background:
+              "radial-gradient(circle, #f1e9cf 55%, rgba(241,233,207,0) 100%)",
+          }}
+        />
+        <Logo variant="full" size={300} priority className="relative z-10" />
 
         <p className="text-center font-mincho text-[17px] leading-[2] text-ink">
           折角京都に来たのなら、
           <br />
-          抹茶スイーツ店と神社仏閣どちらも欲張って巡ってみよう。
+          抹茶スイーツ店と神社仏閣
+          <br />
+          どちらも欲張って巡ってみよう。
         </p>
 
         <Hairline width={50} className="mt-2" />

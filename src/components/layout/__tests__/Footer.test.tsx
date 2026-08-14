@@ -12,7 +12,7 @@ describe("Footer", () => {
     expect(screen.getByText(/出典/)).toBeInTheDocument();
   });
 
-  it("利用規約 / プライバシー / 現在地から のリンクを表示する", () => {
+  it("利用規約 / プライバシー のリンクを表示する", () => {
     render(<Footer />);
 
     expect(screen.getByRole("link", { name: "利用規約" })).toHaveAttribute(
@@ -22,9 +22,18 @@ describe("Footer", () => {
     expect(
       screen.getByRole("link", { name: "プライバシー" }),
     ).toHaveAttribute("href", "/privacy");
-    expect(
-      screen.getByRole("link", { name: "現在地から" }),
-    ).toHaveAttribute("href", "/nearby");
+  });
+
+  it("お問い合わせリンクを新しいタブで表示する", () => {
+    render(<Footer />);
+
+    const link = screen.getByRole("link", { name: "お問い合わせ" });
+    expect(link).toHaveAttribute(
+      "href",
+      "https://docs.google.com/forms/d/e/1FAIpQLSdYI7QDiZJ_WlBFuVsc6DCb-1s0JUwy_NGfLeqnWO_EP76pIQ/viewform?usp=dialog",
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
 
   it("現在の年号を著作権表記に含める", () => {

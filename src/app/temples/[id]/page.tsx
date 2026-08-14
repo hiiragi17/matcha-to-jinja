@@ -86,38 +86,7 @@ export default async function TempleDetailPage({
         </Link>
       </div>
 
-      <header className="flex flex-col items-center text-center">
-        <p className="font-sans-jp text-[10px] font-medium tracking-[0.4em] text-bengara">
-          神社仏閣 / SHRINES &amp; TEMPLES
-        </p>
-        <h1 className="mt-3 font-mincho text-3xl font-semibold tracking-[0.06em] text-ink sm:text-4xl">
-          {temple.name}
-        </h1>
-        <Hairline width={40} className="mt-5" />
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-          {temple.areas.map((area) => (
-            <span
-              key={area.id}
-              className="border border-line bg-washi px-2.5 py-1 font-sans-jp text-[11px] tracking-[0.1em] text-olive"
-            >
-              {area.name}
-            </span>
-          ))}
-          <LikeButton
-            kind="temple"
-            id={temple.id}
-            initialCount={temple.likes_count}
-            initialLiked={temple.liked_by_current_user ?? false}
-            callbackUrl={`/temples/${temple.id}`}
-          />
-        </div>
-      </header>
-
-      <div className="mt-6 flex justify-center">
-        <ShareButtons title={temple.name} />
-      </div>
-
-      <figure className="mt-10 overflow-hidden border border-line-soft bg-paper">
+      <figure className="overflow-hidden border border-line-soft bg-paper">
         {hasImage(temple.img) ? (
           <div className="aspect-[16/9] w-full">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -131,11 +100,43 @@ export default async function TempleDetailPage({
           <SpotHeroPlaceholder
             name={temple.name}
             tags={temple.areas}
-            icon={<ToriiIcon size={28} color="#fbf6e5" />}
+            icon={<ToriiIcon size={48} color="#fbf6e5" />}
             variant="shrine"
           />
         )}
       </figure>
+
+      <header className="mt-10 flex flex-col items-center text-center">
+        <p className="font-sans-jp text-[10px] font-medium tracking-[0.4em] text-bengara">
+          神社仏閣 / SHRINES &amp; TEMPLES
+        </p>
+        <h1 className="mt-3 font-mincho text-3xl font-semibold tracking-[0.06em] text-ink sm:text-4xl">
+          {temple.name}
+        </h1>
+        <Hairline width={40} className="mt-5" />
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+          {hasImage(temple.img) &&
+            temple.areas.map((area) => (
+              <span
+                key={area.id}
+                className="border border-line bg-washi px-2.5 py-1 font-sans-jp text-[11px] tracking-[0.1em] text-olive"
+              >
+                {area.name}
+              </span>
+            ))}
+          <LikeButton
+            kind="temple"
+            id={temple.id}
+            initialCount={temple.likes_count}
+            initialLiked={temple.liked_by_current_user ?? false}
+            callbackUrl={`/temples/${temple.id}`}
+          />
+        </div>
+      </header>
+
+      <div className="mt-6 flex justify-center">
+        <ShareButtons title={temple.name} />
+      </div>
 
       <section className="mt-10">
         <p className="font-serif-jp text-base leading-[2.1] text-ink">

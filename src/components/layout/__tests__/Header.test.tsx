@@ -35,16 +35,18 @@ describe("Header — 共通ヘッダー", () => {
 
     render(<Header />);
 
-    // PC / モバイル両方にナビがあるため getAllByRole で確認する。
-    expect(
-      screen.getAllByRole("link", { name: "抹茶スイーツ" })[0],
-    ).toHaveAttribute("href", "/greenteas");
-    expect(
-      screen.getAllByRole("link", { name: "神社仏閣" })[0],
-    ).toHaveAttribute("href", "/temples");
-    expect(
-      screen.getAllByRole("link", { name: "現在地から" })[0],
-    ).toHaveAttribute("href", "/nearby");
+    expect(screen.getByRole("link", { name: "抹茶スイーツ" })).toHaveAttribute(
+      "href",
+      "/greenteas",
+    );
+    expect(screen.getByRole("link", { name: "神社仏閣" })).toHaveAttribute(
+      "href",
+      "/temples",
+    );
+    expect(screen.getByRole("link", { name: "現在地から" })).toHaveAttribute(
+      "href",
+      "/nearby",
+    );
   });
 
   it("未ログイン時はログインリンクを表示する", () => {
@@ -70,13 +72,5 @@ describe("Header — 共通ヘッダー", () => {
     expect(
       screen.queryByRole("link", { name: "ログイン" }),
     ).not.toBeInTheDocument();
-  });
-
-  it("メニューを開くボタン（モバイル）を持つ", () => {
-    useSessionMock.mockReturnValue({ data: null, status: "unauthenticated" });
-
-    render(<Header />);
-
-    expect(screen.getByLabelText("メニューを開く")).toBeInTheDocument();
   });
 });

@@ -14,7 +14,7 @@ export default function HeaderAuth() {
       <>
         <Link
           href="/auth/login"
-          className="font-sans-jp text-xs tracking-[0.06em] text-muted transition-colors hover:text-ink"
+          className="hidden font-sans-jp text-xs tracking-[0.06em] text-muted transition-colors hover:text-ink lg:inline-flex"
         >
           <span aria-hidden="true">♡</span> お気に入り
         </Link>
@@ -32,7 +32,7 @@ export default function HeaderAuth() {
     <>
       <Link
         href="/mypage"
-        className="font-sans-jp text-xs tracking-[0.06em] text-muted transition-colors hover:text-ink"
+        className="hidden font-sans-jp text-xs tracking-[0.06em] text-muted transition-colors hover:text-ink lg:inline-flex"
       >
         <span aria-hidden="true">♡</span> お気に入り
       </Link>

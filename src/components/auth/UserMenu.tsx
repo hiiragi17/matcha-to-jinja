@@ -30,7 +30,7 @@ export default function UserMenu({ user }: UserMenuProps) {
         aria-label="ユーザーメニューを開く"
       >
         <span aria-hidden="true">◎</span>
-        <span className="max-w-[8rem] truncate">{displayName}</span>
+        <span className="hidden max-w-[8rem] truncate lg:inline">{displayName}</span>
       </summary>
       <ul
         className="dropdown-content menu z-50 mt-2 w-56 border border-line bg-paper p-2 font-sans-jp text-sm text-ink shadow-sm"
