@@ -46,25 +46,27 @@ export default function Home() {
         <p className="text-center font-mincho text-[17px] leading-[2] text-ink">
           折角京都に来たのなら、
           <br />
-          神社仏閣と抹茶スイーツ店どちらも欲張って巡ってみよう。
+          抹茶スイーツ店と神社仏閣
+          <br />
+          どちらも欲張って巡ってみよう。
         </p>
 
         <Hairline width={50} className="mt-2" />
 
         <div className="mt-2 flex w-full max-w-[380px] flex-col gap-2.5">
           <ActionRow
-            href="/temples"
-            icon={<ToriiIcon size={22} color="#fbf6e5" />}
-            bgClass="bg-bengara hover:bg-bengara-dark"
-            label="神社仏閣を探す"
-            hint="SHRINES & TEMPLES"
-          />
-          <ActionRow
             href="/greenteas"
             icon={<ChawanIcon size={22} color="#fbf6e5" />}
             bgClass="bg-matcha hover:bg-matcha-dark"
             label="抹茶スイーツを探す"
             hint="MATCHA SWEETS"
+          />
+          <ActionRow
+            href="/temples"
+            icon={<ToriiIcon size={22} color="#fbf6e5" />}
+            bgClass="bg-bengara hover:bg-bengara-dark"
+            label="神社仏閣を探す"
+            hint="SHRINES & TEMPLES"
           />
           <ActionRow
             href="/nearby"
