@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChawanIcon, ToriiIcon } from "../brand/icons";
+import { formatWalkingMinutes } from "@/lib/utils/format";
 import type { NearbySpot } from "@/types";
 
 type SpotKind = "greentea" | "temple";
@@ -14,11 +15,6 @@ const KIND_CONFIG = {
   greentea: { href: "/greenteas", Icon: ChawanIcon, color: "#608060" },
   temple: { href: "/temples", Icon: ToriiIcon, color: "#905050" },
 } as const;
-
-function formatDistance(meters: number): string {
-  if (meters < 1000) return `${meters}m`;
-  return `${(meters / 1000).toFixed(1)}km`;
-}
 
 // 地図の下に添える周辺スポット一覧。地図のマーカーは枠外だと気づきにくいため、
 // クリック不要で距離とリンクを確認できるようテキスト一覧としても表示する。
@@ -40,7 +36,7 @@ export default function NearbySpotsList({ spots, kind }: NearbySpotsListProps) {
               {spot.name}
             </span>
             <span className="font-sans-jp text-xs tracking-[0.1em] text-muted">
-              {formatDistance(spot.distance_meters)}
+              {formatWalkingMinutes(spot.distance_meters)}
             </span>
             <span aria-hidden="true" className="font-mincho text-base text-muted">
               →

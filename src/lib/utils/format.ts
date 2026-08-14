@@ -9,6 +9,16 @@ export function formatDistance(meters: number): string {
   return `${(meters / 1000).toFixed(1)}km`;
 }
 
+// 徒歩の想定速度（不動産表示等で一般的に使われる分速）。
+const WALK_METERS_PER_MINUTE = 80;
+
+// メートルの直線距離を徒歩分数に換算して「徒歩◯分」で表す。
+// 端数は切り上げ、0分表示を避けるため最低1分にする。あくまで直線距離ベースの概算。
+export function formatWalkingMinutes(meters: number): string {
+  const minutes = Math.max(1, Math.ceil(meters / WALK_METERS_PER_MINUTE));
+  return `徒歩${minutes}分`;
+}
+
 // 秒を「約N分」/「約N時間M分」で表す。算出できない（null）場合は「所要時間不明」。
 export function formatDuration(seconds: number | null): string {
   if (seconds === null) return "所要時間不明";

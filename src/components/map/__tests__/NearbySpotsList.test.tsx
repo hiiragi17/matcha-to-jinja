@@ -45,9 +45,9 @@ describe("NearbySpotsList", () => {
     render(<NearbySpotsList spots={spots} kind="temple" />);
 
     expect(screen.getByText("八坂神社")).toBeInTheDocument();
-    expect(screen.getByText("320m")).toBeInTheDocument();
+    expect(screen.getByText("徒歩4分")).toBeInTheDocument();
     expect(screen.getByText("清水寺")).toBeInTheDocument();
-    expect(screen.getByText("1.4km")).toBeInTheDocument();
+    expect(screen.getByText("徒歩18分")).toBeInTheDocument();
 
     expect(screen.getByRole("link", { name: /八坂神社/ })).toHaveAttribute(
       "href",
