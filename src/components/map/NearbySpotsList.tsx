@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChawanIcon, ToriiIcon } from "@/components/brand/icons";
+import { ChawanIcon, ToriiIcon } from "../brand/icons";
 import type { NearbySpot } from "@/types";
 
 type SpotKind = "greentea" | "temple";
@@ -7,7 +7,6 @@ type SpotKind = "greentea" | "temple";
 type NearbySpotsListProps = {
   // 詳細ページ本体で既に取得済みの周辺スポット（再フェッチしない）。距離昇順は API 側の並びに従う。
   spots: NearbySpot[];
-  // spots がどちらの種類か（アイコン・リンク先の切り替えに使う）。
   kind: SpotKind;
 };
 
