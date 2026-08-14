@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Logo from "@/components/brand/Logo";
-import MobileNav from "./MobileNav";
 import Navigation from "@/components/layout/Navigation";
 import HeaderAuth from "@/components/auth/HeaderAuth";
 
@@ -22,13 +21,9 @@ export default function Header() {
         <Navigation />
       </nav>
 
-      {/* 右端エリア: PC は認証、タブレット・モバイルはハンバーガー */}
-      <div className="justify-self-end">
-        <div className="hidden items-center gap-4 lg:flex">
-          <HeaderAuth />
-        </div>
-
-        <MobileNav />
+      {/* 右端エリア: 主要ナビはモバイルでは画面下部の BottomTabBar に譲り、ここは認証まわりのみ表示する。 */}
+      <div className="flex items-center gap-4 justify-self-end">
+        <HeaderAuth />
       </div>
     </header>
   );

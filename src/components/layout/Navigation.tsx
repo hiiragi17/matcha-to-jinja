@@ -7,7 +7,11 @@ export const NAV_LINKS = [
   { href: "/", label: "トップ" },
   { href: "/greenteas", label: "抹茶スイーツ" },
   { href: "/temples", label: "神社仏閣" },
-  { href: "/nearby", label: "現在地から" },
+  {
+    href: "https://docs.google.com/forms/d/e/1FAIpQLSdYI7QDiZJ_WlBFuVsc6DCb-1s0JUwy_NGfLeqnWO_EP76pIQ/viewform?usp=dialog",
+    label: "お問い合わせ",
+    external: true,
+  },
 ] as const;
 
 function isActive(pathname: string, href: string) {
@@ -32,6 +36,20 @@ export default function Navigation({
       }
     >
       {NAV_LINKS.map((link) => {
+        if ("external" in link && link.external) {
+          return (
+            <li key={link.href}>
+              <a
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="border-b border-transparent pb-1 font-mincho text-sm tracking-[0.06em] text-muted transition-colors hover:text-ink"
+              >
+                {link.label}
+              </a>
+            </li>
+          );
+        }
         const active = isActive(pathname, link.href);
         return (
           <li key={link.href}>

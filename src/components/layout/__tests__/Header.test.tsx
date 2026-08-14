@@ -43,8 +43,11 @@ describe("Header — 共通ヘッダー", () => {
       screen.getAllByRole("link", { name: "神社仏閣" })[0],
     ).toHaveAttribute("href", "/temples");
     expect(
-      screen.getAllByRole("link", { name: "現在地から" })[0],
-    ).toHaveAttribute("href", "/nearby");
+      screen.getAllByRole("link", { name: "お問い合わせ" })[0],
+    ).toHaveAttribute(
+      "href",
+      "https://docs.google.com/forms/d/e/1FAIpQLSdYI7QDiZJ_WlBFuVsc6DCb-1s0JUwy_NGfLeqnWO_EP76pIQ/viewform?usp=dialog",
+    );
   });
 
   it("未ログイン時はログインリンクを表示する", () => {
@@ -70,13 +73,5 @@ describe("Header — 共通ヘッダー", () => {
     expect(
       screen.queryByRole("link", { name: "ログイン" }),
     ).not.toBeInTheDocument();
-  });
-
-  it("メニューを開くボタン（モバイル）を持つ", () => {
-    useSessionMock.mockReturnValue({ data: null, status: "unauthenticated" });
-
-    render(<Header />);
-
-    expect(screen.getByLabelText("メニューを開く")).toBeInTheDocument();
   });
 });
