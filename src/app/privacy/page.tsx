@@ -10,7 +10,6 @@ type Section = {
   heading: string;
   paragraphs?: string[];
   list?: string[];
-  link?: { label: string; href: string };
 };
 
 const SECTIONS: Section[] = [
@@ -43,7 +42,7 @@ const SECTIONS: Section[] = [
   {
     heading: "3. Cookie",
     paragraphs: [
-      "本サイトはセッション管理およびアクセス解析のためにCookieを使用します。ブラウザの設定によりCookieを無効化することができますが、一部機能が利用できなくなる場合があります。",
+      "本サイトはログイン状態の管理（セッション管理）のためにCookieを使用します。ブラウザの設定によりCookieを無効化することができますが、一部機能が利用できなくなる場合があります。",
     ],
   },
   {
@@ -58,7 +57,6 @@ const SECTIONS: Section[] = [
       "当サイトは、お客様から取得した個人データについて、あらかじめお客様の同意を得ずに第三者に提供しません。ただし、次の場合を除きます。",
     ],
     list: [
-      "Googleアナリティクス等、外部のアクセス解析ツール提供事業者にデータの取扱いを委託する場合",
       "本サイトの運営主体に変更が生じた場合",
       "その他、法律によって合法的に第三者提供が認められている場合",
     ],
@@ -72,23 +70,13 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    heading: "7. アクセス解析ツール",
-    paragraphs: [
-      "当サイトは、お客様のアクセス解析のために「Googleアナリティクス」を利用しています。Googleアナリティクスは、トラフィックデータの収集のためにCookieを使用しています。トラフィックデータは匿名で収集されており、個人を特定するものではありません。Cookieを無効にすれば、これらの情報の収集を拒否することができます。詳しくはお使いのブラウザの設定をご確認ください。",
-    ],
-    link: {
-      label: "Googleアナリティクス利用規約へアクセスする",
-      href: "https://marketingplatform.google.com/about/analytics/terms/jp/",
-    },
-  },
-  {
-    heading: "8. プライバシーポリシーの変更",
+    heading: "7. プライバシーポリシーの変更",
     paragraphs: [
       "当サイトは、必要に応じて本ポリシーの内容を変更することがあります。変更後は、本ページに掲示した時点から効力を持つものとします。",
     ],
   },
   {
-    heading: "9. お問い合わせ",
+    heading: "8. お問い合わせ",
     paragraphs: [
       "お客様の情報の開示、訂正、利用停止、削除をご希望の場合は、GitHubリポジトリのIssueにてご連絡ください。本サイトは個人が運営する非公式のファンサイトであり、事業として個人情報を取り扱うものではないため、ご請求の際は内容確認のためやり取りをお願いする場合があります。",
     ],
@@ -129,16 +117,6 @@ export default function PrivacyPage() {
                     <li key={i}>{item}</li>
                   ))}
                 </ul>
-              )}
-              {section.link && (
-                <a
-                  href={section.link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block text-sm text-olive underline underline-offset-4 hover:text-olive-dark"
-                >
-                  {section.link.label}
-                </a>
               )}
             </div>
           </section>
