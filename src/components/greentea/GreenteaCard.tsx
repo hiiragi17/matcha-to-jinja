@@ -29,7 +29,7 @@ export default function GreenteaCard({ greentea }: GreenteaCardProps) {
         ) : (
           <SpotPlaceholder
             name={greentea.name}
-            icon={<ChawanIcon size={20} color="#fbf6e5" />}
+            icon={<ChawanIcon size={30} color="#fbf6e5" />}
           />
         )}
       </figure>

@@ -38,9 +38,18 @@ function ActionRow({ href, icon, bgClass, label, hint }: ActionRowProps) {
 export default function Home() {
   return (
     <section className="relative flex min-h-[78vh] flex-col items-center justify-center overflow-hidden px-6 py-16">
-      <PatternBackground id="home-asanoha" color="#706020" opacity={0.08} size={56} />
+      <PatternBackground id="home-asanoha" color="#706020" opacity={0.16} size={56} />
 
       <div className="relative flex flex-col items-center gap-7">
+        {/* ロゴ裏だけ格子柄を透けさせないよう、淡いグラデーションでふわっと打ち消す。 */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-[150px] h-[340px] w-[340px] -translate-x-1/2 -translate-y-1/2"
+          style={{
+            background:
+              "radial-gradient(circle, #f1e9cf 55%, rgba(241,233,207,0) 100%)",
+          }}
+        />
         <Logo variant="full" size={300} priority />
 
         <p className="text-center font-mincho text-[17px] leading-[2] text-ink">
