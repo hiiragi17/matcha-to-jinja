@@ -6,45 +6,92 @@ export const metadata: Metadata = {
   description: "抹茶と神社。のプライバシーポリシーです。",
 };
 
-type Section = { heading: string; body: string | string[] };
+type Section = {
+  heading: string;
+  paragraphs?: string[];
+  list?: string[];
+  link?: { label: string; href: string };
+};
 
 const SECTIONS: Section[] = [
   {
-    heading: "1. 収集する情報",
-    body: [
-      "本サイトでは、ユーザーが会員登録・ログインする際にメールアドレスおよびSNSアカウント情報（Google / LINE）を取得します。",
-      "また、アクセス解析のためにアクセスログ（IPアドレス・閲覧ページ・ブラウザ情報等）を自動的に記録する場合があります。",
+    heading: "1. お客様から取得する情報",
+    paragraphs: ["本サイトは、お客様から以下の情報を取得します。"],
+    list: [
+      "メールアドレス",
+      "外部サービス（Google・LINE）でお客様が利用するID、その他外部サービスのプライバシー設定によりお客様が連携先に開示を認めた情報",
+      "Cookie（クッキー）を用いて生成された識別情報",
+      "当サイトの滞在時間・閲覧履歴等、当サイトにおけるお客様の行動履歴（IPアドレス・閲覧ページ・ブラウザ情報等のアクセスログを含みます）",
+      "現在地検索機能をご利用の場合の位置情報",
+      "コメント投稿の内容",
     ],
   },
   {
-    heading: "2. 情報の利用目的",
-    body: [
-      "収集した情報は、ログイン認証・お気に入り機能・コメント機能の提供に使用します。",
-      "取得した情報を第三者に販売・提供することはありません。",
+    heading: "2. お客様の情報を利用する目的",
+    paragraphs: ["当サイトは、お客様から取得した情報を、以下の目的のために利用します。"],
+    list: [
+      "当サービスに関する登録の受付、お客様の本人確認、認証のため",
+      "お気に入り・コメント等、お客様の当サービスの利用履歴を管理するため",
+      "当サービスにおけるお客様の行動履歴を分析し、当サービスの維持改善に役立てるため",
+      "現在地検索機能等、位置情報を利用したサービスを提供するため",
+      "お客様からのお問い合わせに対応するため",
+      "当サイトの利用規約や法令に違反する行為に対応するため",
+      "当サービスの変更、提供中止、終了をご連絡するため",
+      "以上のほか、当サービスの提供、維持、保護及び改善のため",
     ],
   },
   {
     heading: "3. Cookie",
-    body: "本サイトはセッション管理のためにCookieを使用します。ブラウザの設定によりCookieを無効化することができますが、一部機能が利用できなくなる場合があります。",
-  },
-  {
-    heading: "4. 外部サービス",
-    body: [
-      "本サイトはGoogle Maps APIを利用しており、地図表示時にGoogleのサービスが適用されます。Google社のプライバシーポリシーについてはGoogle社のWebサイトをご参照ください。",
-      "ログイン機能にはGoogle・LINEのOAuthを使用します。各サービスのプライバシーポリシーも併せてご確認ください。",
+    paragraphs: [
+      "本サイトはセッション管理およびアクセス解析のためにCookieを使用します。ブラウザの設定によりCookieを無効化することができますが、一部機能が利用できなくなる場合があります。",
     ],
   },
   {
-    heading: "5. 情報の管理",
-    body: "収集した個人情報は適切な安全対策を講じて管理します。法令に基づく場合を除き、本人の同意なく第三者に開示することはありません。",
+    heading: "4. 安全管理のために講じた措置",
+    paragraphs: [
+      "当サイトが、お客様から取得した情報に関して安全管理のために講じた措置につきましては、末尾記載のお問い合わせ先にご連絡いただければ、可能な範囲で個別にご回答します。",
+    ],
   },
   {
-    heading: "6. お問い合わせ",
-    body: "本ポリシーに関するお問い合わせは、GitHubリポジトリのIssueにてご連絡ください。",
+    heading: "5. 第三者提供",
+    paragraphs: [
+      "当サイトは、お客様から取得した個人データについて、あらかじめお客様の同意を得ずに第三者に提供しません。ただし、次の場合を除きます。",
+    ],
+    list: [
+      "Googleアナリティクス等、外部のアクセス解析ツール提供事業者にデータの取扱いを委託する場合",
+      "本サイトの運営主体に変更が生じた場合",
+      "その他、法律によって合法的に第三者提供が認められている場合",
+    ],
   },
   {
-    heading: "7. ポリシーの変更",
-    body: "本ポリシーは予告なく変更される場合があります。変更後はサイト上に掲示した時点で効力を持ちます。",
+    heading: "6. 外部サービス",
+    paragraphs: [
+      "本サイトはGoogle Maps APIを利用しており、地図表示時にGoogleのサービスが適用されます。",
+      "ログイン機能にはGoogle・LINEのOAuthを使用します。",
+      "各サービスのプライバシーポリシーも併せてご確認ください。",
+    ],
+  },
+  {
+    heading: "7. アクセス解析ツール",
+    paragraphs: [
+      "当サイトは、お客様のアクセス解析のために「Googleアナリティクス」を利用しています。Googleアナリティクスは、トラフィックデータの収集のためにCookieを使用しています。トラフィックデータは匿名で収集されており、個人を特定するものではありません。Cookieを無効にすれば、これらの情報の収集を拒否することができます。詳しくはお使いのブラウザの設定をご確認ください。",
+    ],
+    link: {
+      label: "Googleアナリティクス利用規約へアクセスする",
+      href: "https://marketingplatform.google.com/about/analytics/terms/jp/",
+    },
+  },
+  {
+    heading: "8. プライバシーポリシーの変更",
+    paragraphs: [
+      "当サイトは、必要に応じて本ポリシーの内容を変更することがあります。変更後は、本ページに掲示した時点から効力を持つものとします。",
+    ],
+  },
+  {
+    heading: "9. お問い合わせ",
+    paragraphs: [
+      "お客様の情報の開示、訂正、利用停止、削除をご希望の場合は、GitHubリポジトリのIssueにてご連絡ください。本サイトは個人が運営する非公式のファンサイトであり、事業として個人情報を取り扱うものではないため、ご請求の際は内容確認のためやり取りをお願いする場合があります。",
+    ],
   },
 ];
 
@@ -60,7 +107,7 @@ export default function PrivacyPage() {
         </h1>
         <Hairline width={40} className="mt-5" />
         <p className="mt-5 font-serif-jp text-sm leading-[2] text-muted">
-          本サイトにおける個人情報の取り扱いについて説明します。
+          抹茶と神社。の運営者（以下、「当方」という。）は、ユーザーの個人情報について以下のとおりプライバシーポリシー（以下、「本ポリシー」という。）を定めます。
         </p>
       </header>
 
@@ -71,16 +118,27 @@ export default function PrivacyPage() {
               {section.heading}
             </h2>
             <div className="mt-4 space-y-3">
-              {Array.isArray(section.body) ? (
-                section.body.map((para, i) => (
-                  <p key={i} className="font-serif-jp text-sm leading-[2.1] text-ink">
-                    {para}
-                  </p>
-                ))
-              ) : (
-                <p className="font-serif-jp text-sm leading-[2.1] text-ink">
-                  {section.body}
+              {section.paragraphs?.map((para, i) => (
+                <p key={i} className="font-serif-jp text-sm leading-[2.1] text-ink">
+                  {para}
                 </p>
+              ))}
+              {section.list && (
+                <ul className="list-disc list-inside space-y-1.5 font-serif-jp text-sm leading-[2.1] text-ink">
+                  {section.list.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              )}
+              {section.link && (
+                <a
+                  href={section.link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block text-sm text-olive underline underline-offset-4 hover:text-olive-dark"
+                >
+                  {section.link.label}
+                </a>
               )}
             </div>
           </section>
@@ -88,7 +146,7 @@ export default function PrivacyPage() {
       </div>
 
       <p className="mt-14 text-right font-sans-jp text-[11px] tracking-[0.1em] text-muted">
-        最終更新: 2026年6月
+        最終更新: 2026年8月
       </p>
     </article>
   );
