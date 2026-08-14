@@ -3,18 +3,13 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import Hairline from "@/components/brand/Hairline";
+import Loader from "@/components/common/Loader";
 
 export default function MyPage() {
   const { data: session, status } = useSession();
 
   if (status === "loading") {
-    return (
-      <section className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center">
-        <p className="font-sans-jp text-[10px] tracking-[0.4em] text-muted">
-          読み込み中…
-        </p>
-      </section>
-    );
+    return <Loader fullScreen />;
   }
 
   if (!session?.user) {

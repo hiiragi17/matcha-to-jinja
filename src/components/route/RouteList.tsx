@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
+import Loader from "../common/Loader";
 import Pagination from "@/components/common/Pagination";
 import {
   ApiError,
@@ -106,9 +107,7 @@ export default function RouteList({ page = 1 }: RouteListProps) {
       </div>
 
       {isLoading ? (
-        <p className="font-sans-jp text-[10px] tracking-[0.3em] text-muted">
-          読み込み中…
-        </p>
+        <Loader />
       ) : error ? (
         <p role="alert" className="font-sans-jp text-xs text-bengara">
           {isUnauthorized(error)

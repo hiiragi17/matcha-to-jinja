@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { ChawanIcon, ToriiIcon } from "@/components/brand/icons";
 import Hairline from "@/components/brand/Hairline";
+import Loader from "../common/Loader";
 import RouteMap from "./RouteMap";
 import {
   ApiError,
@@ -88,11 +89,7 @@ export default function RouteDetailView({ id }: RouteDetailViewProps) {
   }
 
   if (isLoading) {
-    return (
-      <p className="font-sans-jp text-[10px] tracking-[0.3em] text-muted">
-        読み込み中…
-      </p>
-    );
+    return <Loader />;
   }
 
   if (error) {

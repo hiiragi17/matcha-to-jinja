@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import useSWR from "swr";
 import GreenteaCard from "@/components/greentea/GreenteaCard";
+import Loader from "./Loader";
 import TempleCard from "@/components/temple/TempleCard";
 import {
   ApiError,
@@ -67,11 +68,7 @@ export default function LikedSpotsList({ kind }: LikedSpotsListProps) {
   }
 
   if (isLoading) {
-    return (
-      <p className="font-sans-jp text-[10px] tracking-[0.3em] text-muted">
-        読み込み中…
-      </p>
-    );
+    return <Loader />;
   }
 
   if (error) {

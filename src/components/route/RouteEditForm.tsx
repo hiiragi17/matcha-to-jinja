@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import useSWR from "swr";
+import Loader from "../common/Loader";
 import RouteBuilder from "./RouteBuilder";
 import { ApiError, getErrorStatus, getRoute, isUnauthorized } from "@/lib/api";
 import { useAuthToken } from "@/lib/api/useAuthToken";
@@ -53,11 +54,7 @@ export default function RouteEditForm({ id }: RouteEditFormProps) {
   }
 
   if (isLoading) {
-    return (
-      <p className="font-sans-jp text-[10px] tracking-[0.3em] text-muted">
-        読み込み中…
-      </p>
-    );
+    return <Loader />;
   }
 
   if (error || !data) {
