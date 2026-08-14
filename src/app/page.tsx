@@ -53,18 +53,18 @@ export default function Home() {
 
         <div className="mt-2 flex w-full max-w-[380px] flex-col gap-2.5">
           <ActionRow
-            href="/greenteas"
-            icon={<ChawanIcon size={22} color="#fbf6e5" />}
-            bgClass="bg-matcha hover:bg-matcha-dark"
-            label="抹茶スイーツを探す"
-            hint="MATCHA SWEETS"
-          />
-          <ActionRow
             href="/temples"
             icon={<ToriiIcon size={22} color="#fbf6e5" />}
             bgClass="bg-bengara hover:bg-bengara-dark"
             label="神社仏閣を探す"
             hint="SHRINES & TEMPLES"
+          />
+          <ActionRow
+            href="/greenteas"
+            icon={<ChawanIcon size={22} color="#fbf6e5" />}
+            bgClass="bg-matcha hover:bg-matcha-dark"
+            label="抹茶スイーツを探す"
+            hint="MATCHA SWEETS"
           />
           <ActionRow
             href="/nearby"
