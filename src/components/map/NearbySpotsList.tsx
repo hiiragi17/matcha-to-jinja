@@ -24,26 +24,31 @@ export default function NearbySpotsList({ spots, kind }: NearbySpotsListProps) {
   const { href, Icon, color } = KIND_CONFIG[kind];
 
   return (
-    <ul className="mt-4 divide-y divide-line-soft border border-line-soft bg-paper">
-      {spots.map((spot) => (
-        <li key={spot.id}>
-          <Link
-            href={`${href}/${spot.id}`}
-            className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-washi-bg"
-          >
-            <Icon size={22} color={color} />
-            <span className="flex-1 font-mincho text-base text-ink">
-              {spot.name}
-            </span>
-            <span className="font-sans-jp text-xs tracking-[0.1em] text-muted">
-              {formatWalkingMinutes(spot.distance_meters)}
-            </span>
-            <span aria-hidden="true" className="font-mincho text-base text-muted">
-              →
-            </span>
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className="mt-4 divide-y divide-line-soft border border-line-soft bg-paper">
+        {spots.map((spot) => (
+          <li key={spot.id}>
+            <Link
+              href={`${href}/${spot.id}`}
+              className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-washi-bg"
+            >
+              <Icon size={22} color={color} />
+              <span className="flex-1 font-mincho text-base text-ink">
+                {spot.name}
+              </span>
+              <span className="font-sans-jp text-xs tracking-[0.1em] text-muted">
+                {formatWalkingMinutes(spot.distance_meters)}
+              </span>
+              <span aria-hidden="true" className="font-mincho text-base text-muted">
+                →
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 font-sans-jp text-[11px] text-muted">
+        ※徒歩分数は直線距離による概算です。実際の道のりとは異なる場合があります。
+      </p>
+    </>
   );
 }
