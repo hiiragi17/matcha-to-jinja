@@ -90,7 +90,7 @@ export default async function GreenteaDetailPage({
           <SpotHeroPlaceholder
             name={greentea.name}
             tags={greentea.genres}
-            icon={<ChawanIcon size={28} color="#fbf6e5" />}
+            icon={<ChawanIcon size={48} color="#fbf6e5" />}
           />
         )}
       </figure>

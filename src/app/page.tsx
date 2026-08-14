@@ -50,7 +50,7 @@ export default function Home() {
               "radial-gradient(circle, #f1e9cf 55%, rgba(241,233,207,0) 100%)",
           }}
         />
-        <Logo variant="full" size={300} priority />
+        <Logo variant="full" size={300} priority className="relative z-10" />
 
         <p className="text-center font-mincho text-[17px] leading-[2] text-ink">
           折角京都に来たのなら、

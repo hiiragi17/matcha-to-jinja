@@ -100,7 +100,7 @@ export default async function TempleDetailPage({
           <SpotHeroPlaceholder
             name={temple.name}
             tags={temple.areas}
-            icon={<ToriiIcon size={28} color="#fbf6e5" />}
+            icon={<ToriiIcon size={48} color="#fbf6e5" />}
             variant="shrine"
           />
         )}
