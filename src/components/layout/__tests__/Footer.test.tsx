@@ -12,7 +12,7 @@ describe("Footer", () => {
     expect(screen.getByText(/出典/)).toBeInTheDocument();
   });
 
-  it("利用規約 / プライバシー / 現在地から のリンクを表示する", () => {
+  it("利用規約 / プライバシー のリンクを表示する", () => {
     render(<Footer />);
 
     expect(screen.getByRole("link", { name: "利用規約" })).toHaveAttribute(
@@ -22,9 +22,6 @@ describe("Footer", () => {
     expect(
       screen.getByRole("link", { name: "プライバシー" }),
     ).toHaveAttribute("href", "/privacy");
-    expect(
-      screen.getByRole("link", { name: "現在地から" }),
-    ).toHaveAttribute("href", "/nearby");
   });
 
   it("お問い合わせリンクを新しいタブで表示する", () => {

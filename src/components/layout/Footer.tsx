@@ -3,7 +3,6 @@ import Link from "next/link";
 const FOOTER_LINKS = [
   { href: "/terms", label: "利用規約" },
   { href: "/privacy", label: "プライバシー" },
-  { href: "/nearby", label: "現在地から" },
   {
     href: "https://docs.google.com/forms/d/e/1FAIpQLSdYI7QDiZJ_WlBFuVsc6DCb-1s0JUwy_NGfLeqnWO_EP76pIQ/viewform?usp=dialog",
     label: "お問い合わせ",
