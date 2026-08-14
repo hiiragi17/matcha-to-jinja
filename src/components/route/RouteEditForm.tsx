@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import useSWR from "swr";
-import Loader from "@/components/common/Loader";
+import Loader from "../common/Loader";
 import RouteBuilder from "./RouteBuilder";
 import { ApiError, getErrorStatus, getRoute, isUnauthorized } from "@/lib/api";
 import { useAuthToken } from "@/lib/api/useAuthToken";

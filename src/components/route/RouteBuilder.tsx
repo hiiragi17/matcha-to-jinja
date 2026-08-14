@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { ChawanIcon, ToriiIcon } from "@/components/brand/icons";
-import Loader from "@/components/common/Loader";
+import Loader from "../common/Loader";
 import {
   ApiError,
   createRoute,

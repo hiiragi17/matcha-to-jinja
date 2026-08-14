@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import Loader from "@/components/common/Loader";
+import Loader from "../common/Loader";
 import Pagination from "@/components/common/Pagination";
 import {
   ApiError,
