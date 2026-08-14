@@ -46,7 +46,7 @@ export default function Home() {
         <p className="text-center font-mincho text-[17px] leading-[2] text-ink">
           折角京都に来たのなら、
           <br />
-          抹茶スイーツ店と神社仏閣どちらも欲張って巡ってみよう。
+          神社仏閣と抹茶スイーツ店どちらも欲張って巡ってみよう。
         </p>
 
         <Hairline width={50} className="mt-2" />

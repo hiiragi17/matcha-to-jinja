@@ -76,7 +76,26 @@ export default async function GreenteaDetailPage({
         </Link>
       </div>
 
-      <header className="flex flex-col items-center text-center">
+      <figure className="overflow-hidden border border-line-soft bg-paper">
+        {hasImage(greentea.img) ? (
+          <div className="aspect-[16/9] w-full">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={greentea.img}
+              alt={greentea.name}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        ) : (
+          <SpotHeroPlaceholder
+            name={greentea.name}
+            tags={greentea.genres}
+            icon={<ChawanIcon size={28} color="#fbf6e5" />}
+          />
+        )}
+      </figure>
+
+      <header className="mt-10 flex flex-col items-center text-center">
         <p className="font-sans-jp text-[10px] font-medium tracking-[0.4em] text-olive">
           抹茶スイーツ / MATCHA SWEETS
         </p>
@@ -85,14 +104,15 @@ export default async function GreenteaDetailPage({
         </h1>
         <Hairline width={40} className="mt-5" />
         <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-          {greentea.genres.map((genre) => (
-            <span
-              key={genre.id}
-              className="border border-line bg-washi px-2.5 py-1 font-sans-jp text-[11px] tracking-[0.1em] text-olive"
-            >
-              {genre.name}
-            </span>
-          ))}
+          {hasImage(greentea.img) &&
+            greentea.genres.map((genre) => (
+              <span
+                key={genre.id}
+                className="border border-line bg-washi px-2.5 py-1 font-sans-jp text-[11px] tracking-[0.1em] text-olive"
+              >
+                {genre.name}
+              </span>
+            ))}
           <LikeButton
             kind="greentea"
             id={greentea.id}
@@ -111,25 +131,6 @@ export default async function GreenteaDetailPage({
       <div className="mt-6 flex justify-center">
         <ShareButtons title={greentea.name} />
       </div>
-
-      <figure className="mt-10 overflow-hidden border border-line-soft bg-paper">
-        {hasImage(greentea.img) ? (
-          <div className="aspect-[16/9] w-full">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={greentea.img}
-              alt={greentea.name}
-              className="h-full w-full object-cover"
-            />
-          </div>
-        ) : (
-          <SpotHeroPlaceholder
-            name={greentea.name}
-            tags={greentea.genres}
-            icon={<ChawanIcon size={28} color="#fbf6e5" />}
-          />
-        )}
-      </figure>
 
       <section className="mt-10">
         <p className="font-serif-jp text-base leading-[2.1] text-ink">
