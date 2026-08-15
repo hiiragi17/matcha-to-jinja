@@ -199,7 +199,7 @@ DELETE /api/v1/routes/:id        # コース削除
         "distance_to_next_meters": 450,
         "route_distance_to_next_meters": 520,
         "duration_to_next_seconds": 360,
-        "route_polyline_to_next": "a~l~Fjk~uOwHJy@P"
+        "route_polyline_to_next": "osstEgzt{XnUgO"
       },
       {
         "position": 2,

@@ -75,8 +75,7 @@ export default function RouteMap({ spots }: RouteMapProps) {
                 <OrderBadge position={spot.position} kind={spot.spot_type} />
               </AdvancedMarker>
             ))}
-            <RoutePolyline points={points} />
-            <FitBounds points={points} />
+            <RouteLegs points={points} />
           </Map>
         </APIProvider>
       </div>
@@ -102,47 +101,83 @@ function OrderBadge({
   );
 }
 
+// leg（隣接スポット間）ごとの描画データを算出する。型は google.maps.* を明示せず
+// useMapsLibrary の戻り値から推論させる（このプロジェクトの tsconfig は
+// @types/google.maps をグローバルに含めていないため、型名を直接書けない）。
+//
+// route_polyline_to_next は API 上の「次スポット」までの道なり経路を指す。座標欠落
+// スポット（削除済み等）が points から除外されている場合、points 上で隣り合う2点が
+// 元のルート順でも隣接しているとは限らない（例: A→削除されたB→C の場合、A の
+// route_polyline_to_next は A→B の経路であり A→C には使えない）。position が
+// 連番かどうかで判定し、非連番なら従来どおり2点間の直線にフォールバックする。
+function useRouteLegs(points: RouteSpot[]) {
+  const geometryLib = useMapsLibrary("geometry");
+  return useMemo(() => {
+    return points.slice(0, -1).map((from, i) => {
+      const to = points[i + 1];
+      const adjacent = to.position === from.position + 1;
+      const encoded = adjacent ? from.route_polyline_to_next : null;
+      const decoded = encoded ? geometryLib?.encoding.decodePath(encoded) : null;
+      return {
+        path: decoded ?? [
+          { lat: from.latitude, lng: from.longitude },
+          { lat: to.latitude, lng: to.longitude },
+        ],
+        // true: route_polyline_to_next をデコードした実際の道なり経路。false: 直線フォールバック。
+        isRoute: !!decoded,
+      };
+    });
+  }, [points, geometryLib]);
+}
+
+// legs は RouteLegs で一度だけ算出し、RoutePolyline / FitBounds へ props で渡す
+// （各コンポーネントが個別に useRouteLegs を呼ぶと geometry の decodePath が
+// leg ごとに2回ずつ実行されてしまうため）。
+function RouteLegs({ points }: { points: RouteSpot[] }) {
+  const legs = useRouteLegs(points);
+  return (
+    <>
+      <RoutePolyline legs={legs} />
+      <FitBounds points={points} legs={legs} />
+    </>
+  );
+}
+
+type RouteLegsList = ReturnType<typeof useRouteLegs>;
+
 // スポットを順に結ぶ経路線。@vis.gl/react-google-maps は Polyline を提供しないため、
 // useMapsLibrary("maps") で読み込んだ Polyline を imperative に生成・破棄する。
-//
-// leg ごとに route_polyline_to_next（Directions API の道なり経路。Google Encoded
-// Polyline 形式）があればそれを geometry ライブラリでデコードして描画し、
-// 未算出（null）の leg だけ従来どおり2点間の直線にフォールバックする。
-// leg ごとに描画方法が異なりうるため、区間ごとに個別の Polyline を生成する。
-function RoutePolyline({ points }: { points: RouteSpot[] }) {
+// leg ごとに描画方法（道なり経路 or 直線）が異なりうるため、区間ごとに個別の
+// Polyline を生成する。
+function RoutePolyline({ legs }: { legs: RouteLegsList }) {
   const map = useMap();
   const mapsLib = useMapsLibrary("maps");
-  const geometryLib = useMapsLibrary("geometry");
   useEffect(() => {
-    if (!map || !mapsLib || points.length < 2) return;
+    if (!map || !mapsLib || legs.length === 0) return;
 
-    const legs = points.slice(0, -1).map((from, i) => {
-      const to = points[i + 1];
-      const encoded = from.route_polyline_to_next;
-      const decoded = encoded ? geometryLib?.encoding.decodePath(encoded) : null;
-      const path = decoded ?? [
-        { lat: from.latitude, lng: from.longitude },
-        { lat: to.latitude, lng: to.longitude },
-      ];
-      return new mapsLib.Polyline({
-        path,
-        geodesic: !decoded,
-        strokeColor: "#4a90a4",
-        strokeOpacity: 0.9,
-        strokeWeight: 3,
-      });
-    });
+    const polylines = legs.map(
+      (leg) =>
+        new mapsLib.Polyline({
+          path: leg.path,
+          geodesic: !leg.isRoute,
+          strokeColor: "#4a90a4",
+          strokeOpacity: 0.9,
+          strokeWeight: 3,
+        }),
+    );
 
-    for (const polyline of legs) polyline.setMap(map);
+    for (const polyline of polylines) polyline.setMap(map);
     return () => {
-      for (const polyline of legs) polyline.setMap(null);
+      for (const polyline of polylines) polyline.setMap(null);
     };
-  }, [map, mapsLib, geometryLib, points]);
+  }, [map, mapsLib, legs]);
   return null;
 }
 
 // 全スポットが収まるよう地図をズーム/センタリングする。
-function FitBounds({ points }: { points: RouteSpot[] }) {
+// デコードされた道なり経路が2点間の直線の矩形からはみ出す場合に備え、
+// 経路の頂点も bounds に含める。
+function FitBounds({ points, legs }: { points: RouteSpot[]; legs: RouteLegsList }) {
   const map = useMap();
   const coreLib = useMapsLibrary("core");
   useEffect(() => {
@@ -156,7 +191,11 @@ function FitBounds({ points }: { points: RouteSpot[] }) {
     for (const p of points) {
       bounds.extend({ lat: p.latitude, lng: p.longitude });
     }
+    for (const leg of legs) {
+      if (!leg.isRoute) continue;
+      for (const vertex of leg.path) bounds.extend(vertex);
+    }
     map.fitBounds(bounds, 64);
-  }, [map, coreLib, points]);
+  }, [map, coreLib, points, legs]);
   return null;
 }

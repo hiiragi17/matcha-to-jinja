@@ -179,6 +179,33 @@ describe("RouteMap", () => {
     ]);
   });
 
+  it("除外された中間スポットを挟む場合、直前スポットの route_polyline_to_next は使わず直線にフォールバックする", () => {
+    // position 1 の route_polyline_to_next は本来 position 2（削除済みで除外される）
+    // までの経路であり、position 3 までの経路ではない。誤って使うと存在しない
+    // 場所へ線を引いてしまうため、隣接していない場合は使ってはいけない。
+    const spots = [
+      makeSpot({
+        position: 1,
+        id: 1,
+        latitude: 35.01,
+        longitude: 135.76,
+        route_polyline_to_next: "should-not-be-used",
+      }),
+      makeSpot({ position: 2, id: 2, latitude: 0, longitude: 0 }),
+      makeSpot({ position: 3, id: 3, latitude: 35.03, longitude: 135.78 }),
+    ];
+
+    render(<RouteMap spots={spots} />);
+
+    expect(decodePath).not.toHaveBeenCalled();
+    expect(polylineInstances).toHaveLength(1);
+    expect(polylineInstances[0].options.path).toEqual([
+      { lat: 35.01, lng: 135.76 },
+      { lat: 35.03, lng: 135.78 },
+    ]);
+    expect(polylineInstances[0].options.geodesic).toBe(true);
+  });
+
   it("route_polyline_to_next がある leg は道なり経路をデコードして描画する", () => {
     const decodedPath = [
       { lat: 35.01, lng: 135.76 },
@@ -211,6 +238,15 @@ describe("RouteMap", () => {
       { lat: 35.03, lng: 135.78 },
     ]);
     expect(polylineInstances[1].options.geodesic).toBe(true);
+
+    // デコードされた道なり経路が直線の矩形からはみ出す場合に備え、bounds にも
+    // 経路の頂点を含める（marker 3点 + leg1 のデコード頂点3点）。
+    expect(boundsInstances[0].points).toEqual([
+      { lat: 35.01, lng: 135.76 },
+      { lat: 35.02, lng: 135.77 },
+      { lat: 35.03, lng: 135.78 },
+      ...decodedPath,
+    ]);
   });
 
   it("アンマウント時に経路線を破棄する（setMap(null)）", () => {
