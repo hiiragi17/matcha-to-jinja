@@ -10,7 +10,7 @@ describe("ShareButtons", () => {
     const line = screen.getByLabelText("LINEでシェア");
 
     const url = window.location.href;
-    const text = "抹茶と神社。で見つけた素敵なスポット『中村藤吉本店』をシェアします🍵";
+    const text = "抹茶と神社で見つけた素敵なスポット『中村藤吉本店』をシェアします🍵";
     expect(twitter).toHaveAttribute(
       "href",
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent("抹茶と神社,抹茶スイーツ")}`,

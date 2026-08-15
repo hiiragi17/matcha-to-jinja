@@ -18,7 +18,7 @@ export default function ShareButtons({ title, hashtags = [] }: ShareButtonsProps
 
   if (!url) return null;
 
-  const text = `抹茶と神社。で見つけた素敵なスポット『${title}』をシェアします🍵`;
+  const text = `抹茶と神社で見つけた素敵なスポット『${title}』をシェアします🍵`;
   const allHashtags = ["抹茶と神社", ...hashtags];
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent(allHashtags.join(","))}`;
   const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`;
