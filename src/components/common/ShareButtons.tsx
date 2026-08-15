@@ -6,10 +6,11 @@ import { SiLine } from "react-icons/si";
 
 type ShareButtonsProps = {
   title: string;
+  emoji?: string;
   hashtags?: string[];
 };
 
-export default function ShareButtons({ title, hashtags = [] }: ShareButtonsProps) {
+export default function ShareButtons({ title, emoji = "🍵", hashtags = [] }: ShareButtonsProps) {
   const [url, setUrl] = useState("");
 
   useEffect(() => {
@@ -18,7 +19,7 @@ export default function ShareButtons({ title, hashtags = [] }: ShareButtonsProps
 
   if (!url) return null;
 
-  const text = `抹茶と神社で見つけた素敵なスポット『${title}』をシェアします🍵`;
+  const text = `抹茶と神社で見つけた素敵なスポット『${title}』をシェアします${emoji}`;
   const allHashtags = ["抹茶と神社", ...hashtags];
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent(allHashtags.join(","))}`;
   const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`;

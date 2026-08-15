@@ -4,7 +4,7 @@ import ShareButtons from "@/components/common/ShareButtons";
 
 describe("ShareButtons", () => {
   it("マウント後に X / LINE のシェアリンクを表示する", async () => {
-    render(<ShareButtons title="中村藤吉本店" hashtags={["抹茶スイーツ"]} />);
+    render(<ShareButtons title="中村藤吉本店" />);
 
     const twitter = await screen.findByLabelText("X（Twitter）でシェア");
     const line = screen.getByLabelText("LINEでシェア");
@@ -13,11 +13,23 @@ describe("ShareButtons", () => {
     const text = "抹茶と神社で見つけた素敵なスポット『中村藤吉本店』をシェアします🍵";
     expect(twitter).toHaveAttribute(
       "href",
-      `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent("抹茶と神社,抹茶スイーツ")}`,
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent("抹茶と神社")}`,
     );
     expect(line).toHaveAttribute(
       "href",
       `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`,
+    );
+  });
+
+  it("emoji を指定すると文言内の絵文字が置き換わる（神社仏閣など）", async () => {
+    render(<ShareButtons title="伏見稲荷大社" emoji="⛩️" />);
+
+    const twitter = await screen.findByLabelText("X（Twitter）でシェア");
+    const url = window.location.href;
+    const text = "抹茶と神社で見つけた素敵なスポット『伏見稲荷大社』をシェアします⛩️";
+    expect(twitter).toHaveAttribute(
+      "href",
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent("抹茶と神社")}`,
     );
   });
 
