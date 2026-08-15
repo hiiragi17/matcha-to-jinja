@@ -173,7 +173,8 @@ DELETE /api/v1/routes/:id        # コース削除
 
 ##### GET /api/v1/routes/:id（詳細）
 `spots` は `position` 昇順。各スポットは次スポットへの移動手段（`transport`）と距離・所要時間を持つ。
-`distance_to_next_meters` は直線距離、`route_distance_to_next_meters` / `duration_to_next_seconds` は Google Directions API の経路値（未算出・失敗時は `null`）。配列末尾のスポットはこれらが `null`。
+`distance_to_next_meters` は直線距離、`route_distance_to_next_meters` / `duration_to_next_seconds` / `route_polyline_to_next` は Google Directions API の経路値（未算出・失敗時は `null`）。配列末尾のスポットはこれらが `null`。
+`route_polyline_to_next` は次スポットまでの道なり経路（Google Encoded Polyline Algorithm Format の文字列）。地図描画時は `google.maps.geometry.encoding.decodePath()` でデコードして使う。直線距離のようなフォールバック値は無く、未算出時は `null`（フロント側で2点間の直線描画にフォールバックする）。
 
 ```json
 {
@@ -197,7 +198,8 @@ DELETE /api/v1/routes/:id        # コース削除
         "img": "https://...",
         "distance_to_next_meters": 450,
         "route_distance_to_next_meters": 520,
-        "duration_to_next_seconds": 360
+        "duration_to_next_seconds": 360,
+        "route_polyline_to_next": "a~l~Fjk~uOwHJy@P"
       },
       {
         "position": 2,
@@ -212,7 +214,8 @@ DELETE /api/v1/routes/:id        # コース削除
         "img": "https://...",
         "distance_to_next_meters": null,
         "route_distance_to_next_meters": null,
-        "duration_to_next_seconds": null
+        "duration_to_next_seconds": null,
+        "route_polyline_to_next": null
       }
     ],
     "total_distance_meters": 520,

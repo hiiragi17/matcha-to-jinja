@@ -4,6 +4,7 @@ import RouteMap from "@/components/route/RouteMap";
 import type { RouteSpot } from "@/types";
 import {
   boundsInstances,
+  decodePath,
   mapInstance,
   polylineInstances,
   resetGoogleMapsMock,
@@ -26,6 +27,7 @@ function makeSpot(overrides: Partial<RouteSpot> = {}): RouteSpot {
     distance_to_next_meters: null,
     route_distance_to_next_meters: null,
     duration_to_next_seconds: null,
+    route_polyline_to_next: null,
     ...overrides,
   };
 }
@@ -136,14 +138,18 @@ describe("RouteMap", () => {
       "茶寮都路里",
     ]);
 
-    // 経路線が 1 本引かれ、path はスポット順のまま。
-    expect(polylineInstances).toHaveLength(1);
+    // route_polyline_to_next が無い leg は区間ごとに直線の経路線を引く（2 spot 間 = 2 本）。
+    expect(polylineInstances).toHaveLength(2);
     expect(polylineInstances[0].options.path).toEqual([
       { lat: 35.01, lng: 135.76 },
+      { lat: 35.02, lng: 135.77 },
+    ]);
+    expect(polylineInstances[1].options.path).toEqual([
       { lat: 35.02, lng: 135.77 },
       { lat: 35.03, lng: 135.78 },
     ]);
     expect(polylineInstances[0].setMap).toHaveBeenCalledWith(mapInstance);
+    expect(polylineInstances[1].setMap).toHaveBeenCalledWith(mapInstance);
 
     // fitBounds は全スポットを extend した bounds で呼ばれる。
     expect(mapInstance.fitBounds).toHaveBeenCalledTimes(1);
@@ -171,6 +177,40 @@ describe("RouteMap", () => {
       { lat: 35.01, lng: 135.76 },
       { lat: 35.03, lng: 135.78 },
     ]);
+  });
+
+  it("route_polyline_to_next がある leg は道なり経路をデコードして描画する", () => {
+    const decodedPath = [
+      { lat: 35.01, lng: 135.76 },
+      { lat: 35.015, lng: 135.765 },
+      { lat: 35.02, lng: 135.77 },
+    ];
+    decodePath.mockReturnValueOnce(decodedPath);
+
+    const spots = [
+      makeSpot({
+        position: 1,
+        id: 1,
+        latitude: 35.01,
+        longitude: 135.76,
+        route_polyline_to_next: "abc123encoded",
+      }),
+      makeSpot({ position: 2, id: 2, latitude: 35.02, longitude: 135.77 }),
+      makeSpot({ position: 3, id: 3, latitude: 35.03, longitude: 135.78 }),
+    ];
+
+    render(<RouteMap spots={spots} />);
+
+    expect(decodePath).toHaveBeenCalledWith("abc123encoded");
+    // leg1: デコードされた道なり経路をそのまま path に使う（直線ではない = geodesic: false）。
+    expect(polylineInstances[0].options.path).toEqual(decodedPath);
+    expect(polylineInstances[0].options.geodesic).toBe(false);
+    // leg2: route_polyline_to_next が無いので従来どおり2点間の直線。
+    expect(polylineInstances[1].options.path).toEqual([
+      { lat: 35.02, lng: 135.77 },
+      { lat: 35.03, lng: 135.78 },
+    ]);
+    expect(polylineInstances[1].options.geodesic).toBe(true);
   });
 
   it("アンマウント時に経路線を破棄する（setMap(null)）", () => {

@@ -60,6 +60,12 @@ export class MockLatLngBounds {
 const mapsLibrary = { Polyline: MockPolyline };
 const coreLibrary = { LatLngBounds: MockLatLngBounds };
 
+// geometry.encoding.decodePath のモック。デフォルトは呼ばれない前提で未実装のまま
+// （戻り値なし=undefined）にしておき、道なり経路のデコードを検証するテストだけ
+// decodePath.mockReturnValueOnce(...) で明示的にデコード結果を差し込む。
+export const decodePath = vi.fn<(encoded: string) => LatLng[]>();
+const geometryLibrary = { encoding: { decodePath } };
+
 /** テスト間で spy 呼び出し履歴と生成インスタンスをリセットする。 */
 export function resetGoogleMapsMock() {
   mapInstance.panTo.mockReset();
@@ -68,6 +74,7 @@ export function resetGoogleMapsMock() {
   mapInstance.fitBounds.mockReset();
   polylineInstances.length = 0;
   boundsInstances.length = 0;
+  decodePath.mockReset();
 }
 
 export function APIProvider({ children }: { children?: ReactNode }) {
@@ -173,5 +180,6 @@ export function useMap() {
 export function useMapsLibrary(name: string) {
   if (name === "maps") return mapsLibrary;
   if (name === "core") return coreLibrary;
+  if (name === "geometry") return geometryLibrary;
   return null;
 }

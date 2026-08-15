@@ -51,7 +51,7 @@ export default function RouteMap({ spots }: RouteMapProps) {
   return (
     <div className="border border-line bg-paper">
       <div className="h-[50vh] min-h-[360px] w-full">
-        <APIProvider apiKey={apiKey} libraries={["marker"]}>
+        <APIProvider apiKey={apiKey} libraries={["marker", "geometry"]}>
           <Map
             mapId={
               process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID?.trim() || "DEMO_MAP_ID"
@@ -104,21 +104,40 @@ function OrderBadge({
 
 // スポットを順に結ぶ経路線。@vis.gl/react-google-maps は Polyline を提供しないため、
 // useMapsLibrary("maps") で読み込んだ Polyline を imperative に生成・破棄する。
+//
+// leg ごとに route_polyline_to_next（Directions API の道なり経路。Google Encoded
+// Polyline 形式）があればそれを geometry ライブラリでデコードして描画し、
+// 未算出（null）の leg だけ従来どおり2点間の直線にフォールバックする。
+// leg ごとに描画方法が異なりうるため、区間ごとに個別の Polyline を生成する。
 function RoutePolyline({ points }: { points: RouteSpot[] }) {
   const map = useMap();
   const mapsLib = useMapsLibrary("maps");
+  const geometryLib = useMapsLibrary("geometry");
   useEffect(() => {
     if (!map || !mapsLib || points.length < 2) return;
-    const polyline = new mapsLib.Polyline({
-      path: points.map((p) => ({ lat: p.latitude, lng: p.longitude })),
-      geodesic: true,
-      strokeColor: "#4a90a4",
-      strokeOpacity: 0.9,
-      strokeWeight: 3,
+
+    const legs = points.slice(0, -1).map((from, i) => {
+      const to = points[i + 1];
+      const encoded = from.route_polyline_to_next;
+      const decoded = encoded ? geometryLib?.encoding.decodePath(encoded) : null;
+      const path = decoded ?? [
+        { lat: from.latitude, lng: from.longitude },
+        { lat: to.latitude, lng: to.longitude },
+      ];
+      return new mapsLib.Polyline({
+        path,
+        geodesic: !decoded,
+        strokeColor: "#4a90a4",
+        strokeOpacity: 0.9,
+        strokeWeight: 3,
+      });
     });
-    polyline.setMap(map);
-    return () => polyline.setMap(null);
-  }, [map, mapsLib, points]);
+
+    for (const polyline of legs) polyline.setMap(map);
+    return () => {
+      for (const polyline of legs) polyline.setMap(null);
+    };
+  }, [map, mapsLib, geometryLib, points]);
   return null;
 }
 
