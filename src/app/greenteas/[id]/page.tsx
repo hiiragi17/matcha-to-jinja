@@ -129,7 +129,7 @@ export default async function GreenteaDetailPage({
       </header>
 
       <div className="mt-6 flex justify-center">
-        <ShareButtons title={greentea.name} />
+        <ShareButtons title={greentea.name} hashtags={["抹茶スイーツ"]} />
       </div>
 
       <section className="mt-10">
