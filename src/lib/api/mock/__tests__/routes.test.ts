@@ -49,6 +49,8 @@ describe("mockClient POST /routes", () => {
     expect(res.data.spots[0].distance_to_next_meters).toBeGreaterThan(0);
     expect(res.data.spots[0].route_distance_to_next_meters).toBeGreaterThan(0);
     expect(res.data.spots[0].duration_to_next_seconds).toBeGreaterThan(0);
+    // モックは Directions API 連携を持たないため道なり経路は常に null
+    expect(res.data.spots[0].route_polyline_to_next).toBeNull();
     // 最後の要素は全て null、transport も null
     expect(res.data.spots[1].distance_to_next_meters).toBeNull();
     expect(res.data.spots[1].transport).toBeNull();

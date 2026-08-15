@@ -36,6 +36,9 @@ export interface RouteSpot {
   // Directions API の経路距離/所要時間。未算出・失敗時は null。
   route_distance_to_next_meters: number | null;
   duration_to_next_seconds: number | null;
+  // 次スポットまでの道なり経路（Google Encoded Polyline Algorithm Format）。
+  // 地図描画に使う。未算出・失敗時は null（直線描画にフォールバックする）。
+  route_polyline_to_next: string | null;
 }
 
 export interface RouteDetail {

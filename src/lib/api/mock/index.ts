@@ -867,6 +867,9 @@ function buildRouteDetail(
       distance_to_next_meters: null,
       route_distance_to_next_meters: null,
       duration_to_next_seconds: null,
+      // モック環境には Directions API 連携が無く道なり経路を持てないため常に null
+      // （RouteMap 側は null を直線描画にフォールバックする）。
+      route_polyline_to_next: null,
     };
   });
 

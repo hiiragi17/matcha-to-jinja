@@ -43,6 +43,7 @@ const routeDetail: RouteDetail = {
       distance_to_next_meters: 800,
       route_distance_to_next_meters: null,
       duration_to_next_seconds: null,
+      route_polyline_to_next: null,
     },
     {
       position: 2,
@@ -58,6 +59,7 @@ const routeDetail: RouteDetail = {
       distance_to_next_meters: null,
       route_distance_to_next_meters: null,
       duration_to_next_seconds: null,
+      route_polyline_to_next: null,
     },
   ],
   total_distance_meters: 800,
