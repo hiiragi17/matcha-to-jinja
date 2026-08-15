@@ -135,7 +135,7 @@ export default async function TempleDetailPage({
       </header>
 
       <div className="mt-6 flex justify-center">
-        <ShareButtons title={temple.name} hashtags={["神社仏閣"]} />
+        <ShareButtons title={temple.name} emoji="⛩️" />
       </div>
 
       <section className="mt-10">
