@@ -67,6 +67,28 @@ describe("/greenteas page — SSR 境界", () => {
     expect(url.searchParams.get("genre")).toBe("3");
   });
 
+  it("複数の genre= が指定されても全て保持される", async () => {
+    getGreenteasMock.mockResolvedValueOnce({
+      greenteas: [],
+      meta: { current_page: 2, total_pages: 2, total_count: 20 },
+    });
+    const { default: Page } = await import("@/app/greenteas/page");
+
+    await expect(
+      Page({
+        searchParams: Promise.resolve({ page: "9", genre: ["1", "3"] }),
+      }),
+    ).rejects.toThrow(/NEXT_REDIRECT/);
+
+    const target = redirectMock.mock.calls[0][0] as string;
+    const url = new URL(target, "http://localhost");
+    expect(url.searchParams.getAll("genre")).toEqual(["1", "3"]);
+    expect(getGreenteasMock).toHaveBeenCalledWith({
+      page: 9,
+      q: { name_cont: undefined, greentea_genres_genre_id_eq_any: [1, 3] },
+    });
+  });
+
   it("page が範囲内なら redirect は呼ばれない", async () => {
     getGreenteasMock.mockResolvedValueOnce({
       greenteas: [],

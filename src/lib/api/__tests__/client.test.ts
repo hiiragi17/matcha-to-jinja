@@ -49,6 +49,23 @@ describe("buildQuery", () => {
     });
     expect(q).toBe("?" + new URLSearchParams({ "q[name_cont]": "中村" }).toString());
   });
+
+  it("ネスト内の配列値を key[nestedKey][]=v1&key[nestedKey][]=v2 形式に展開する（Ransack の複数値述語向け）", () => {
+    const q = buildQuery({
+      q: { greentea_genres_genre_id_eq_any: [1, 3] },
+    });
+    const params = new URLSearchParams(q.slice(1));
+    expect(params.getAll("q[greentea_genres_genre_id_eq_any][]")).toEqual([
+      "1",
+      "3",
+    ]);
+  });
+
+  it("空配列は何も出力しない", () => {
+    expect(buildQuery({ q: { greentea_genres_genre_id_eq_any: [] } })).toBe(
+      "",
+    );
+  });
 });
 
 describe("apiClient", () => {

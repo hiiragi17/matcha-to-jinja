@@ -53,7 +53,7 @@ curl -s -H "Authorization: Bearer $JWT" http://localhost:3001/api/v1/current_use
 | # | パラメータ | 備考 | ✅ |
 |---|---|---|---|
 | 8 | `q[name_cont]=<キーワード>` | 部分一致 | ☐ |
-| 9 | `q[genres_id_eq]=<genre_id>` | 抹茶店のジャンル絞り込み | ☐ |
+| 9 | `q[greentea_genres_genre_id_eq_any][]=<genre_id>`（複数指定可） | 抹茶店のジャンル絞り込み（OR検索） | ☐ |
 | 10 | `page=<n>` | ページネーション | ☐ |
 
 ### meta の形

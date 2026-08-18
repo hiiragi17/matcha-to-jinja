@@ -14,14 +14,21 @@ export const metadata: Metadata = {
 
 type SearchParams = {
   q?: string;
-  area?: string;
+  area?: string | string[];
   page?: string;
 };
+
+function normalizeIds(value: string | string[] | undefined): number[] {
+  const values = value === undefined ? [] : Array.isArray(value) ? value : [value];
+  return values
+    .map((v) => Number(v))
+    .filter((n, i, arr) => Number.isFinite(n) && arr.indexOf(n) === i);
+}
 
 function buildPreservedQuery(params: SearchParams): string {
   const search = new URLSearchParams();
   if (params.q) search.set("q", params.q);
-  if (params.area) search.set("area", params.area);
+  for (const id of normalizeIds(params.area)) search.append("area", String(id));
   return search.toString();
 }
 
@@ -32,19 +39,15 @@ export default async function TemplesPage({
 }) {
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
-  // area は 0 が有効 ID の可能性に備えて Number.isFinite で判定する。
-  // 空文字列は Number("") === 0 として誤判定されるため除外する。
-  const areaIdNum =
-    sp.area !== undefined && sp.area !== "" ? Number(sp.area) : undefined;
-  const areaId =
-    areaIdNum !== undefined && Number.isFinite(areaIdNum)
-      ? areaIdNum
-      : undefined;
+  const areaIds = normalizeIds(sp.area);
 
   const [{ temples, meta }, { areas }] = await Promise.all([
     getTemples({
       page,
-      q: { name_cont: sp.q, areas_id_eq: areaId },
+      q: {
+        name_cont: sp.q,
+        temple_areas_area_id_eq_any: areaIds.length > 0 ? areaIds : undefined,
+      },
     }),
     getAreas(),
   ]);
@@ -60,7 +63,7 @@ export default async function TemplesPage({
     redirect(query ? `/temples?${query}` : "/temples");
   }
 
-  const selectedArea = areas.find((a) => a.id === areaId);
+  const selectedAreas = areas.filter((a) => areaIds.includes(a.id));
 
   return (
     <section className="mx-auto w-full max-w-6xl px-6 py-12 md:px-12">
@@ -96,11 +99,13 @@ export default async function TemplesPage({
             "該当なし"
           )}
         </p>
-        {(sp.q || selectedArea) && (
+        {(sp.q || selectedAreas.length > 0) && (
           <p className="font-sans-jp text-xs tracking-[0.1em] text-muted">
             {sp.q && <>キーワード: 「{sp.q}」</>}
-            {sp.q && selectedArea && " / "}
-            {selectedArea && <>エリア: {selectedArea.name}</>}
+            {sp.q && selectedAreas.length > 0 && " / "}
+            {selectedAreas.length > 0 && (
+              <>エリア: {selectedAreas.map((a) => a.name).join("、")}</>
+            )}
           </p>
         )}
       </div>
