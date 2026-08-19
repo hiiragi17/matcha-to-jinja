@@ -74,7 +74,7 @@ export default function TempleSearchForm({ areas }: TempleSearchFormProps) {
       onSubmit={submit}
       className="flex flex-col gap-3 border border-line bg-paper p-4 sm:flex-row sm:items-end"
     >
-      <label className="flex flex-1 flex-col gap-1.5">
+      <label className="flex flex-1 flex-col gap-1.5 sm:self-start">
         <span className="font-sans-jp text-[11px] tracking-[0.2em] text-olive">
           キーワード / KEYWORD
         </span>
