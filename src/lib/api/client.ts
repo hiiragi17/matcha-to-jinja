@@ -67,6 +67,7 @@ export async function apiClient<T>(
 
 // Ransack 形式（q[name_cont] 等）を含むクエリ文字列を組み立てる。
 // ネストしたオブジェクトは `key[nestedKey]` 形式に展開する。
+// 配列値は `key[]=v1&key[]=v2` 形式に展開する（Ransack の `_in` / `_eq_any` 等の複数値述語向け）。
 export function buildQuery(params?: Record<string, unknown>): string {
   if (!params) return "";
 
@@ -74,11 +75,18 @@ export function buildQuery(params?: Record<string, unknown>): string {
 
   const append = (key: string, value: unknown) => {
     if (value === undefined || value === null || value === "") return;
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item === undefined || item === null || item === "") continue;
+        search.append(`${key}[]`, String(item));
+      }
+      return;
+    }
     search.append(key, String(value));
   };
 
   for (const [key, value] of Object.entries(params)) {
-    if (value !== null && typeof value === "object") {
+    if (value !== null && typeof value === "object" && !Array.isArray(value)) {
       for (const [nestedKey, nestedValue] of Object.entries(value)) {
         append(`${key}[${nestedKey}]`, nestedValue);
       }

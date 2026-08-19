@@ -176,15 +176,15 @@ export async function mockClient<T>(
     if (path === "/greenteas") {
       const page = Number(params.get("page")) || 1;
       const nameCont = params.get("q[name_cont]")?.toLowerCase();
-      const genreId = params.get("q[genres_id_eq]");
+      const genreIds = params.getAll("q[greentea_genres_genre_id_eq_any][]");
 
       let items = mockGreenteas;
       if (nameCont) {
         items = items.filter((g) => g.name.toLowerCase().includes(nameCont));
       }
-      if (genreId) {
+      if (genreIds.length > 0) {
         items = items.filter((g) =>
-          g.genres.some((genre) => String(genre.id) === genreId),
+          g.genres.some((genre) => genreIds.includes(String(genre.id))),
         );
       }
 
@@ -224,15 +224,15 @@ export async function mockClient<T>(
     if (path === "/temples") {
       const page = Number(params.get("page")) || 1;
       const nameCont = params.get("q[name_cont]")?.toLowerCase();
-      const areaId = params.get("q[areas_id_eq]");
+      const areaIds = params.getAll("q[temple_areas_area_id_eq_any][]");
 
       let items = mockTemples;
       if (nameCont) {
         items = items.filter((t) => t.name.toLowerCase().includes(nameCont));
       }
-      if (areaId) {
+      if (areaIds.length > 0) {
         items = items.filter((t) =>
-          t.areas.some((area) => String(area.id) === areaId),
+          t.areas.some((area) => areaIds.includes(String(area.id))),
         );
       }
 

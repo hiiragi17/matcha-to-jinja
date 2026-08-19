@@ -5,7 +5,9 @@ export type GreenteaSearchParams = {
   page?: number;
   q?: {
     name_cont?: string;
-    genres_id_eq?: number;
+    // 複数ジャンル選択（OR検索）。Rails 側の Ransack allowlist が受け付ける
+    // 複数値述語キー（`_eq_any`）を使う。単一選択でも要素数 1 の配列で渡す。
+    greentea_genres_genre_id_eq_any?: number[];
   };
 };
 

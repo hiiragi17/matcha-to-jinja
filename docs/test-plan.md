@@ -100,7 +100,7 @@ playwright.config.ts
 #### 4-2. `src/lib/api/mock/index.ts`
 - `/greenteas`
   - `q[name_cont]` で部分一致絞り込み
-  - `q[genres_id_eq]` で絞り込み
+  - `q[greentea_genres_genre_id_eq_any][]` で複数ジャンル絞り込み（OR検索）
   - `page` / `per_page` のページネーション `meta`（`current_page` / `total_pages` / `total_count`）
 - `/greenteas/:id`
   - 存在 → 詳細 + `nearby_temples`（1.5km 以内・距離昇順）

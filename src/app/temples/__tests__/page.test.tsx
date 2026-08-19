@@ -76,4 +76,41 @@ describe("/temples page — SSR 境界", () => {
     expect(url.searchParams.get("q")).toBe("清水");
     expect(url.searchParams.get("area")).toBe("1");
   });
+
+  it("複数の area= が指定されても全て保持される", async () => {
+    getTemplesMock.mockResolvedValueOnce({
+      temples: [],
+      meta: { current_page: 2, total_pages: 2, total_count: 20 },
+    });
+    const { default: Page } = await import("@/app/temples/page");
+
+    await expect(
+      Page({
+        searchParams: Promise.resolve({ page: "9", area: ["1", "2"] }),
+      }),
+    ).rejects.toThrow(/NEXT_REDIRECT/);
+
+    const target = redirectMock.mock.calls[0][0] as string;
+    const url = new URL(target, "http://localhost");
+    expect(url.searchParams.getAll("area")).toEqual(["1", "2"]);
+    expect(getTemplesMock).toHaveBeenCalledWith({
+      page: 9,
+      q: { name_cont: undefined, temple_areas_area_id_eq_any: [1, 2] },
+    });
+  });
+
+  it("area= が空文字のときは未指定として扱う（Number('')=0 による誤絞り込みを防ぐ）", async () => {
+    getTemplesMock.mockResolvedValueOnce({
+      temples: [],
+      meta: { current_page: 1, total_pages: 1, total_count: 3 },
+    });
+    const { default: Page } = await import("@/app/temples/page");
+
+    await Page({ searchParams: Promise.resolve({ area: "" }) });
+
+    expect(getTemplesMock).toHaveBeenCalledWith({
+      page: 1,
+      q: { name_cont: undefined, temple_areas_area_id_eq_any: undefined },
+    });
+  });
 });

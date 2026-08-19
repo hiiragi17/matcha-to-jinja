@@ -14,14 +14,24 @@ export const metadata: Metadata = {
 
 type SearchParams = {
   q?: string;
-  genre?: string;
+  genre?: string | string[];
   page?: string;
 };
+
+// genre= はレコードの id（正の整数）のみを受け付ける。不正値・重複は除外する。
+function normalizeIds(value: string | string[] | undefined): number[] {
+  const values = value === undefined ? [] : Array.isArray(value) ? value : [value];
+  return values
+    .map((v) => Number(v))
+    .filter(
+      (n, i, arr) => Number.isInteger(n) && n > 0 && arr.indexOf(n) === i,
+    );
+}
 
 function buildPreservedQuery(params: SearchParams): string {
   const search = new URLSearchParams();
   if (params.q) search.set("q", params.q);
-  if (params.genre) search.set("genre", params.genre);
+  for (const id of normalizeIds(params.genre)) search.append("genre", String(id));
   return search.toString();
 }
 
@@ -32,17 +42,15 @@ export default async function GreenteasPage({
 }) {
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
-  // genre は 0 が有効 ID の可能性に備えて Number.isFinite で判定する。
-  const genreIdNum = sp.genre !== undefined ? Number(sp.genre) : undefined;
-  const genreId =
-    genreIdNum !== undefined && Number.isFinite(genreIdNum)
-      ? genreIdNum
-      : undefined;
+  const genreIds = normalizeIds(sp.genre);
 
   const [{ greenteas, meta }, { genres }] = await Promise.all([
     getGreenteas({
       page,
-      q: { name_cont: sp.q, genres_id_eq: genreId },
+      q: {
+        name_cont: sp.q,
+        greentea_genres_genre_id_eq_any: genreIds.length > 0 ? genreIds : undefined,
+      },
     }),
     getGenres(),
   ]);
@@ -58,7 +66,7 @@ export default async function GreenteasPage({
     redirect(query ? `/greenteas?${query}` : "/greenteas");
   }
 
-  const selectedGenre = genres.find((g) => g.id === genreId);
+  const selectedGenres = genres.filter((g) => genreIds.includes(g.id));
 
   return (
     <section className="mx-auto w-full max-w-6xl px-6 py-12 md:px-12">
@@ -94,11 +102,13 @@ export default async function GreenteasPage({
             "該当なし"
           )}
         </p>
-        {(sp.q || selectedGenre) && (
+        {(sp.q || selectedGenres.length > 0) && (
           <p className="font-sans-jp text-xs tracking-[0.1em] text-muted">
             {sp.q && <>キーワード: 「{sp.q}」</>}
-            {sp.q && selectedGenre && " / "}
-            {selectedGenre && <>ジャンル: {selectedGenre.name}</>}
+            {sp.q && selectedGenres.length > 0 && " / "}
+            {selectedGenres.length > 0 && (
+              <>ジャンル: {selectedGenres.map((g) => g.name).join("、")}</>
+            )}
           </p>
         )}
       </div>

@@ -9,28 +9,49 @@ type TempleSearchFormProps = {
   areas: Area[];
 };
 
+// area= はレコードの id（正の整数）のみを受け付ける。不正値・重複は除外する。
+function parseAreaIds(searchParams: URLSearchParams): number[] {
+  return searchParams
+    .getAll("area")
+    .map((v) => Number(v))
+    .filter(
+      (n, i, arr) => Number.isInteger(n) && n > 0 && arr.indexOf(n) === i,
+    );
+}
+
 export default function TempleSearchForm({ areas }: TempleSearchFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
   const queryFromUrl = searchParams.get("q") ?? "";
-  const areaFromUrl = searchParams.get("area") ?? "";
+  const areaIdsFromUrl = parseAreaIds(searchParams);
 
   const [keyword, setKeyword] = useState(queryFromUrl);
-  const [areaId, setAreaId] = useState(areaFromUrl);
+  const [areaIds, setAreaIds] = useState<number[]>(areaIdsFromUrl);
 
   // ブラウザの戻る/進むや外部リンクで URL が変わったとき、フォーム値を URL に追従させる。
+  // 依存配列は searchParams の中身（文字列化）にする。オブジェクト参照はレンダーの
+  // たびに変わりうる（Next.js の実装やテスト用モックの都合）ため、参照比較だと
+  // 無限ループになりうる。
+  const searchParamsKey = searchParams.toString();
   useEffect(() => {
-    setKeyword(queryFromUrl);
-    setAreaId(areaFromUrl);
-  }, [queryFromUrl, areaFromUrl]);
+    setKeyword(searchParams.get("q") ?? "");
+    setAreaIds(parseAreaIds(searchParams));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParamsKey]);
+
+  const toggleArea = (id: number) => {
+    setAreaIds((prev) =>
+      prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id],
+    );
+  };
 
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const params = new URLSearchParams();
     if (keyword.trim()) params.set("q", keyword.trim());
-    if (areaId) params.set("area", areaId);
+    for (const id of areaIds) params.append("area", String(id));
     // 検索条件変更時は 1 ページ目に戻る
     const query = params.toString();
     startTransition(() => {
@@ -40,13 +61,13 @@ export default function TempleSearchForm({ areas }: TempleSearchFormProps) {
 
   const clear = () => {
     setKeyword("");
-    setAreaId("");
+    setAreaIds([]);
     startTransition(() => {
       router.push("/temples");
     });
   };
 
-  const hasFilter = Boolean(searchParams.get("q") || searchParams.get("area"));
+  const hasFilter = Boolean(searchParams.get("q") || searchParams.getAll("area").length > 0);
 
   return (
     <form
@@ -66,23 +87,34 @@ export default function TempleSearchForm({ areas }: TempleSearchFormProps) {
         />
       </label>
 
-      <label className="flex flex-col gap-1.5 sm:w-48">
-        <span className="font-sans-jp text-[11px] tracking-[0.2em] text-olive">
-          エリア / AREA
-        </span>
-        <select
-          value={areaId}
-          onChange={(e) => setAreaId(e.target.value)}
-          className="h-10 border border-line bg-washi px-3 font-serif-jp text-sm text-ink focus:border-olive focus:outline-none"
-        >
-          <option value="">すべて</option>
-          {areas.map((area) => (
-            <option key={area.id} value={area.id}>
-              {area.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      <fieldset className="flex flex-col gap-1.5">
+        <legend className="font-sans-jp text-[11px] tracking-[0.2em] text-olive">
+          エリア / AREA（複数選択可）
+        </legend>
+        <div className="flex flex-wrap gap-2">
+          {areas.map((area) => {
+            const checked = areaIds.includes(area.id);
+            return (
+              <label
+                key={area.id}
+                className={`flex cursor-pointer items-center gap-1.5 border px-3 py-1.5 transition-colors ${
+                  checked
+                    ? "border-olive bg-olive text-paper"
+                    : "border-line bg-washi text-ink"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggleArea(area.id)}
+                  className="h-3.5 w-3.5 accent-olive"
+                />
+                <span className="font-serif-jp text-sm">{area.name}</span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
 
       <div className="flex gap-2 sm:flex-shrink-0">
         <button

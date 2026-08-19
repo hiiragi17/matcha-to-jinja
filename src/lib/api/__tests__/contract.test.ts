@@ -72,14 +72,16 @@ describe("API contract: 読み取り系", () => {
 
       await getGreenteas({
         page: 2,
-        q: { name_cont: "辻利", genres_id_eq: 3 },
+        q: { name_cont: "辻利", greentea_genres_genre_id_eq_any: [3, 5] },
       });
 
       expect(captured).not.toBeNull();
       const url = captured!;
       expect(url.searchParams.get("page")).toBe("2");
       expect(url.searchParams.get("q[name_cont]")).toBe("辻利");
-      expect(url.searchParams.get("q[genres_id_eq]")).toBe("3");
+      expect(
+        url.searchParams.getAll("q[greentea_genres_genre_id_eq_any][]"),
+      ).toEqual(["3", "5"]);
     });
   });
 
@@ -161,7 +163,7 @@ describe("API contract: 読み取り系", () => {
       expect(res.temples[0].areas[0]).toEqual({ id: 1, name: "東山" });
     });
 
-    it("Ransack の q[areas_id_eq] を送出する", async () => {
+    it("Ransack の q[temple_areas_area_id_eq_any][] を送出する", async () => {
       let captured: URL | null = null;
       server.use(
         http.get(endpoint("/temples"), ({ request }) => {
@@ -170,11 +172,15 @@ describe("API contract: 読み取り系", () => {
         }),
       );
 
-      await getTemples({ q: { name_cont: "稲荷", areas_id_eq: 2 } });
+      await getTemples({
+        q: { name_cont: "稲荷", temple_areas_area_id_eq_any: [2, 4] },
+      });
 
       const url = captured!;
       expect(url.searchParams.get("q[name_cont]")).toBe("稲荷");
-      expect(url.searchParams.get("q[areas_id_eq]")).toBe("2");
+      expect(
+        url.searchParams.getAll("q[temple_areas_area_id_eq_any][]"),
+      ).toEqual(["2", "4"]);
     });
   });
 

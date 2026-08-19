@@ -5,7 +5,9 @@ export type TempleSearchParams = {
   page?: number;
   q?: {
     name_cont?: string;
-    areas_id_eq?: number;
+    // 複数エリア選択（OR検索）。Rails 側の Ransack allowlist が受け付ける
+    // 複数値述語キー（`_eq_any`）を使う。単一選択でも要素数 1 の配列で渡す。
+    temple_areas_area_id_eq_any?: number[];
   };
 };
 

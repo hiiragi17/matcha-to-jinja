@@ -58,23 +58,41 @@ describe("GreenteaSearchForm", () => {
     expect(url.searchParams.get("q")).toBe("辻利");
   });
 
-  it("ジャンル選択も q に乗る", async () => {
+  it("ジャンルを複数選択すると genre が複数回 q に乗る", async () => {
     const user = userEvent.setup();
     render(<GreenteaSearchForm genres={genres} />);
 
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: /ジャンル/ }),
-      "3",
-    );
+    await user.click(screen.getByRole("checkbox", { name: "スイーツ" }));
+    await user.click(screen.getByRole("checkbox", { name: "カフェ" }));
     await user.click(screen.getByRole("button", { name: "検索" }));
 
     const arg = pushMock.mock.calls[0][0];
     const url = new URL(arg, "http://localhost");
-    expect(url.searchParams.get("genre")).toBe("3");
+    expect(url.searchParams.getAll("genre")).toEqual(["1", "3"]);
+  });
+
+  it("選択済みジャンルをもう一度クリックすると解除される", async () => {
+    const user = userEvent.setup();
+    render(<GreenteaSearchForm genres={genres} />);
+
+    const sweets = screen.getByRole("checkbox", { name: "スイーツ" });
+    await user.click(sweets);
+    await user.click(sweets);
+    await user.click(screen.getByRole("button", { name: "検索" }));
+
+    expect(pushMock).toHaveBeenCalledWith("/greenteas");
+  });
+
+  it("URL の既存の複数 genre がチェック状態に反映される", () => {
+    currentSearch = "genre=1&genre=3";
+    render(<GreenteaSearchForm genres={genres} />);
+
+    expect(screen.getByRole("checkbox", { name: "スイーツ" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "カフェ" })).toBeChecked();
   });
 
   it("クリアボタンで q / genre が消える", async () => {
-    currentSearch = "q=中村&genre=3";
+    currentSearch = "q=中村&genre=1&genre=3";
     const user = userEvent.setup();
     render(<GreenteaSearchForm genres={genres} />);
 

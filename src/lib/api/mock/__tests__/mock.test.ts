@@ -46,12 +46,21 @@ describe("mockClient GET /greenteas", () => {
     expect(res.greenteas[0].name).toBe("中村藤吉本店");
   });
 
-  it("q[genres_id_eq] でジャンルを絞り込む", async () => {
+  it("q[greentea_genres_genre_id_eq_any][] でジャンルを絞り込む（単一指定）", async () => {
     const res = await mockClient<GreenteaListResponse>(
-      "/greenteas?q[genres_id_eq]=1",
+      "/greenteas?q[greentea_genres_genre_id_eq_any][]=1",
     );
     // パフェ (id=1) を含むのは id 1, 2
     expect(res.greenteas.map((g) => g.id).sort()).toEqual([1, 2]);
+  });
+
+  it("q[greentea_genres_genre_id_eq_any][] を複数指定するとOR検索になる", async () => {
+    const res = await mockClient<GreenteaListResponse>(
+      "/greenteas?q[greentea_genres_genre_id_eq_any][]=1&q[greentea_genres_genre_id_eq_any][]=3",
+    );
+    // パフェ (id=1) を含むのは id 1, 2 / 団子 (id=3) を含むのは id 3
+    // 片方の ID しか処理されないと id 3 が抜け落ちる
+    expect(res.greenteas.map((g) => g.id).sort()).toEqual([1, 2, 3]);
   });
 });
 
