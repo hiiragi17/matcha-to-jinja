@@ -98,4 +98,19 @@ describe("/temples page — SSR 境界", () => {
       q: { name_cont: undefined, temple_areas_area_id_eq_any: [1, 2] },
     });
   });
+
+  it("area= が空文字のときは未指定として扱う（Number('')=0 による誤絞り込みを防ぐ）", async () => {
+    getTemplesMock.mockResolvedValueOnce({
+      temples: [],
+      meta: { current_page: 1, total_pages: 1, total_count: 3 },
+    });
+    const { default: Page } = await import("@/app/temples/page");
+
+    await Page({ searchParams: Promise.resolve({ area: "" }) });
+
+    expect(getTemplesMock).toHaveBeenCalledWith({
+      page: 1,
+      q: { name_cont: undefined, temple_areas_area_id_eq_any: undefined },
+    });
+  });
 });

@@ -54,20 +54,21 @@ curl -s -H "Authorization: Bearer $JWT" http://localhost:3001/api/v1/current_use
 |---|---|---|---|
 | 8 | `q[name_cont]=<キーワード>` | 部分一致 | ☐ |
 | 9 | `q[greentea_genres_genre_id_eq_any][]=<genre_id>`（複数指定可） | 抹茶店のジャンル絞り込み（OR検索） | ☐ |
-| 10 | `page=<n>` | ページネーション | ☐ |
+| 10 | `q[temple_areas_area_id_eq_any][]=<area_id>`（複数指定可） | 神社のエリア絞り込み（OR検索） | ☐ |
+| 11 | `page=<n>` | ページネーション | ☐ |
 
 ### meta の形
 
 | # | 確認内容 | 期待 | ✅ |
 |---|---|---|---|
-| 11 | 一覧 meta のキー | `{ current_page, total_pages, total_count }` | ☐ |
+| 13 | 一覧 meta のキー | `{ current_page, total_pages, total_count }` | ☐ |
 
 ### nearby 配列 / 近隣スポットの形
 
 | # | 確認内容 | 期待 | ✅ |
 |---|---|---|---|
-| 12 | `nearby_temples` / `nearby_greenteas` の要素 | `{ id, name, latitude, longitude, distance_meters }` | ☐ |
-| 13 | `distance_meters` の型 | **整数**（小数やメートル以外の単位でないこと） | ☐ |
+| 13 | `nearby_temples` / `nearby_greenteas` の要素 | `{ id, name, latitude, longitude, distance_meters }` | ☐ |
+| 14 | `distance_meters` の型 | **整数**（小数やメートル以外の単位でないこと） | ☐ |
 
 ---
 
@@ -75,14 +76,14 @@ curl -s -H "Authorization: Bearer $JWT" http://localhost:3001/api/v1/current_use
 
 | # | メソッド & 実パス | リクエスト body | レスポンス | fixture | ✅ |
 |---|---|---|---|---|---|
-| 14 | `POST /api/v1/auth/:provider` | `{ access_token, uid?, info?: { name, email, image } }` | `{ token, user: { id, name, role } }` | `auth.exchange.json` | ☐ |
-| 15 | `GET /api/v1/current_user`（Bearer） | — | `{ user: { id, name, role } }` | `current_user.json` | ☐ |
-| 16 | `DELETE /api/v1/auth/logout`（Bearer） | — | 204 / 空ボディ可 | — | ☐ |
+| 15 | `POST /api/v1/auth/:provider` | `{ access_token, uid?, info?: { name, email, image } }` | `{ token, user: { id, name, role } }` | `auth.exchange.json` | ☐ |
+| 16 | `GET /api/v1/current_user`（Bearer） | — | `{ user: { id, name, role } }` | `current_user.json` | ☐ |
+| 17 | `DELETE /api/v1/auth/logout`（Bearer） | — | 204 / 空ボディ可 | — | ☐ |
 
 | # | 確認内容 | 期待 | ✅ |
 |---|---|---|---|
-| 17 | `:provider` の制約 | `google` / `line` のみ受理（Rails `constraints: { provider: /line\|google/ }`） | ☐ |
-| 18 | JWT のキー名 | レスポンスは `token`（`access_token` 等ではない） | ☐ |
+| 18 | `:provider` の制約 | `google` / `line` のみ受理（Rails `constraints: { provider: /line\|google/ }`） | ☐ |
+| 19 | JWT のキー名 | レスポンスは `token`（`access_token` 等ではない） | ☐ |
 
 ---
 
@@ -95,28 +96,28 @@ curl -s -H "Authorization: Bearer $JWT" http://localhost:3001/api/v1/current_use
 
 | # | メソッド & 実パス | body | レスポンス | ✅ |
 |---|---|---|---|---|
-| 19 | `GET /api/v1/greentea_likes`（Bearer） | — | `{ greentea_likes: [ { id, greentea, created_at } ] }` | ☐ |
-| 20 | `POST /api/v1/greentea_likes`（Bearer） | `{ greentea_id }` | `{ greentea_like: { id, greentea, created_at } }` | ☐ |
-| 21 | `DELETE /api/v1/greentea_likes/:id`（Bearer） | — | 204 / 空可 | ☐ |
-| 22 | `GET/POST/DELETE /api/v1/temple_likes`（Bearer） | `{ temple_id }` | `{ temple_like(s): ... }` | ☐ |
+| 20 | `GET /api/v1/greentea_likes`（Bearer） | — | `{ greentea_likes: [ { id, greentea, created_at } ] }` | ☐ |
+| 21 | `POST /api/v1/greentea_likes`（Bearer） | `{ greentea_id }` | `{ greentea_like: { id, greentea, created_at } }` | ☐ |
+| 22 | `DELETE /api/v1/greentea_likes/:id`（Bearer） | — | 204 / 空可 | ☐ |
+| 23 | `GET/POST/DELETE /api/v1/temple_likes`（Bearer） | `{ temple_id }` | `{ temple_like(s): ... }` | ☐ |
 
 | # | 確認内容 | 期待 | ✅ |
 |---|---|---|---|
-| 23 | **DELETE like の `:id`** | フロントは **greentea_id / temple_id** を渡す（like レコードの id ではない）。Rails 側がこれで削除できること | ☐ |
+| 24 | **DELETE like の `:id`** | フロントは **greentea_id / temple_id** を渡す（like レコードの id ではない）。Rails 側がこれで削除できること | ☐ |
 
 ### コメント
 
 | # | メソッド & 実パス | body | レスポンス | ✅ |
 |---|---|---|---|---|
-| 24 | `GET /api/v1/greenteacomments?greentea_id=<id>` | — | `{ comments: [ { id, body, user: {id,name}, created_at, owned_by_current_user } ] }` | ☐ |
-| 25 | `POST /api/v1/greenteacomments`（Bearer） | `{ greentea_id, body }` | `{ comment: {...} }` | ☐ |
-| 26 | `DELETE /api/v1/greenteacomments/:id`（Bearer） | — | 204 / 空可 | ☐ |
-| 27 | `GET/POST/DELETE /api/v1/templecomments`（Bearer） | `{ temple_id, body }` | `{ comment(s): ... }` | ☐ |
+| 25 | `GET /api/v1/greenteacomments?greentea_id=<id>` | — | `{ comments: [ { id, body, user: {id,name}, created_at, owned_by_current_user } ] }` | ☐ |
+| 26 | `POST /api/v1/greenteacomments`（Bearer） | `{ greentea_id, body }` | `{ comment: {...} }` | ☐ |
+| 27 | `DELETE /api/v1/greenteacomments/:id`（Bearer） | — | 204 / 空可 | ☐ |
+| 28 | `GET/POST/DELETE /api/v1/templecomments`（Bearer） | `{ temple_id, body }` | `{ comment(s): ... }` | ☐ |
 
 | # | 確認内容 | 期待 | ✅ |
 |---|---|---|---|
-| 28 | **DELETE comment の `:id`** | こちらは **comment レコードの id**（like とは違うので注意） | ☐ |
-| 29 | コメント所有判定 | `owned_by_current_user`（Bearer 有無で出し分け） | ☐ |
+| 29 | **DELETE comment の `:id`** | こちらは **comment レコードの id**（like とは違うので注意） | ☐ |
+| 30 | コメント所有判定 | `owned_by_current_user`（Bearer 有無で出し分け） | ☐ |
 
 ---
 

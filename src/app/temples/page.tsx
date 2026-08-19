@@ -18,11 +18,14 @@ type SearchParams = {
   page?: string;
 };
 
+// area= はレコードの id（正の整数）のみを受け付ける。不正値・重複は除外する。
 function normalizeIds(value: string | string[] | undefined): number[] {
   const values = value === undefined ? [] : Array.isArray(value) ? value : [value];
   return values
     .map((v) => Number(v))
-    .filter((n, i, arr) => Number.isFinite(n) && arr.indexOf(n) === i);
+    .filter(
+      (n, i, arr) => Number.isInteger(n) && n > 0 && arr.indexOf(n) === i,
+    );
 }
 
 function buildPreservedQuery(params: SearchParams): string {

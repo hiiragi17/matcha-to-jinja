@@ -9,11 +9,14 @@ type TempleSearchFormProps = {
   areas: Area[];
 };
 
+// area= はレコードの id（正の整数）のみを受け付ける。不正値・重複は除外する。
 function parseAreaIds(searchParams: URLSearchParams): number[] {
   return searchParams
     .getAll("area")
     .map((v) => Number(v))
-    .filter((n) => Number.isFinite(n));
+    .filter(
+      (n, i, arr) => Number.isInteger(n) && n > 0 && arr.indexOf(n) === i,
+    );
 }
 
 export default function TempleSearchForm({ areas }: TempleSearchFormProps) {

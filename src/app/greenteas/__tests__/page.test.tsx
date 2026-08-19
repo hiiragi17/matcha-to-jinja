@@ -89,6 +89,21 @@ describe("/greenteas page — SSR 境界", () => {
     });
   });
 
+  it("genre= が空文字のときは未指定として扱う（Number('')=0 による誤絞り込みを防ぐ）", async () => {
+    getGreenteasMock.mockResolvedValueOnce({
+      greenteas: [],
+      meta: { current_page: 1, total_pages: 1, total_count: 3 },
+    });
+    const { default: Page } = await import("@/app/greenteas/page");
+
+    await Page({ searchParams: Promise.resolve({ genre: "" }) });
+
+    expect(getGreenteasMock).toHaveBeenCalledWith({
+      page: 1,
+      q: { name_cont: undefined, greentea_genres_genre_id_eq_any: undefined },
+    });
+  });
+
   it("page が範囲内なら redirect は呼ばれない", async () => {
     getGreenteasMock.mockResolvedValueOnce({
       greenteas: [],
