@@ -250,7 +250,9 @@ describe("mockClient comments", () => {
 
     await mockClient<CommentResponse>("/greenteacomments", {
       method: "POST",
-      body: JSON.stringify({ greentea_id: 2, body: "Aliceの感想" }),
+      body: JSON.stringify({
+        greenteacomment: { greentea_id: 2, body: "Aliceの感想" },
+      }),
       ...alice,
     });
 
@@ -277,7 +279,9 @@ describe("mockClient comments", () => {
 
     const created = await mockClient<CommentResponse>("/greenteacomments", {
       method: "POST",
-      body: JSON.stringify({ greentea_id: 2, body: "削除させない" }),
+      body: JSON.stringify({
+        greenteacomment: { greentea_id: 2, body: "削除させない" },
+      }),
       ...alice,
     });
 
@@ -293,7 +297,9 @@ describe("mockClient comments", () => {
     const alice = auth("alice");
     const created = await mockClient<CommentResponse>("/greenteacomments", {
       method: "POST",
-      body: JSON.stringify({ greentea_id: 2, body: "あとで消す" }),
+      body: JSON.stringify({
+        greenteacomment: { greentea_id: 2, body: "あとで消す" },
+      }),
       ...alice,
     });
 
@@ -315,7 +321,9 @@ describe("mockClient comments", () => {
 
     await mockClient<CommentResponse>("/templecomments", {
       method: "POST",
-      body: JSON.stringify({ temple_id: 1, body: "Bobの感想" }),
+      body: JSON.stringify({
+        templecomment: { temple_id: 1, body: "Bobの感想" },
+      }),
       ...bob,
     });
 
@@ -340,7 +348,9 @@ describe("mockClient comments", () => {
     await expect(
       mockClient("/greenteacomments", {
         method: "POST",
-        body: JSON.stringify({ greentea_id: 1, body: "   " }),
+        body: JSON.stringify({
+          greenteacomment: { greentea_id: 1, body: "   " },
+        }),
         ...auth("alice"),
       }),
     ).rejects.toBeInstanceOf(ApiError);
@@ -351,7 +361,9 @@ describe("mockClient comments", () => {
 
     await mockClient<CommentResponse>("/greenteacomments", {
       method: "POST",
-      body: JSON.stringify({ greentea_id: 1, body: "改名前の投稿" }),
+      body: JSON.stringify({
+        greenteacomment: { greentea_id: 1, body: "改名前の投稿" },
+      }),
       ...alice,
     });
 
@@ -380,7 +392,9 @@ describe("mockClient comments", () => {
 
     const posted = await mockClient<CommentResponse>("/greenteacomments", {
       method: "POST",
-      body: JSON.stringify({ greentea_id: 1, body: "改名後の投稿" }),
+      body: JSON.stringify({
+        greenteacomment: { greentea_id: 1, body: "改名後の投稿" },
+      }),
       ...alice,
     });
 
@@ -398,7 +412,9 @@ describe("mockClient comments", () => {
 
     const posted = await mockClient<CommentResponse>("/templecomments", {
       method: "POST",
-      body: JSON.stringify({ temple_id: 1, body: "改名後の投稿" }),
+      body: JSON.stringify({
+        templecomment: { temple_id: 1, body: "改名後の投稿" },
+      }),
       ...alice,
     });
 

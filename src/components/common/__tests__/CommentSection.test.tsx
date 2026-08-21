@@ -141,11 +141,13 @@ describe("CommentSection", () => {
     mockLoggedIn();
     server.use(
       http.post(endpoint("/greenteacomments"), async ({ request }) => {
-        const body = (await request.json()) as { body: string };
+        const payload = (await request.json()) as {
+          greenteacomment: { body: string };
+        };
         return HttpResponse.json({
           comment: {
             id: 200,
-            body: body.body,
+            body: payload.greenteacomment.body,
             user: { id: 10, name: "わたし" },
             created_at: "2026-06-01T00:00:00Z",
           },

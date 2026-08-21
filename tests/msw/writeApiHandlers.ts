@@ -42,13 +42,16 @@ export function likeDeleted(kind: Kind) {
 }
 
 // コメント投稿 成功。リクエスト body をそのまま返し、実 API 形状に合わせる。
+// Rails 側は ParamsWrapper 無効のため `greenteacomment` / `templecomment`
+// キー配下でネストして送る契約になっている。
 export function commentCreated(kind: Kind) {
+  const wrapperKey = kind === "greentea" ? "greenteacomment" : "templecomment";
   return http.post(apiUrl(`/${commentResource(kind)}`), async ({ request }) => {
-    const payload = (await request.json()) as { body: string };
+    const payload = (await request.json()) as Record<string, { body: string }>;
     return HttpResponse.json({
       comment: {
         id: 200,
-        body: payload.body,
+        body: payload[wrapperKey].body,
         user: { id: 10, name: "わたし" },
         created_at: "2026-06-01T00:00:00Z",
       },

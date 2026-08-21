@@ -88,7 +88,9 @@ describe("comments API クライアント", () => {
 
       expect(captured.method).toBe("POST");
       expect(captured.auth).toBe("Bearer tok-abc");
-      expect(captured.body).toEqual({ greentea_id: 42, body: "投稿本文" });
+      expect(captured.body).toEqual({
+        greenteacomment: { greentea_id: 42, body: "投稿本文" },
+      });
       expect(res.comment.id).toBe(200);
     });
 
@@ -112,7 +114,9 @@ describe("comments API クライアント", () => {
       await createTempleComment(7, "神社の投稿", "tok-xyz");
 
       expect(captured.auth).toBe("Bearer tok-xyz");
-      expect(captured.body).toEqual({ temple_id: 7, body: "神社の投稿" });
+      expect(captured.body).toEqual({
+        templecomment: { temple_id: 7, body: "神社の投稿" },
+      });
     });
   });
 

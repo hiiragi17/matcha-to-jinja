@@ -416,10 +416,11 @@ export async function mockClient<T>(
 
     if (path === "/greenteacomments") {
       const uid = requireMockUser(headers);
-      const { greentea_id, body } = parseJsonBody<{
-        greentea_id?: number;
-        body?: string;
+      // Rails 側は ParamsWrapper 無効のため `greenteacomment` キー配下で送られてくる。
+      const { greenteacomment } = parseJsonBody<{
+        greenteacomment?: { greentea_id?: number; body?: string };
       }>(options?.body);
+      const { greentea_id, body } = greenteacomment ?? {};
       if (!greentea_id || !body || body.trim().length === 0) {
         throw new ApiError(400, {
           error: "greentea_id and non-empty body are required",
@@ -434,10 +435,11 @@ export async function mockClient<T>(
 
     if (path === "/templecomments") {
       const uid = requireMockUser(headers);
-      const { temple_id, body } = parseJsonBody<{
-        temple_id?: number;
-        body?: string;
+      // Rails 側は ParamsWrapper 無効のため `templecomment` キー配下で送られてくる。
+      const { templecomment } = parseJsonBody<{
+        templecomment?: { temple_id?: number; body?: string };
       }>(options?.body);
+      const { temple_id, body } = templecomment ?? {};
       if (!temple_id || !body || body.trim().length === 0) {
         throw new ApiError(400, {
           error: "temple_id and non-empty body are required",
