@@ -220,6 +220,37 @@ describe("CommentSection", () => {
     expect(screen.queryAllByRole("listitem")).toHaveLength(0);
   });
 
+  // id はあるが本文・投稿日時が欠けたレスポンスでも、空カードを並べない。
+  it("投稿レスポンスの口コミに必須フィールドが欠けていても空カードを追加しない", async () => {
+    mockLoggedIn();
+    server.use(
+      http.post(endpoint("/greenteacomments"), () =>
+        HttpResponse.json({ comment: { id: 200 } }),
+      ),
+    );
+
+    const user = userEvent.setup();
+    render(
+      <CommentSection
+        kind="greentea"
+        targetId={1}
+        initialComments={[]}
+        callbackUrl="/greenteas/1"
+      />,
+    );
+
+    await user.type(
+      screen.getByRole("textbox", { name: /口コミを書く/ }),
+      "抹茶パフェ",
+    );
+    await user.click(screen.getByRole("button", { name: /投稿する/ }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "表示の更新に失敗しました",
+    );
+    expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+  });
+
   it("投稿が 422 だとサーバーのバリデーションメッセージを表示する", async () => {
     mockLoggedIn();
     server.use(

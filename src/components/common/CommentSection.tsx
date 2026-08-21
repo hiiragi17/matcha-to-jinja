@@ -38,6 +38,17 @@ function formatDate(iso: string): string {
   }
 }
 
+// 一覧へ差し込んで問題なく描画できる形かを検証する。id だけあって body /
+// created_at が欠けたレスポンスでも、本文も日時も無いカードが並んでしまうため、
+// 実際に描画で参照するフィールドの型まで確認する。
+function isRenderableComment(comment: Comment | undefined): comment is Comment {
+  return (
+    typeof comment?.id === "number" &&
+    typeof comment.body === "string" &&
+    typeof comment.created_at === "string"
+  );
+}
+
 export default function CommentSection({
   kind,
   targetId,
@@ -75,7 +86,7 @@ export default function CommentSection({
         // 投稿は成功したのにレスポンスから口コミ本体を取り出せないケース
         // （API 側のルートキーずれ等の契約不一致）で、本文も投稿者も欠けた
         // 「匿名ユーザー」のカードを一覧へ差し込んでしまわないようにする。
-        if (!comment?.id) {
+        if (!isRenderableComment(comment)) {
           setSubmitError(
             "投稿は完了しましたが、表示の更新に失敗しました。ページを再読み込みしてください。",
           );
