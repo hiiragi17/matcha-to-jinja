@@ -64,15 +64,27 @@ export default function CommentSection({
 
     startSubmit(async () => {
       try {
-        const { comment } =
+        // レスポンス自体が空（204 / 空ボディ）でも分割代入で TypeError に
+        // ならないよう、いったん受けてから取り出す。
+        const created =
           kind === "greentea"
             ? await createGreenteaComment(targetId, trimmed, authToken)
             : await createTempleComment(targetId, trimmed, authToken);
+        const comment = created?.comment;
+        setBody("");
+        // 投稿は成功したのにレスポンスから口コミ本体を取り出せないケース
+        // （API 側のルートキーずれ等の契約不一致）で、本文も投稿者も欠けた
+        // 「匿名ユーザー」のカードを一覧へ差し込んでしまわないようにする。
+        if (!comment?.id) {
+          setSubmitError(
+            "投稿は完了しましたが、表示の更新に失敗しました。ページを再読み込みしてください。",
+          );
+          return;
+        }
         setComments((prev) => [
           { ...comment, owned_by_current_user: true },
           ...prev,
         ]);
-        setBody("");
       } catch (e) {
         if (isUnauthorized(e)) {
           await handleSessionExpired();
@@ -90,7 +102,7 @@ export default function CommentSection({
   const handleDelete = (commentId: number) => {
     if (!authToken) return;
     if (typeof window !== "undefined") {
-      const ok = window.confirm("このコメントを削除しますか？");
+      const ok = window.confirm("この口コミを削除しますか？");
       if (!ok) return;
     }
     setDeleteError(null);
@@ -111,7 +123,7 @@ export default function CommentSection({
           return;
         }
         if (isForbidden(e)) {
-          setDeleteError("このコメントを削除する権限がありません。");
+          setDeleteError("この口コミを削除する権限がありません。");
           return;
         }
         setDeleteError("削除に失敗しました。");
@@ -130,7 +142,7 @@ export default function CommentSection({
             htmlFor="comment-body"
             className="font-sans-jp text-[10px] tracking-[0.3em] text-olive"
           >
-            コメントを書く / WRITE
+            口コミを書く / WRITE
           </label>
           <textarea
             id="comment-body"
@@ -169,7 +181,7 @@ export default function CommentSection({
       ) : (
         <div className="border border-line-soft bg-paper px-5 py-5">
           <p className="font-serif-jp text-sm leading-[1.9] text-muted">
-            コメントの投稿にはログインが必要です。
+            口コミの投稿にはログインが必要です。
           </p>
           <Link
             href={`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}
@@ -188,7 +200,7 @@ export default function CommentSection({
 
       {comments.length === 0 ? (
         <p className="border border-line-soft bg-paper px-5 py-6 text-center font-serif-jp text-sm text-muted">
-          まだコメントはありません。
+          まだ口コミはありません。
         </p>
       ) : (
         <ul className="divide-y divide-line-soft border border-line-soft bg-paper">

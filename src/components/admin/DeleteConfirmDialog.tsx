@@ -13,7 +13,7 @@ type DeleteConfirmDialogProps = {
   onCancel: () => void;
 };
 
-// 削除確認モーダル。抹茶店 / 神社 / コメントの破壊的操作で共有する。
+// 削除確認モーダル。抹茶店 / 神社 / 口コミの破壊的操作で共有する。
 export default function DeleteConfirmDialog({
   open,
   title,

@@ -100,6 +100,8 @@ src/
 - **型は `types/` に集約**し、API レスポンスと一致させる。`any` を避ける（`strict: true`）。
 - **デザインは daisyUI + Tailwind** で既存 greentea_temple のデザインを踏襲する。
 - コメントは「なぜ」が非自明な場合のみ。自明な処理にコメントを足さない。
+- **UI 文言は「口コミ」で統一**する（英字ラベルは `REVIEWS`）。型・API 関数・エンドポイント名は
+  Rails 側の `comment(s)` / `greenteacomments` のままで、表示テキストだけ 口コミ と呼ぶ。
 
 ### import スタイル
 

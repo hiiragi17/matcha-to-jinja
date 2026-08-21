@@ -35,7 +35,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       </h1>
       <Hairline width={40} className="mt-5" />
       <p className="mt-5 max-w-sm font-serif-jp text-sm leading-[2] text-muted">
-        お気に入り登録やコメント投稿には、ログインが必要です。
+        お気に入り登録や口コミ投稿には、ログインが必要です。
       </p>
 
       <div className="mt-10 flex w-full flex-col gap-3">

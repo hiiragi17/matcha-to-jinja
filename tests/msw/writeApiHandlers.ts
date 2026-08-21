@@ -41,7 +41,7 @@ export function likeDeleted(kind: Kind) {
   );
 }
 
-// コメント投稿 成功。リクエスト body をそのまま返し、実 API 形状に合わせる。
+// 口コミ投稿 成功。リクエスト body をそのまま返し、実 API 形状に合わせる。
 export function commentCreated(kind: Kind) {
   return http.post(apiUrl(`/${commentResource(kind)}`), async ({ request }) => {
     const payload = (await request.json()) as { body: string };
@@ -56,7 +56,7 @@ export function commentCreated(kind: Kind) {
   });
 }
 
-// コメント削除 成功（204 No Content）。
+// 口コミ削除 成功（204 No Content）。
 export function commentDeleted(kind: Kind) {
   return http.delete(apiUrl(`/${commentResource(kind)}/:id`), () =>
     HttpResponse.text(null, { status: 204 }),

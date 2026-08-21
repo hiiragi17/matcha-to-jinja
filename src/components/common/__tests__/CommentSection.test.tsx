@@ -74,10 +74,10 @@ describe("CommentSection", () => {
     );
 
     expect(
-      screen.getByText(/コメントの投稿にはログインが必要/),
+      screen.getByText(/口コミの投稿にはログインが必要/),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("textbox", { name: /コメントを書く/ }),
+      screen.queryByRole("textbox", { name: /口コミを書く/ }),
     ).not.toBeInTheDocument();
     const loginLink = screen.getByRole("link", { name: /ログインへ/ });
     expect(loginLink).toHaveAttribute(
@@ -102,7 +102,7 @@ describe("CommentSection", () => {
     expect(submit).toBeDisabled();
 
     await user.type(
-      screen.getByRole("textbox", { name: /コメントを書く/ }),
+      screen.getByRole("textbox", { name: /口コミを書く/ }),
       "   ",
     );
     expect(submit).toBeDisabled();
@@ -120,7 +120,7 @@ describe("CommentSection", () => {
       />,
     );
 
-    const textarea = screen.getByRole("textbox", { name: /コメントを書く/ });
+    const textarea = screen.getByRole("textbox", { name: /口コミを書く/ });
     await user.click(textarea);
     // userEvent.type は 500 文字で遅いので fireEvent 経由で一発入力する
     const longText = "あ".repeat(501);
@@ -153,7 +153,7 @@ describe("CommentSection", () => {
       }),
     );
 
-    const existing = baseComment({ id: 1, body: "既存コメント" });
+    const existing = baseComment({ id: 1, body: "既存口コミ" });
     const user = userEvent.setup();
     render(
       <CommentSection
@@ -165,7 +165,7 @@ describe("CommentSection", () => {
     );
 
     await user.type(
-      screen.getByRole("textbox", { name: /コメントを書く/ }),
+      screen.getByRole("textbox", { name: /口コミを書く/ }),
       "新しい感想",
     );
     await user.click(screen.getByRole("button", { name: /投稿する/ }));
@@ -176,7 +176,47 @@ describe("CommentSection", () => {
     const items = screen.getAllByRole("listitem");
     expect(items).toHaveLength(2);
     expect(items[0]).toHaveTextContent("新しい感想");
-    expect(items[1]).toHaveTextContent("既存コメント");
+    expect(items[1]).toHaveTextContent("既存口コミ");
+  });
+
+  // Rails 側がルートキーを `comment` ではなく `data` で返していたため、
+  // 投稿直後に本文・投稿日時が空の「匿名ユーザー」カードが並ぶ不具合があった。
+  it("投稿レスポンスから口コミ本体を取り出せないときは空カードを追加しない", async () => {
+    mockLoggedIn();
+    server.use(
+      http.post(endpoint("/greenteacomments"), () =>
+        HttpResponse.json({
+          data: {
+            id: 200,
+            body: "抹茶パフェ",
+            user: { id: 10, name: "わたし" },
+            created_at: "2026-06-01T00:00:00Z",
+          },
+        }),
+      ),
+    );
+
+    const user = userEvent.setup();
+    render(
+      <CommentSection
+        kind="greentea"
+        targetId={1}
+        initialComments={[]}
+        callbackUrl="/greenteas/1"
+      />,
+    );
+
+    await user.type(
+      screen.getByRole("textbox", { name: /口コミを書く/ }),
+      "抹茶パフェ",
+    );
+    await user.click(screen.getByRole("button", { name: /投稿する/ }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "表示の更新に失敗しました",
+    );
+    expect(screen.queryByText("匿名ユーザー")).not.toBeInTheDocument();
+    expect(screen.queryAllByRole("listitem")).toHaveLength(0);
   });
 
   it("投稿が 422 だとサーバーのバリデーションメッセージを表示する", async () => {
@@ -198,7 +238,7 @@ describe("CommentSection", () => {
     );
 
     await user.type(
-      screen.getByRole("textbox", { name: /コメントを書く/ }),
+      screen.getByRole("textbox", { name: /口コミを書く/ }),
       "ng",
     );
     await user.click(screen.getByRole("button", { name: /投稿する/ }));
@@ -209,7 +249,7 @@ describe("CommentSection", () => {
       );
     });
     // 楽観追加していないので、リストは空のまま。
-    expect(screen.getByText(/まだコメントはありません/)).toBeInTheDocument();
+    expect(screen.getByText(/まだ口コミはありません/)).toBeInTheDocument();
   });
 
   it("投稿が 401 だと signOut してログインへ誘導する", async () => {
@@ -227,7 +267,7 @@ describe("CommentSection", () => {
     );
 
     await user.type(
-      screen.getByRole("textbox", { name: /コメントを書く/ }),
+      screen.getByRole("textbox", { name: /口コミを書く/ }),
       "感想",
     );
     await user.click(screen.getByRole("button", { name: /投稿する/ }));
@@ -240,7 +280,7 @@ describe("CommentSection", () => {
     );
   });
 
-  it("自分のコメントだけ「削除」ボタンが表示される", () => {
+  it("自分の口コミだけ「削除」ボタンが表示される", () => {
     mockLoggedIn();
     render(
       <CommentSection
@@ -284,7 +324,7 @@ describe("CommentSection", () => {
     await waitFor(() => {
       expect(screen.queryByText("削除対象")).not.toBeInTheDocument();
     });
-    expect(screen.getByText(/まだコメントはありません/)).toBeInTheDocument();
+    expect(screen.getByText(/まだ口コミはありません/)).toBeInTheDocument();
   });
 
   it("確認ダイアログをキャンセルすると削除されない", async () => {
@@ -306,7 +346,7 @@ describe("CommentSection", () => {
     expect(screen.getByText("残す")).toBeInTheDocument();
   });
 
-  it("他人のコメント削除で 403 が返るとロールバックして権限エラーを表示する", async () => {
+  it("他人の口コミ削除で 403 が返るとロールバックして権限エラーを表示する", async () => {
     mockLoggedIn();
     server.use(writeError("delete", "greenteacomments", 403));
 
@@ -328,7 +368,7 @@ describe("CommentSection", () => {
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent(/権限がありません/);
     });
-    // ロールバックされ、コメントは残る。
+    // ロールバックされ、口コミは残る。
     expect(screen.getByText("消せない")).toBeInTheDocument();
   });
 
@@ -347,7 +387,7 @@ describe("CommentSection", () => {
     );
 
     await user.type(
-      screen.getByRole("textbox", { name: /コメントを書く/ }),
+      screen.getByRole("textbox", { name: /口コミを書く/ }),
       "感想",
     );
     await user.click(screen.getByRole("button", { name: /投稿する/ }));
@@ -356,7 +396,7 @@ describe("CommentSection", () => {
       expect(screen.getByRole("alert")).toHaveTextContent(/投稿に失敗しました/);
     });
     expect(signOutMock).not.toHaveBeenCalled();
-    expect(screen.getByText(/まだコメントはありません/)).toBeInTheDocument();
+    expect(screen.getByText(/まだ口コミはありません/)).toBeInTheDocument();
   });
 
   it("削除が 5xx だとロールバックして汎用エラーを表示する", async () => {
@@ -426,7 +466,7 @@ describe("CommentSection", () => {
     );
 
     await user.type(
-      screen.getByRole("textbox", { name: /コメントを書く/ }),
+      screen.getByRole("textbox", { name: /口コミを書く/ }),
       "神社の感想",
     );
     await user.click(screen.getByRole("button", { name: /投稿する/ }));
@@ -438,7 +478,7 @@ describe("CommentSection", () => {
     expect(items[0]).toHaveTextContent("神社の感想");
   });
 
-  it("temple 種別でも自分のコメントを templecomments API 経由で削除できる", async () => {
+  it("temple 種別でも自分の口コミを templecomments API 経由で削除できる", async () => {
     mockLoggedIn();
     server.use(commentDeleted("temple"));
 
@@ -478,7 +518,7 @@ describe("CommentSection", () => {
     expect(screen.getByText("日付おかしい")).toBeInTheDocument();
   });
 
-  it("投稿者が欠落したコメント（user: null）でもクラッシュせず「匿名ユーザー」と表示する", () => {
+  it("投稿者が欠落した口コミ（user: null）でもクラッシュせず「匿名ユーザー」と表示する", () => {
     mockLoggedIn();
     render(
       <CommentSection

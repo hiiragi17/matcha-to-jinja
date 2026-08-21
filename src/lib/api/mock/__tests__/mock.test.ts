@@ -271,7 +271,7 @@ describe("mockClient comments", () => {
     expect(bobSees?.owned_by_current_user).toBe(false);
   });
 
-  it("他人のコメント DELETE は ApiError(403)", async () => {
+  it("他人の口コミ DELETE は ApiError(403)", async () => {
     const alice = auth("alice");
     const bob = auth("bob");
 
@@ -289,7 +289,7 @@ describe("mockClient comments", () => {
     ).rejects.toMatchObject({ status: 403 });
   });
 
-  it("自分のコメント DELETE は成功し、一覧から消える", async () => {
+  it("自分の口コミ DELETE は成功し、一覧から消える", async () => {
     const alice = auth("alice");
     const created = await mockClient<CommentResponse>("/greenteacomments", {
       method: "POST",
@@ -346,7 +346,7 @@ describe("mockClient comments", () => {
     ).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("PATCH /current_user で改名すると、投稿済みコメントの表示名も遡って更新される", async () => {
+  it("PATCH /current_user で改名すると、投稿済み口コミの表示名も遡って更新される", async () => {
     const alice = auth("alice");
 
     await mockClient<CommentResponse>("/greenteacomments", {
@@ -387,7 +387,7 @@ describe("mockClient comments", () => {
     expect(posted.comment.user?.name).toBe("改名後");
   });
 
-  it("temple コメントの POST 応答も改名後の表示名になる", async () => {
+  it("temple 口コミの POST 応答も改名後の表示名になる", async () => {
     const alice = auth("alice");
 
     await mockClient("/current_user", {

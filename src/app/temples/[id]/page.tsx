@@ -202,9 +202,9 @@ export default async function TempleDetailPage({
 
       <section className="mt-12">
         <h2 className="font-mincho text-lg tracking-[0.12em] text-ink">
-          コメント
+          口コミ
           <span className="ml-3 font-sans-jp text-[10px] tracking-[0.3em] text-olive">
-            COMMENTS
+            REVIEWS
           </span>
         </h2>
         <div className="mt-4">
