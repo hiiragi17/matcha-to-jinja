@@ -177,6 +177,7 @@ describe("CommentSection", () => {
     expect(items).toHaveLength(2);
     expect(items[0]).toHaveTextContent("新しい感想");
     expect(items[1]).toHaveTextContent("既存口コミ");
+    expect(screen.getByRole("textbox", { name: /口コミを書く/ })).toHaveValue("");
   });
 
   // Rails 側がルートキーを `comment` ではなく `data` で返していたため、
