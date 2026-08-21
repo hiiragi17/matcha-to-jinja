@@ -25,11 +25,7 @@ export function createGreenteaComment(
 ): Promise<CommentResponse> {
   return apiClient<CommentResponse>("/greenteacomments", {
     method: "POST",
-    // Rails 側は ParamsWrapper 無効のため、`greenteacomment` キーで
-    // 明示的にネストしないと `params.require(:greenteacomment)` が失敗する。
-    body: JSON.stringify({
-      greenteacomment: { greentea_id: greenteaId, body },
-    }),
+    body: JSON.stringify({ greentea_id: greenteaId, body }),
     authToken,
   });
 }
@@ -41,11 +37,7 @@ export function createTempleComment(
 ): Promise<CommentResponse> {
   return apiClient<CommentResponse>("/templecomments", {
     method: "POST",
-    // Rails 側は ParamsWrapper 無効のため、`templecomment` キーで
-    // 明示的にネストしないと `params.require(:templecomment)` が失敗する。
-    body: JSON.stringify({
-      templecomment: { temple_id: templeId, body },
-    }),
+    body: JSON.stringify({ temple_id: templeId, body }),
     authToken,
   });
 }
