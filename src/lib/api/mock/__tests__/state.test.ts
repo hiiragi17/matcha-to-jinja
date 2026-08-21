@@ -72,7 +72,7 @@ describe("greentea comments", () => {
     user: { id: 99, name: "alice-name" },
   };
 
-  it("追加したコメントは viewer が owner と一致するときだけ owned_by_current_user=true", () => {
+  it("追加した口コミは viewer が owner と一致するときだけ owned_by_current_user=true", () => {
     const created = addGreenteaComment(1, "alice", baseComment);
     const aliceView = listGreenteaComments(1, "alice");
     const bobView = listGreenteaComments(1, "bob");

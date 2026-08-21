@@ -86,7 +86,7 @@ describe("API contract: 読み取り系", () => {
   });
 
   describe("GET /greenteas/:id", () => {
-    it("詳細・近隣神社・コメントを含むレスポンスを返す", async () => {
+    it("詳細・近隣神社・口コミを含むレスポンスを返す", async () => {
       server.use(
         http.get(endpoint("/greenteas/1"), () =>
           HttpResponse.json(greenteaShowFixture),
@@ -185,7 +185,7 @@ describe("API contract: 読み取り系", () => {
   });
 
   describe("GET /temples/:id", () => {
-    it("詳細・近隣抹茶店・コメントを含むレスポンスを返す", async () => {
+    it("詳細・近隣抹茶店・口コミを含むレスポンスを返す", async () => {
       server.use(
         http.get(endpoint("/temples/3"), () =>
           HttpResponse.json(templeShowFixture),

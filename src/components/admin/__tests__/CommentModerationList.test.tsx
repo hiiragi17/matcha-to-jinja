@@ -60,14 +60,14 @@ function renderWithSwr(ui: ReactElement) {
   );
 }
 
-describe("CommentModerationList — コメントモデレーション", () => {
+describe("CommentModerationList — 口コミモデレーション", () => {
   it("未ログインではログイン案内とログインリンクを表示する", () => {
     useSessionMock.mockReturnValue({ data: null, status: "unauthenticated" });
 
     render(<CommentModerationList />);
 
     expect(
-      screen.getByText(/コメント管理の表示にはログインが必要/),
+      screen.getByText(/口コミ管理の表示にはログインが必要/),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /ログインへ/ })).toHaveAttribute(
       "href",
@@ -82,7 +82,7 @@ describe("CommentModerationList — コメントモデレーション", () => {
 
     expect(screen.getByText(/読み込み中/)).toBeInTheDocument();
     expect(
-      screen.queryByText(/コメント管理の表示にはログインが必要/),
+      screen.queryByText(/口コミ管理の表示にはログインが必要/),
     ).not.toBeInTheDocument();
   });
 
@@ -104,7 +104,7 @@ describe("CommentModerationList — コメントモデレーション", () => {
     ).toBeInTheDocument();
   });
 
-  it("ログイン時は横断コメント一覧を対象リンク付きで表示する", async () => {
+  it("ログイン時は横断口コミ一覧を対象リンク付きで表示する", async () => {
     useSessionMock.mockReturnValue({
       data: { railsJwt: "jwt-token" },
       status: "authenticated",
@@ -167,7 +167,7 @@ describe("CommentModerationList — コメントモデレーション", () => {
     expect(listCalls).toBeGreaterThanOrEqual(2);
   });
 
-  it("投稿者が欠落したコメント（user: null）でもクラッシュせず「匿名ユーザー」と表示する", async () => {
+  it("投稿者が欠落した口コミ（user: null）でもクラッシュせず「匿名ユーザー」と表示する", async () => {
     const user = userEvent.setup();
     useSessionMock.mockReturnValue({
       data: { railsJwt: "jwt-token" },
@@ -187,7 +187,7 @@ describe("CommentModerationList — コメントモデレーション", () => {
 
     await user.click(screen.getByRole("button", { name: /削除/ }));
     const dialog = await screen.findByRole("dialog");
-    expect(dialog).toHaveTextContent("匿名ユーザー さんのコメントを削除します");
+    expect(dialog).toHaveTextContent("匿名ユーザー さんの口コミを削除します");
   });
 
   it("一覧取得が 401 だと signOut してログインへ誘導する", async () => {

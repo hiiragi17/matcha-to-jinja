@@ -7,7 +7,7 @@ const navItems = [
   { href: "/admin", label: "ダッシュボード" },
   { href: "/admin/greenteas", label: "抹茶店" },
   { href: "/admin/temples", label: "神社・仏閣" },
-  { href: "/admin/comments", label: "コメント" },
+  { href: "/admin/comments", label: "口コミ" },
 ] as const;
 
 export default function AdminNav() {

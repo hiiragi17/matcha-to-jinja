@@ -20,7 +20,7 @@ export default async function AdminDashboardPage() {
       href: "/admin/temples",
     },
     {
-      label: "コメント",
+      label: "口コミ",
       count: "—",
       href: "/admin/comments",
     },

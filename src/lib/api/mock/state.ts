@@ -5,7 +5,7 @@
 // Rails JWT (#15) 連携後はこのファイル自体が不要になる想定。
 //
 // Next.js dev サーバーは HMR で module-level の変数がリセットされてしまい、
-// 開発中にいいね・コメントが突然消えて混乱するため、globalThis にぶら下げる。
+// 開発中にいいね・口コミが突然消えて混乱するため、globalThis にぶら下げる。
 
 import type {
   Comment,
@@ -179,8 +179,8 @@ export function getTempleLikeDelta(templeId: number): number {
   return store.templeLikeCountDelta.get(templeId) ?? 0;
 }
 
-// 投稿時点の表示名をコメントに埋め込んだままだと、後から PATCH /current_user で
-// 改名しても過去のコメントに反映されない（実際の Rails は投稿者を都度 JOIN するため
+// 投稿時点の表示名を口コミに埋め込んだままだと、後から PATCH /current_user で
+// 改名しても過去の口コミに反映されない（実際の Rails は投稿者を都度 JOIN するため
 // 常に最新の表示名になる）。読み出し時に profileNames の上書きを都度反映することで
 // 挙動を揃える。
 function resolveCommentUser(comment: Comment, ownerId: UserId): Comment {

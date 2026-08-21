@@ -88,7 +88,7 @@ export default function CommentModerationList() {
           return;
         }
         if (isForbidden(e)) {
-          setDeleteError("このコメントを削除する権限がありません。");
+          setDeleteError("この口コミを削除する権限がありません。");
           return;
         }
         setDeleteError("削除に失敗しました。時間を置いてお試しください。");
@@ -110,7 +110,7 @@ export default function CommentModerationList() {
     return (
       <div className="border border-line-soft bg-paper px-5 py-6">
         <p className="font-serif-jp text-sm leading-[1.9] text-muted">
-          コメント管理の表示にはログインが必要です。
+          口コミ管理の表示にはログインが必要です。
         </p>
         <Link
           href={`/auth/login?callbackUrl=${encodeURIComponent(CALLBACK_URL)}`}
@@ -135,7 +135,7 @@ export default function CommentModerationList() {
       ? "ログインの有効期限が切れました。再度ログインしてください。"
       : isForbidden(error)
         ? "この画面を表示する権限がありません。"
-        : "コメントの取得に失敗しました。時間を置いてお試しください。";
+        : "口コミの取得に失敗しました。時間を置いてお試しください。";
     return (
       <p role="alert" className="font-sans-jp text-xs text-bengara">
         {msg}
@@ -148,7 +148,7 @@ export default function CommentModerationList() {
   if (comments.length === 0) {
     return (
       <p className="border border-line-soft bg-paper px-5 py-8 text-center font-serif-jp text-sm text-muted">
-        コメントがありません。
+        口コミがありません。
       </p>
     );
   }
@@ -227,10 +227,10 @@ export default function CommentModerationList() {
 
       <DeleteConfirmDialog
         open={target !== null}
-        title="コメントを削除"
+        title="口コミを削除"
         message={
           target
-            ? `「${target.resource_name || `#${target.resource_id}`}」への ${target.user?.name ?? "匿名ユーザー"} さんのコメントを削除します。この操作は取り消せません。`
+            ? `「${target.resource_name || `#${target.resource_id}`}」への ${target.user?.name ?? "匿名ユーザー"} さんの口コミを削除します。この操作は取り消せません。`
             : ""
         }
         loading={deleting}

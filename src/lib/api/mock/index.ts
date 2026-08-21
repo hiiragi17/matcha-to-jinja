@@ -529,7 +529,7 @@ export async function mockClient<T>(
       return undefined as T;
     }
 
-    // Admin: greentea コメント削除（owner チェックなし）
+    // Admin: greentea 口コミ削除（owner チェックなし）
     const adminGreenteaCommentMatch = path.match(
       /^\/admin\/greenteacomments\/(\d+)$/,
     );
@@ -541,7 +541,7 @@ export async function mockClient<T>(
       return undefined as T;
     }
 
-    // Admin: temple コメント削除（owner チェックなし）
+    // Admin: temple 口コミ削除（owner チェックなし）
     const adminTempleCommentMatch = path.match(
       /^\/admin\/templecomments\/(\d+)$/,
     );
@@ -555,7 +555,7 @@ export async function mockClient<T>(
   }
 
   if (method === "GET") {
-    // Admin: コメント一覧（横断）
+    // Admin: 口コミ一覧（横断）
     if (path === "/admin/comments") {
       requireMockAdmin(headers);
       const all = listAllComments();
@@ -914,7 +914,7 @@ function parseJsonBody<T>(body: BodyInit | null | undefined): T {
   }
 }
 
-// 表示用にユーザー ID（mock-<name>）を数値化する。コメント user.id は Rails 上で
+// 表示用にユーザー ID（mock-<name>）を数値化する。口コミ user.id は Rails 上で
 // 数値だが、モックでは便宜上の安定したハッシュ。
 function hashUserId(userId: string): number {
   let h = 0;
