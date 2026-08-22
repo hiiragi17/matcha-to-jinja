@@ -176,6 +176,8 @@ DELETE /api/v1/routes/:id        # コース削除
 `distance_to_next_meters` は直線距離、`route_distance_to_next_meters` / `duration_to_next_seconds` / `route_polyline_to_next` は Google Directions API の経路値（未算出・失敗時は `null`）。配列末尾のスポットはこれらが `null`。
 `route_polyline_to_next` は次スポットまでの道なり経路（Google Encoded Polyline Algorithm Format の文字列）。地図描画時は `google.maps.geometry.encoding.decodePath()` でデコードして使う。直線距離のようなフォールバック値は無く、未算出時は `null`（フロント側で2点間の直線描画にフォールバックする）。
 
+`transport` は**ユーザーが選ぶのではなく、バックエンドが区間距離と Directions API の結果から自動決定する**（`"walk" | "train" | "bus" | "car" | "transit" | null`）。区間距離が短い（1km 未満）場合は `"walk"`、それ以外は手段を絞らない一般的な `transit`（乗換案内）を優先し、見つからなければ `"walk"` にフォールバックする。よって新規に作成・更新されたコースの `transport` は `"walk"` か `"transit"`、配列末尾や未算出時は `null` のいずれかになる。`"train"` / `"bus"` / `"car"` は移動手段を手動選択できた過去のデータに残るのみで、以後は付与されない。フロント側はこの値を**表示専用**として扱い、送信は不要（送っても無視される）。
+
 ```json
 {
   "data": {
@@ -226,7 +228,7 @@ DELETE /api/v1/routes/:id        # コース削除
 
 ##### POST /api/v1/routes / PATCH /api/v1/routes/:id（作成・更新）
 リクエストボディは `route` キー配下。`spots` の配列順がそのままコース順になる。
-`transport` は各スポットから**次のスポットへの**移動手段（`"walk" | "train" | "bus" | "car" | null`）。
+各スポットは `spot_type` / `spot_id` のみ（**`transport` は送らない**。移動手段はユーザーが選ぶのではなく、上記の通りバックエンドが自動決定する。送っても無視される）。
 PATCH で `spots` を省略すると既存スポットを保持したまま `name` / `description` のみ部分更新する。
 
 ```json
@@ -235,8 +237,8 @@ PATCH で `spots` を省略すると既存スポットを保持したまま `nam
     "name": "祇園さんぽ",
     "description": "抹茶と建仁寺めぐり",
     "spots": [
-      { "spot_type": "greentea", "spot_id": 1, "transport": "walk" },
-      { "spot_type": "temple", "spot_id": 3, "transport": null }
+      { "spot_type": "greentea", "spot_id": 1 },
+      { "spot_type": "temple", "spot_id": 3 }
     ]
   }
 }

@@ -23,7 +23,6 @@ import type {
   RouteDetail,
   SpotType,
   TempleListResponse,
-  Transport,
 } from "@/types";
 
 type RouteBuilderProps = {
@@ -35,15 +34,7 @@ type SelectedSpot = {
   spot_type: SpotType;
   spot_id: number;
   name: string;
-  transport: Transport;
 };
-
-const TRANSPORT_OPTIONS: { value: Exclude<Transport, null>; label: string }[] = [
-  { value: "walk", label: "徒歩" },
-  { value: "train", label: "電車" },
-  { value: "bus", label: "バス" },
-  { value: "car", label: "車" },
-];
 
 function toSelected(initial?: RouteDetail): SelectedSpot[] {
   return (
@@ -51,25 +42,18 @@ function toSelected(initial?: RouteDetail): SelectedSpot[] {
       spot_type: s.spot_type,
       spot_id: s.id,
       name: s.name,
-      transport: s.transport,
     })) ?? []
   );
 }
 
-// 並び順・スポット・移動手段が初期状態と同一かどうか。
+// 並び順・スポットが初期状態と同一かどうか。
 // 同一ならタイトル/説明のみ変更とみなし、PATCH で spots を省く（経路再計算を避ける）。
+// 移動手段はユーザー入力ではなくバックエンドが自動決定するため比較対象に含めない。
 function spotsUnchanged(a: SelectedSpot[], b: SelectedSpot[]): boolean {
   if (a.length !== b.length) return false;
-  return a.every((s, i) => {
-    const t = b[i];
-    // 末尾の transport はサーバ側で null になるため比較から除外する。
-    const isLast = i === a.length - 1;
-    return (
-      s.spot_type === t.spot_type &&
-      s.spot_id === t.spot_id &&
-      (isLast || s.transport === t.transport)
-    );
-  });
+  return a.every(
+    (s, i) => s.spot_type === b[i].spot_type && s.spot_id === b[i].spot_id,
+  );
 }
 
 export default function RouteBuilder({ mode, initial }: RouteBuilderProps) {
@@ -93,25 +77,11 @@ export default function RouteBuilder({ mode, initial }: RouteBuilderProps) {
 
   const initialSelected = useMemo(() => toSelected(initial), [initial]);
 
-  // transport は「そのスポットから次のスポットへの手段」。並び替え・削除で
-  // 「次のスポット」が変わると手段が別の区間に付いたままになるため、
-  // 隣接が変化したスポットの transport はクリアして状態の整合を保つ。
-  const clearTransportAt = (spots: SelectedSpot[], index: number) => {
-    if (index >= 0 && index < spots.length && spots[index].transport !== null) {
-      spots[index] = { ...spots[index], transport: null };
-    }
-  };
-
   const addSpot = (spot: SelectedSpot) =>
     setSelected((prev) => [...prev, spot]);
 
   const removeSpot = (index: number) =>
-    setSelected((prev) => {
-      const next = prev.filter((_, i) => i !== index);
-      // 削除位置の直前スポットの「次」が変わるため transport をクリア
-      clearTransportAt(next, index - 1);
-      return next;
-    });
+    setSelected((prev) => prev.filter((_, i) => i !== index));
 
   const moveSpot = (index: number, dir: -1 | 1) =>
     setSelected((prev) => {
@@ -119,18 +89,8 @@ export default function RouteBuilder({ mode, initial }: RouteBuilderProps) {
       const target = index + dir;
       if (target < 0 || target >= next.length) return prev;
       [next[index], next[target]] = [next[target], next[index]];
-      // 入れ替えに関与した2要素と、その直前要素の「次」が変わるためクリア
-      const lo = Math.min(index, target);
-      clearTransportAt(next, lo - 1);
-      clearTransportAt(next, lo);
-      clearTransportAt(next, lo + 1);
       return next;
     });
-
-  const setTransport = (index: number, transport: Transport) =>
-    setSelected((prev) =>
-      prev.map((s, i) => (i === index ? { ...s, transport } : s)),
-    );
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,7 +102,6 @@ export default function RouteBuilder({ mode, initial }: RouteBuilderProps) {
       spots: selected.map((s) => ({
         spot_type: s.spot_type,
         spot_id: s.spot_id,
-        transport: s.transport,
       })),
     });
     if (!parsed.success) {
@@ -224,12 +183,7 @@ export default function RouteBuilder({ mode, initial }: RouteBuilderProps) {
         </div>
       </div>
 
-      <SelectedSpots
-        selected={selected}
-        onMove={moveSpot}
-        onRemove={removeSpot}
-        onTransport={setTransport}
-      />
+      <SelectedSpots selected={selected} onMove={moveSpot} onRemove={removeSpot} />
 
       <SpotPicker
         tab={tab}
@@ -274,12 +228,10 @@ function SelectedSpots({
   selected,
   onMove,
   onRemove,
-  onTransport,
 }: {
   selected: SelectedSpot[];
   onMove: (index: number, dir: -1 | 1) => void;
   onRemove: (index: number) => void;
-  onTransport: (index: number, transport: Transport) => void;
 }) {
   return (
     <section className="flex flex-col gap-3">
@@ -316,31 +268,6 @@ function SelectedSpots({
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  {!isLast && (
-                    <label className="flex items-center gap-1.5 font-sans-jp text-[11px] tracking-[0.1em] text-muted">
-                      次へ
-                      <select
-                        value={spot.transport ?? ""}
-                        onChange={(e) =>
-                          onTransport(
-                            index,
-                            e.target.value === ""
-                              ? null
-                              : (e.target.value as Transport),
-                          )
-                        }
-                        className="border border-line bg-washi px-2 py-1 font-serif-jp text-sm text-ink focus:border-olive focus:outline-none"
-                        aria-label={`${spot.name} から次のスポットへの移動手段`}
-                      >
-                        <option value="">未設定</option>
-                        {TRANSPORT_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  )}
                   <IconButton
                     label="上へ移動"
                     disabled={index === 0}
@@ -487,12 +414,7 @@ function SpotPicker({
               <button
                 type="button"
                 onClick={() =>
-                  onAdd({
-                    spot_type: tab,
-                    spot_id: item.id,
-                    name: item.name,
-                    transport: null,
-                  })
+                  onAdd({ spot_type: tab, spot_id: item.id, name: item.name })
                 }
                 className="flex w-full items-center gap-2 border border-line bg-paper px-3 py-2 text-left transition-colors hover:border-olive hover:bg-paper/80"
               >

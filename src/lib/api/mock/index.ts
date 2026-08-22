@@ -23,7 +23,6 @@ import type {
   TempleLikeListResponse,
   TempleLikeResponse,
   TempleListResponse,
-  Transport,
 } from "@/types";
 import { distanceMeters } from "@/lib/utils/distance";
 import type { AdminCommentListResponse } from "@/types";
@@ -739,14 +738,16 @@ export async function mockClient<T>(
 
 // --- routes 用ヘルパー ---
 
-const VALID_TRANSPORTS = new Set<string>(["walk", "train", "bus", "car"]);
+// 移動手段は greentea_temple 側と同じ閾値でバックエンド（ここではモック）が自動決定する。
+// 区間の直線距離がこの未満なら徒歩、以上なら手段を絞らない一般的な transit（乗換案内）
+// を優先する想定（本物の Directions API 連携は無いため、ここでは概算速度で近似する）。
+const AUTO_WALK_THRESHOLD_METERS = 1000;
 
-// 移動手段ごとの mock 概算速度(m/秒)。Directions API 未接続のため所要時間の擬似算出に使う。
-const SPEED_M_PER_SEC: Record<Exclude<Transport, null>, number> = {
+// 自動決定後の移動手段ごとの mock 概算速度(m/秒)。Directions API 未接続のため
+// 所要時間の擬似算出に使う。
+const SPEED_M_PER_SEC: Record<"walk" | "transit", number> = {
   walk: 1.33,
-  bus: 5,
-  train: 11,
-  car: 8,
+  transit: 7,
 };
 
 type RawRouteBody = {
@@ -791,14 +792,6 @@ function parseRouteDescription(raw: unknown): string | null | undefined {
   return String(raw);
 }
 
-function normalizeTransport(value: unknown): Transport {
-  if (value === undefined || value === null) return null;
-  if (typeof value === "string" && VALID_TRANSPORTS.has(value)) {
-    return value as Transport;
-  }
-  routeUnprocessable([`Invalid transport: ${String(value)}`]);
-}
-
 function parseRouteSpots(
   raw: unknown,
   greenteas: Greentea[],
@@ -813,11 +806,8 @@ function parseRouteSpots(
     if (typeof entry !== "object" || entry === null) {
       routeUnprocessable([`Invalid spot: ${JSON.stringify(entry)}`]);
     }
-    const spot = entry as {
-      spot_type?: unknown;
-      spot_id?: unknown;
-      transport?: unknown;
-    };
+    // transport は受け取っても無視する（移動手段はバックエンドが自動決定するため）。
+    const spot = entry as { spot_type?: unknown; spot_id?: unknown };
     if (spot.spot_type !== "greentea" && spot.spot_type !== "temple") {
       routeUnprocessable([`Invalid spot_type: ${String(spot.spot_type)}`]);
     }
@@ -831,22 +821,19 @@ function parseRouteSpots(
         `Spot not found: ${spot.spot_type} #${String(spot.spot_id)}`,
       ]);
     }
-    return {
-      spot_type: spot.spot_type,
-      spot_id: spotId,
-      transport: normalizeTransport(spot.transport),
-    };
+    return { spot_type: spot.spot_type, spot_id: spotId };
   });
 }
 
 // StoredRoute を詳細レスポンス形へ。スポット座標を解決し、各 leg の直線距離・
-// 経路距離(≈直線×1.3)・所要時間(移動手段別の概算速度)を算出する。
+// 経路距離(≈直線×1.3)・移動手段・所要時間(手段別の概算速度)を算出する。
+// 移動手段は greentea_temple の DirectionsService.auto_leg と同じ方針で自動決定する
+// （区間距離が閾値未満なら徒歩、以上なら transit）。
 function buildRouteDetail(
   route: StoredRoute,
   greenteas: Greentea[],
   temples: Temple[],
 ): RouteDetail {
-  const lastIndex = route.spots.length - 1;
   const spots: RouteSpot[] = route.spots.map((s, idx) => {
     const src =
       s.spot_type === "greentea"
@@ -855,8 +842,9 @@ function buildRouteDetail(
     return {
       position: idx + 1,
       spot_type: s.spot_type,
-      // 移動手段は「次スポットへの手段」。最後の要素は null。
-      transport: idx === lastIndex ? null : s.transport,
+      // 次スポットへの移動手段。最後の要素や未算出時は null（後段のループで
+      // 最後のスポット以外は上書きされる）。
+      transport: null,
       id: s.spot_id,
       name: src?.name ?? "(削除されたスポット)",
       address: src?.address ?? "",
@@ -881,8 +869,11 @@ function buildRouteDetail(
     const b = spots[i + 1];
     const straight = distanceMeters(a, b);
     const routeDistance = Math.round(straight * 1.3);
-    const speed = SPEED_M_PER_SEC[a.transport ?? "walk"];
+    const transport: "walk" | "transit" =
+      straight < AUTO_WALK_THRESHOLD_METERS ? "walk" : "transit";
+    const speed = SPEED_M_PER_SEC[transport];
     const duration = Math.round(routeDistance / speed);
+    a.transport = transport;
     a.distance_to_next_meters = straight;
     a.route_distance_to_next_meters = routeDistance;
     a.duration_to_next_seconds = duration;

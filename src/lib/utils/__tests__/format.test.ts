@@ -54,6 +54,7 @@ describe("formatDuration", () => {
 describe("transportLabel", () => {
   it("各手段を日本語化し、null は空文字", () => {
     expect(transportLabel("walk")).toBe("徒歩");
+    expect(transportLabel("transit")).toBe("電車・バス");
     expect(transportLabel("train")).toBe("電車");
     expect(transportLabel("bus")).toBe("バス");
     expect(transportLabel("car")).toBe("車");

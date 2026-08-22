@@ -1,14 +1,17 @@
 import type { Meta } from "./api";
 
 export type SpotType = "greentea" | "temple";
-export type Transport = "walk" | "train" | "bus" | "car" | null;
+// train/bus/car は過去データ（手動選択時代）との互換のため残るが、新規には付かない。
+// walk/transit は移動手段の自動決定（バックエンドが区間距離とDirections APIの結果から
+// 決める）で実際に付き得る値。
+export type Transport = "walk" | "train" | "bus" | "car" | "transit" | null;
 
 // 作成・更新リクエスト（POST/PATCH の body の route キー配下）。
-// spots の配列順がそのままルート順になる。
+// spots の配列順がそのままルート順になる。移動手段はユーザーが選ぶのではなく
+// バックエンドが自動決定するため、リクエストには含めない。
 export interface RouteSpotInput {
   spot_type: SpotType;
   spot_id: number;
-  transport?: Transport;
 }
 
 export interface RouteInput {
