@@ -1,24 +1,16 @@
 import { z } from "zod";
-import type { RouteInput, SpotType, Transport } from "@/types";
+import type { RouteInput, SpotType } from "@/types";
 
 // zod enum の値は types/route.ts の union を単一の真実として派生させる
-// （新しい spot_type / transport を追加しても両者がずれないようにする）。
+// （新しい spot_type を追加しても両者がずれないようにする）。
 const SPOT_TYPES = ["greentea", "temple"] as const satisfies readonly SpotType[];
-const TRANSPORTS = [
-  "walk",
-  "train",
-  "bus",
-  "car",
-] as const satisfies readonly Exclude<Transport, null>[];
 
 // モデルルート作成/編集フォームのスキーマ。
-// name は必須（非空）、spots は 1 件以上。transport は任意（未設定は null 扱い）。
-export const transportSchema = z.enum(TRANSPORTS).nullable();
-
+// name は必須（非空）、spots は 1 件以上。移動手段はユーザーが選ぶのではなく
+// バックエンドが自動決定するため、フォーム/リクエストには含めない。
 export const routeSpotSchema = z.object({
   spot_type: z.enum(SPOT_TYPES),
   spot_id: z.number(),
-  transport: transportSchema,
 });
 
 export const routeFormSchema = z.object({
@@ -46,7 +38,6 @@ export function toRouteInput(
     input.spots = values.spots.map((s) => ({
       spot_type: s.spot_type,
       spot_id: s.spot_id,
-      transport: s.transport,
     }));
   }
   return input;

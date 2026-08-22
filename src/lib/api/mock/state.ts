@@ -14,7 +14,6 @@ import type {
   SpotType,
   Temple,
   TempleInput,
-  Transport,
 } from "@/types";
 
 type UserId = string;
@@ -22,10 +21,11 @@ type CommentRecord = { comment: Comment; ownerId: UserId };
 
 export type DeleteResult = "deleted" | "not_found" | "forbidden";
 
+// 移動手段はユーザー入力ではなくバックエンドが自動決定するため保持しない
+// （buildRouteDetail が区間距離から都度算出する）。
 export type StoredRouteSpot = {
   spot_type: SpotType;
   spot_id: number;
-  transport: Transport;
 };
 
 export type StoredRoute = {

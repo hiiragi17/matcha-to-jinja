@@ -73,8 +73,7 @@ const emptyTemples = {
   meta: { current_page: 1, total_pages: 1, total_count: 0 },
 };
 
-// 編集モードの初期値。並べ替え・削除で transport がどうクリアされるかを
-// 見たいので、移動手段付きのスポットを 3 件持たせる。
+// 編集モードの初期値。並べ替え・削除の挙動を見たいのでスポットを 3 件持たせる。
 const initialRoute: RouteDetail = {
   id: 7,
   name: "祇園抹茶巡り",
@@ -446,27 +445,17 @@ describe("RouteBuilder（スポット選択 UI）", () => {
 });
 
 describe("RouteBuilder（編集）", () => {
-  it("並べ替えると順序が入れ替わり、影響する区間の移動手段がクリアされる", async () => {
+  it("並べ替えると順序が入れ替わる", async () => {
     renderWithSwr(<RouteBuilder mode="edit" initial={initialRoute} />);
 
     expect(selectedNames()).toEqual(["茶寮都路里", "八坂神社", "中村藤吉本店"]);
-    expect(
-      screen.getByLabelText("茶寮都路里 から次のスポットへの移動手段"),
-    ).toHaveValue("walk");
 
     const rows = within(selectedSection()).getAllByRole("listitem");
     await userEvent.click(within(rows[0]).getByRole("button", { name: "下へ移動" }));
 
     expect(selectedNames()).toEqual(["八坂神社", "茶寮都路里", "中村藤吉本店"]);
-    // 入れ替えで「次のスポット」が変わった 2 件はどちらも未設定に戻る
-    expect(
-      screen.getByLabelText("八坂神社 から次のスポットへの移動手段"),
-    ).toHaveValue("");
-    expect(
-      screen.getByLabelText("茶寮都路里 から次のスポットへの移動手段"),
-    ).toHaveValue("");
 
-    // 上へ戻すと順序も元どおりになる（transport はクリアされたまま）
+    // 上へ戻すと順序も元どおりになる
     const moved = within(selectedSection()).getAllByRole("listitem");
     await userEvent.click(
       within(moved[1]).getByRole("button", { name: "上へ移動" }),
@@ -483,16 +472,13 @@ describe("RouteBuilder（編集）", () => {
     expect(within(rows[2]).getByRole("button", { name: "下へ移動" })).toBeDisabled();
   });
 
-  it("スポットを削除すると直前の区間の移動手段がクリアされる", async () => {
+  it("スポットを削除すると一覧から取り除かれる", async () => {
     renderWithSwr(<RouteBuilder mode="edit" initial={initialRoute} />);
 
     const rows = within(selectedSection()).getAllByRole("listitem");
     await userEvent.click(within(rows[1]).getByRole("button", { name: "削除" }));
 
     expect(selectedNames()).toEqual(["茶寮都路里", "中村藤吉本店"]);
-    expect(
-      screen.getByLabelText("茶寮都路里 から次のスポットへの移動手段"),
-    ).toHaveValue("");
   });
 
   it("全て削除すると空案内に戻る", async () => {
@@ -532,7 +518,7 @@ describe("RouteBuilder（編集）", () => {
     });
   });
 
-  it("移動手段を変えたら PATCH に spots を含める", async () => {
+  it("並べ替えたら PATCH に spots を含める", async () => {
     let patchedBody: unknown;
     server.use(
       http.patch(endpoint("/routes/7"), async ({ request }) => {
@@ -543,10 +529,8 @@ describe("RouteBuilder（編集）", () => {
 
     renderWithSwr(<RouteBuilder mode="edit" initial={initialRoute} />);
 
-    await userEvent.selectOptions(
-      screen.getByLabelText("茶寮都路里 から次のスポットへの移動手段"),
-      "bus",
-    );
+    const rows = within(selectedSection()).getAllByRole("listitem");
+    await userEvent.click(within(rows[0]).getByRole("button", { name: "下へ移動" }));
     await userEvent.click(screen.getByRole("button", { name: "変更を保存" }));
 
     await waitFor(() => {
@@ -555,41 +539,11 @@ describe("RouteBuilder（編集）", () => {
     expect(patchedBody).toMatchObject({
       route: {
         spots: [
-          { spot_type: "greentea", spot_id: 1, transport: "bus" },
-          { spot_type: "temple", spot_id: 3, transport: "train" },
-          { spot_type: "greentea", spot_id: 5, transport: null },
+          { spot_type: "temple", spot_id: 3 },
+          { spot_type: "greentea", spot_id: 1 },
+          { spot_type: "greentea", spot_id: 5 },
         ],
       },
-    });
-  });
-
-  it("移動手段を未設定に戻せる", async () => {
-    let patchedBody: unknown;
-    server.use(
-      http.patch(endpoint("/routes/7"), async ({ request }) => {
-        patchedBody = await request.json();
-        return HttpResponse.json(routeDetailResponse(7, "祇園抹茶巡り"));
-      }),
-    );
-
-    renderWithSwr(<RouteBuilder mode="edit" initial={initialRoute} />);
-
-    await userEvent.selectOptions(
-      screen.getByLabelText("茶寮都路里 から次のスポットへの移動手段"),
-      "",
-    );
-    await userEvent.click(screen.getByRole("button", { name: "変更を保存" }));
-
-    await waitFor(() => {
-      expect(patchedBody).toMatchObject({
-        route: {
-          spots: [
-            { spot_id: 1, transport: null },
-            { spot_id: 3, transport: "train" },
-            { spot_id: 5, transport: null },
-          ],
-        },
-      });
     });
   });
 });

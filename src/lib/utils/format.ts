@@ -31,10 +31,14 @@ export function formatDuration(seconds: number | null): string {
 }
 
 // 移動手段の日本語ラベル。null（＝ルート末尾など）は空表示にできるよう "" を返す。
+// walk/transit はバックエンドが自動決定する現行の値。train/bus/car は手動選択時代の
+// 過去データ表示用に残す。
 export function transportLabel(transport: Transport): string {
   switch (transport) {
     case "walk":
       return "徒歩";
+    case "transit":
+      return "電車・バス";
     case "train":
       return "電車";
     case "bus":

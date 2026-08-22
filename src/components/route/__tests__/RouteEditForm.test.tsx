@@ -150,13 +150,6 @@ describe("RouteEditForm", () => {
     );
     expect(screen.getByText("茶寮都路里")).toBeInTheDocument();
     expect(screen.getByText("八坂神社")).toBeInTheDocument();
-    // 先頭スポットの移動手段も引き継ぐ（末尾は select 自体が出ない）。
-    expect(
-      screen.getByLabelText("茶寮都路里 から次のスポットへの移動手段"),
-    ).toHaveValue("walk");
-    expect(
-      screen.queryByLabelText("八坂神社 から次のスポットへの移動手段"),
-    ).not.toBeInTheDocument();
     // mode="edit" が渡っていることは送信ボタンのラベルで判別できる。
     expect(
       screen.getByRole("button", { name: "変更を保存" }),

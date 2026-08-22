@@ -106,8 +106,8 @@ describe("routes API クライアント", () => {
       name: "新コース",
       description: "説明",
       spots: [
-        { spot_type: "greentea", spot_id: 5, transport: "walk" },
-        { spot_type: "temple", spot_id: 9, transport: null },
+        { spot_type: "greentea", spot_id: 5 },
+        { spot_type: "temple", spot_id: 9 },
       ],
     };
 
