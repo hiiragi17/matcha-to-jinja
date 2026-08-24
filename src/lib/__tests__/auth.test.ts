@@ -189,6 +189,28 @@ describe("authConfig.callbacks.jwt", () => {
     expect(result.railsJwt).toBe("rails-jwt");
     expect(result.role).toBe("admin");
     expect(result.provider).toBe("google");
+    expect(result.name).toBe("抹茶太郎");
+  });
+
+  it("OAuth の表示名と Rails 側の編集済み名前が食い違う場合は Rails 側を優先する（再ログインで OAuth 名に巻き戻る不具合の回帰防止）", async () => {
+    exchangeOAuthForJwt.mockResolvedValue({
+      token: "rails-jwt",
+      user: { id: 1, name: "編集後の名前", role: "general" },
+    });
+    const { authConfig } = await loadAuthModule();
+
+    const result = await authConfig.callbacks.jwt({
+      token: {},
+      account: oauthAccount(),
+      user: {
+        id: "google-uid-1",
+        name: "Google表示名",
+        email: "matcha@example.com",
+        image: "https://example.com/a.png",
+      },
+    } as JwtParams);
+
+    expect(result.name).toBe("編集後の名前");
   });
 
   it("user が無い OAuth 応答では info を省いて交換する", async () => {
