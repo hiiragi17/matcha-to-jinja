@@ -120,6 +120,10 @@ export const authConfig = {
           );
           token.railsJwt = authResult.token;
           token.role = authResult.user.role;
+          // token.name は素の状態だと OAuth プロバイダの表示名（例: Google のアカウント名）が
+          // 入ったままになる。Rails 側でプロフィール編集済みの場合、ログアウト→再ログインの
+          // たびにここで OAuth の名前に巻き戻ってしまうため、Rails が返す現在の名前で上書きする。
+          token.name = authResult.user.name;
         }
       }
       return token;
