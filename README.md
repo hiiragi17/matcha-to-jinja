@@ -23,6 +23,8 @@
 - SWR（データフェッチ / キャッシュ）
 - NextAuth.js（Auth.js v5、Google / LINE OAuth）
 - react-icons / `@vis.gl/react-google-maps`
+- react-hook-form + zod（フォームバリデーション）
+- Vercel Analytics（アクセス解析）
 - Vitest + React Testing Library + MSW（ユニット / 統合テスト）
 - Playwright（E2E ゴールデンパス）
 
@@ -84,12 +86,13 @@ pnpm dev
 
 ```text
 src/
-  app/            # ルーティング（greenteas / temples / nearby / mypage / auth ...）
-  components/     # layout / greentea / temple / map / common / auth / brand
+  app/            # ルーティング（greenteas / temples / nearby / mypage / routes / admin / auth ...）
+  components/     # layout / greentea / temple / map / route / admin / common / auth / brand
   lib/
-    api/          # client.ts + 各リソースの API 関数 + mock 実装
+    api/          # client.ts + 各リソースの API 関数 + admin/ + mock 実装
     auth.ts       # NextAuth 設定
     utils/        # distance.ts ほか
+    validation/   # react-hook-form + zod のスキーマ（greentea / temple / route / user）
   types/          # API レスポンスに対応する型定義
 tests/
   msw/            # MSW ハンドラ
@@ -102,6 +105,9 @@ tests/
 
 - [`docs/local-setup.md`](docs/local-setup.md) — Rails API とのローカル結合手順
 - [`docs/migration-plan.md`](docs/migration-plan.md) — 移行計画（API レスポンス契約 / 構成 / レンダリング戦略 / デプロイ）
+- [`docs/api-contract-checklist.md`](docs/api-contract-checklist.md) — Rails API 契約の実装チェックリスト
+- [`docs/frontend-setup-runbook.md`](docs/frontend-setup-runbook.md) — フロント単体〜実 API 結合までのフェーズ別手順
+- [`docs/deploy-checklist.md`](docs/deploy-checklist.md) — Vercel デプロイ チェックリスト
 - [`docs/test-plan.md`](docs/test-plan.md) — テスト方針
 - [`docs/github-issues.md`](docs/github-issues.md) — issue 定義
 - [`CLAUDE.md`](CLAUDE.md) — コーディング規約・アーキテクチャ方針
