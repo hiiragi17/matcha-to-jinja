@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Shippori_Mincho, Noto_Serif_JP, Noto_Sans_JP } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -90,6 +91,7 @@ export default function RootLayout({
           <Footer />
           <BottomTabBar />
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
