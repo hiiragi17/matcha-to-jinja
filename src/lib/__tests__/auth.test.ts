@@ -51,6 +51,23 @@ type SignOutMessage = Parameters<
   NonNullable<NonNullable<NextAuthConfig["events"]>["signOut"]>
 >[0];
 
+type AuthConfig = typeof import("@/lib/auth").authConfig;
+
+// jwt callback は Rails JWT 失効時に null（セッション破棄）を返しうる。
+// null を想定しないテストでは、null を失敗として扱う。
+async function callJwt(config: AuthConfig, params: JwtParams) {
+  const result = await config.callbacks.jwt(params);
+  if (!result) throw new Error("jwt callback unexpectedly returned null");
+  return result;
+}
+
+// Rails が発行する JWT を模した文字列（署名は検証されないのでダミー）。
+function fakeRailsJwt(exp: number) {
+  const encode = (obj: object) =>
+    Buffer.from(JSON.stringify(obj)).toString("base64url");
+  return `${encode({ alg: "HS256" })}.${encode({ user_id: 1, exp })}.signature`;
+}
+
 type MockCredentialsProvider = {
   id?: string;
   authorize: (
@@ -98,7 +115,7 @@ describe("authConfig.callbacks.jwt", () => {
     const { authConfig } = await loadAuthModule();
     const token = { railsJwt: "existing-jwt", role: "general" };
 
-    const result = await authConfig.callbacks.jwt({ token } as JwtParams);
+    const result = await callJwt(authConfig, { token } as JwtParams);
 
     expect(result).toEqual({ railsJwt: "existing-jwt", role: "general" });
     expect(exchangeOAuthForJwt).not.toHaveBeenCalled();
@@ -107,7 +124,7 @@ describe("authConfig.callbacks.jwt", () => {
   it("mock provider では Rails を呼ばず擬似 JWT と general ロールを付与する", async () => {
     const { authConfig } = await loadAuthModule();
 
-    const result = await authConfig.callbacks.jwt({
+    const result = await callJwt(authConfig, {
       token: {},
       account: oauthAccount({ provider: "mock", access_token: undefined }),
       user: { id: "mock-ゲストさん", name: "ゲストさん" },
@@ -122,7 +139,7 @@ describe("authConfig.callbacks.jwt", () => {
   it("mock の擬似 JWT は Authorization ヘッダに載せられる（非 ASCII をエスケープ）", async () => {
     const { authConfig } = await loadAuthModule();
 
-    const result = await authConfig.callbacks.jwt({
+    const result = await callJwt(authConfig, {
       token: {},
       account: oauthAccount({ provider: "mock", access_token: undefined }),
       user: { id: "mock-抹茶太郎" },
@@ -137,7 +154,7 @@ describe("authConfig.callbacks.jwt", () => {
   it("mock で id に admin を含む場合は admin ロールになる", async () => {
     const { authConfig } = await loadAuthModule();
 
-    const result = await authConfig.callbacks.jwt({
+    const result = await callJwt(authConfig, {
       token: {},
       account: oauthAccount({ provider: "mock", access_token: undefined }),
       user: { id: "mock-Admin太郎" },
@@ -149,7 +166,7 @@ describe("authConfig.callbacks.jwt", () => {
   it("mock だが user.id が無い場合は railsJwt を発行しない", async () => {
     const { authConfig } = await loadAuthModule();
 
-    const result = await authConfig.callbacks.jwt({
+    const result = await callJwt(authConfig, {
       token: {},
       account: oauthAccount({ provider: "mock", access_token: undefined }),
     } as JwtParams);
@@ -166,7 +183,7 @@ describe("authConfig.callbacks.jwt", () => {
     });
     const { authConfig } = await loadAuthModule();
 
-    const result = await authConfig.callbacks.jwt({
+    const result = await callJwt(authConfig, {
       token: {},
       account: oauthAccount(),
       user: {
@@ -199,7 +216,7 @@ describe("authConfig.callbacks.jwt", () => {
     });
     const { authConfig } = await loadAuthModule();
 
-    const result = await authConfig.callbacks.jwt({
+    const result = await callJwt(authConfig, {
       token: {},
       account: oauthAccount(),
       user: {
@@ -269,7 +286,7 @@ describe("authConfig.callbacks.jwt", () => {
   it("Rails 連携対象外の provider では交換しない", async () => {
     const { authConfig } = await loadAuthModule();
 
-    const result = await authConfig.callbacks.jwt({
+    const result = await callJwt(authConfig, {
       token: {},
       account: oauthAccount({ provider: "github" }),
     } as JwtParams);
@@ -282,7 +299,7 @@ describe("authConfig.callbacks.jwt", () => {
   it("access_token が無い OAuth account では交換しない", async () => {
     const { authConfig } = await loadAuthModule();
 
-    const result = await authConfig.callbacks.jwt({
+    const result = await callJwt(authConfig, {
       token: {},
       account: oauthAccount({ access_token: undefined }),
     } as JwtParams);
@@ -295,7 +312,7 @@ describe("authConfig.callbacks.jwt", () => {
     const { authConfig } = await loadAuthModule();
     const token = { name: "旧名前", railsJwt: "existing-jwt" };
 
-    const result = await authConfig.callbacks.jwt({
+    const result = await callJwt(authConfig, {
       token,
       trigger: "update",
       session: { name: "新しい名前" },
@@ -310,7 +327,7 @@ describe("authConfig.callbacks.jwt", () => {
     const { authConfig } = await loadAuthModule();
     const token = { name: "旧名前" };
 
-    const result = await authConfig.callbacks.jwt({
+    const result = await callJwt(authConfig, {
       token,
       trigger: "update",
       session: {},
@@ -324,7 +341,7 @@ describe("authConfig.callbacks.jwt", () => {
     const token = { name: "旧名前" };
     const longName = "あ".repeat(150);
 
-    const result = await authConfig.callbacks.jwt({
+    const result = await callJwt(authConfig, {
       token,
       trigger: "update",
       session: { name: `  ${longName}  ` },
@@ -338,13 +355,82 @@ describe("authConfig.callbacks.jwt", () => {
     const { authConfig } = await loadAuthModule();
     const token = { name: "旧名前" };
 
-    const result = await authConfig.callbacks.jwt({
+    const result = await callJwt(authConfig, {
       token,
       trigger: "update",
       session: { name: "   " },
     } as JwtParams);
 
     expect(result.name).toBe("旧名前");
+  });
+
+  it("OAuth 成功時は Rails JWT の exp を railsJwtExp として保持する", async () => {
+    const exp = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
+    exchangeOAuthForJwt.mockResolvedValue({
+      token: fakeRailsJwt(exp),
+      user: { id: 1, name: "抹茶太郎", role: "general" },
+    });
+    const { authConfig } = await loadAuthModule();
+
+    const result = await callJwt(authConfig, {
+      token: {},
+      account: oauthAccount(),
+      user: { id: "google-uid-1", name: "抹茶太郎" },
+    } as JwtParams);
+
+    expect(result.railsJwtExp).toBe(exp);
+  });
+
+  it("Rails JWT として解釈できないトークンでも railsJwtExp を付けずに続行する", async () => {
+    exchangeOAuthForJwt.mockResolvedValue({
+      token: "not-a-jwt",
+      user: { id: 1, name: "抹茶太郎", role: "general" },
+    });
+    const { authConfig } = await loadAuthModule();
+
+    const result = await callJwt(authConfig, {
+      token: {},
+      account: oauthAccount(),
+      user: { id: "google-uid-1", name: "抹茶太郎" },
+    } as JwtParams);
+
+    expect(result.railsJwt).toBe("not-a-jwt");
+    expect(result.railsJwtExp).toBeUndefined();
+  });
+
+  it("Rails JWT の期限が切れていたら null を返してセッションを破棄する", async () => {
+    const { authConfig } = await loadAuthModule();
+    const token = {
+      railsJwt: "expired-jwt",
+      railsJwtExp: Math.floor(Date.now() / 1000) - 1,
+    };
+
+    const result = await authConfig.callbacks.jwt({ token } as JwtParams);
+
+    expect(result).toBeNull();
+  });
+
+  it("Rails JWT の期限内なら token をそのまま返す", async () => {
+    const { authConfig } = await loadAuthModule();
+    const token = {
+      railsJwt: "valid-jwt",
+      railsJwtExp: Math.floor(Date.now() / 1000) + 60,
+    };
+
+    const result = await authConfig.callbacks.jwt({ token } as JwtParams);
+
+    expect(result).toEqual(token);
+  });
+});
+
+describe("authConfig.session", () => {
+  it("maxAge は Rails の JWT 有効期限（7日）と同じ", async () => {
+    const { authConfig } = await loadAuthModule();
+
+    expect(authConfig.session).toEqual({
+      strategy: "jwt",
+      maxAge: 7 * 24 * 60 * 60,
+    });
   });
 });
 

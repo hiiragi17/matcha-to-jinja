@@ -11,8 +11,26 @@ import { ApiError } from "@/lib/api/client";
 
 const RAILS_AUTH_PROVIDERS = new Set<string>(["google", "line"]);
 
+// Rails の JwtService::EXPIRES_IN（greentea_temple）と同じ値に必ず揃えること。
+// ずれると Cookie 上はログイン済みなのに API だけ 401 になる期間ができる。
+const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+
 function isRailsAuthProvider(provider: string): provider is AuthProvider {
   return RAILS_AUTH_PROVIDERS.has(provider);
+}
+
+// Rails JWT の exp（秒）を取り出す。署名検証はしない（Rails が毎回検証するため、
+// ここでは「期限切れなら NextAuth セッションも畳む」判定にだけ使う）。
+function railsJwtExpiry(jwt: string): number | undefined {
+  try {
+    const segment = jwt.split(".")[1];
+    if (!segment) return undefined;
+    const base64 = segment.replace(/-/g, "+").replace(/_/g, "/");
+    const exp = JSON.parse(atob(base64)).exp;
+    return typeof exp === "number" ? exp : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 const googleId = process.env.AUTH_GOOGLE_ID;
@@ -73,9 +91,21 @@ export const authConfig = {
   },
   session: {
     strategy: "jwt",
+    // JWT セッションは session 取得のたびに期限が再署名で延びる（updateAge は
+    // DB セッション専用で効かない）。固定期限は下の jwt callback の exp 判定で担保する。
+    maxAge: SESSION_MAX_AGE_SECONDS,
   },
   callbacks: {
     async jwt({ token, account, user, trigger, session }) {
+      // Rails JWT は更新されない固定期限。切れたら NextAuth セッションも終わらせ、
+      // 401 を踏む前に未ログイン状態へ戻す（null を返すとセッションが破棄される）。
+      if (
+        !account &&
+        typeof token.railsJwtExp === "number" &&
+        token.railsJwtExp <= Date.now() / 1000
+      ) {
+        return null;
+      }
       // useSession().update({ name }) から呼ばれる（プロフィール編集後の反映）。
       // Rails への書き込みは呼び出し側で完了済みで、ここではセッション表示用に
       // token.name を更新するだけ。session はクライアントから直接呼び出せるため、
@@ -119,6 +149,7 @@ export const authConfig = {
             },
           );
           token.railsJwt = authResult.token;
+          token.railsJwtExp = railsJwtExpiry(authResult.token);
           token.role = authResult.user.role;
           // token.name は素の状態だと OAuth プロバイダの表示名（例: Google のアカウント名）が
           // 入ったままになる。Rails 側でプロフィール編集済みの場合、ログアウト→再ログインの
