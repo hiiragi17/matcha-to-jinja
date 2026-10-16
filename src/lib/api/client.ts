@@ -39,7 +39,6 @@ export async function apiClient<T>(
   const res = await fetch(`${API_BASE_URL}/api/v1${endpoint}`, {
     ...init,
     headers,
-    credentials: "include",
   });
 
   if (!res.ok) {

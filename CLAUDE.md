@@ -74,6 +74,11 @@ src/
 - 検索パラメータは Ransack 形式（例: `q[name_cont]`）。
 - **モデルコース（`/api/v1/routes`）**は全エンドポイント JWT 認証必須（自分のコースのみ CRUD）。契約は `docs/migration-plan.md` 1-3「モデルコース（routes）」。リクエストボディは `route` キー配下で、`spots` の配列順がコース順になる。
 
+### セッション期限と認証ヘッダ
+- NextAuth の `session.maxAge`（`src/lib/auth.ts`）は Rails の `JwtService::EXPIRES_IN`（現在 **7日**）と**必ず同じ値に揃える**。ずれると Cookie 上はログイン済みなのに API だけ 401 になる。
+- JWT セッションは session 取得のたびに期限が延びる（`updateAge` は DB セッション専用）。Rails JWT は更新されない固定期限なので、`jwt` callback が `railsJwtExp` を見て、切れていたらセッションを破棄する。
+- API は Bearer ヘッダー認証のみ。`fetch` に `credentials: "include"` は付けない（Rails 側の CORS `credentials: true` を外せるようにするため。greentea_temple#306）。
+
 ### フロント先行のためのモック戦略
 - Rails API が未完成でも進められるよう、API クライアントは **環境変数でモック / 実 API を切り替えられる** 形にする。
 - モックは `docs/migration-plan.md` のレスポンス例をそのまま利用する。
@@ -129,7 +134,7 @@ src/
 NEXT_PUBLIC_API_URL=http://localhost:3001        # 本番: https://api.matcha-to-jinja.com
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=xxxxx
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=xxxxx
+NEXTAUTH_SECRET=xxxxx                            # next-auth v5 は AUTH_SECRET を優先し、無ければ NEXTAUTH_SECRET を参照する（どちらか一方でよい）
 ```
 
 開発ポート: Next.js = `3000` / Rails API = `3001`。

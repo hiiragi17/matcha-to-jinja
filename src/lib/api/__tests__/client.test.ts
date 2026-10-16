@@ -1,5 +1,5 @@
 import { http, HttpResponse } from "msw";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { server } from "@tests/msw/server";
 import { ApiError, apiClient, buildQuery } from "@/lib/api/client";
 
@@ -134,6 +134,19 @@ describe("apiClient", () => {
 
     expect(custom).toBe("yes");
     expect(contentType).toBe("application/json");
+  });
+
+  it("Cookie を送らない（認証は Bearer ヘッダのみ。credentials: include を付けない）", async () => {
+    server.use(
+      http.get(endpoint("/ping"), () => HttpResponse.json({ ok: true })),
+    );
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+
+    await apiClient("/ping");
+
+    const init = fetchSpy.mock.calls[0]?.[1];
+    expect(init?.credentials).toBeUndefined();
+    fetchSpy.mockRestore();
   });
 
   it("authToken 指定時に Authorization: Bearer ヘッダを付与する", async () => {
