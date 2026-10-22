@@ -21,8 +21,8 @@ importers:
         specifier: ^2.0.1
         version: 2.0.1(next@15.5.28(@playwright/test@1.61.1)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)
       '@vis.gl/react-google-maps':
-        specifier: ^1.8.3
-        version: 1.8.3(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        specifier: ^1.10.1
+        version: 1.10.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       next:
         specifier: 15.5.28
         version: 15.5.28(@playwright/test@1.61.1)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -288,8 +288,8 @@ packages:
       '@noble/hashes':
         optional: true
 
-  '@googlemaps/js-api-loader@2.1.1':
-    resolution: {integrity: sha512-yUpAwksbHrlZIWD49JmveNSfBG4oAK0AwMknfSaPMnP5N7UT8oFRVCqwjGb1XQovi//7KLbPQKZpbofiLGzpDw==}
+  '@googlemaps/js-api-loader@2.1.3':
+    resolution: {integrity: sha512-1t6umwRufEGzIPjHPjPeuuY1dCal0zU2bZeomkf4OA0MprFdlKCnXY3zeFkzDaCvKjwbFubeapm61P5+EbrAoA==}
 
   '@hookform/resolvers@5.4.0':
     resolution: {integrity: sha512-EIsqr/t/qbinPIhGjMdtvutIN1Kk4uwbROE9/UQ93CAVGR7GkA7Y92+fX80OzXi/OB67jVFYwKGO1WzkxmkFZw==}
@@ -901,8 +901,8 @@ packages:
   '@types/estree@1.0.9':
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
 
-  '@types/google.maps@3.65.2':
-    resolution: {integrity: sha512-e52bmOhGCQSNabFpL48iQlwJybq6rfns8NUVJ20MR7CdPlHQ2RmSCnPbJfrUYJfogrE4OiHQTZ4LXpop+eer1w==}
+  '@types/google.maps@3.66.7':
+    resolution: {integrity: sha512-4EhLRkBtF5TMBAifddMeK+tn5MS6Sa6cMwrg4TbQiPlV4nU9IbKwHJ5csBfnpykNmXwqy+a9y0/38ZezOwtxmg==}
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
@@ -1135,8 +1135,8 @@ packages:
       vue-router:
         optional: true
 
-  '@vis.gl/react-google-maps@1.8.3':
-    resolution: {integrity: sha512-DW7nEuvOJ299DmdBnvGiUARrgS/+sTEO1iJgG9J8YaErZqLoq7S4TJ22f3EjJvR4dti4L4gft43JEK77nnKXDw==}
+  '@vis.gl/react-google-maps@1.10.1':
+    resolution: {integrity: sha512-2a6Bv04WcJIVN7IIjqygzVrmWKIgTXn/lmMdjeRWbKxX5FV6/Y3LhFScGJAKfAKqoAYIG6s31CWebhFUQdmBsw==}
     peerDependencies:
       react: '>=16.8.0 || ^19.0 || ^19.0.0-rc'
       react-dom: '>=16.8.0 || ^19.0 || ^19.0.0-rc'
@@ -1641,6 +1641,10 @@ packages:
 
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
+
+  fast-equals@6.2.1:
+    resolution: {integrity: sha512-s7KFkLPAAbIDGTh+nVYhjTiwKGvgMXAUG5vwzg8vQKj7NSRZ4eEGExBQ4rq9V90fTYVWd1cb/Wr4ffCNBmLQMQ==}
+    engines: {node: '>=6.0.0'}
 
   fast-glob@3.3.1:
     resolution: {integrity: sha512-kNFPyjhh5cKjrUltxs+wFx+ZkbRaxxmZ+X0ZU31SOsxCEtP9VPgtq2teZw1DebupL5GmDaNQ6yKMMVcM41iqDg==}
@@ -3136,9 +3140,9 @@ snapshots:
 
   '@exodus/bytes@1.15.1': {}
 
-  '@googlemaps/js-api-loader@2.1.1':
+  '@googlemaps/js-api-loader@2.1.3':
     dependencies:
-      '@types/google.maps': 3.65.2
+      '@types/google.maps': 3.66.7
 
   '@hookform/resolvers@5.4.0(react-hook-form@7.80.0(react@19.2.7))':
     dependencies:
@@ -3590,7 +3594,7 @@ snapshots:
 
   '@types/estree@1.0.9': {}
 
-  '@types/google.maps@3.65.2': {}
+  '@types/google.maps@3.66.7': {}
 
   '@types/json-schema@7.0.15': {}
 
@@ -3780,11 +3784,11 @@ snapshots:
       next: 15.5.28(@playwright/test@1.61.1)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       react: 19.2.7
 
-  '@vis.gl/react-google-maps@1.8.3(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@vis.gl/react-google-maps@1.10.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@googlemaps/js-api-loader': 2.1.1
-      '@types/google.maps': 3.65.2
-      fast-deep-equal: 3.1.3
+      '@googlemaps/js-api-loader': 2.1.3
+      '@types/google.maps': 3.66.7
+      fast-equals: 6.2.1
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
 
@@ -4455,6 +4459,8 @@ snapshots:
   expect-type@1.4.0: {}
 
   fast-deep-equal@3.1.3: {}
+
+  fast-equals@6.2.1: {}
 
   fast-glob@3.3.1:
     dependencies:
