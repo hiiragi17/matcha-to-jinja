@@ -39,7 +39,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "@vitest/coverage-v8": "^4.1.8",
-    "daisyui": "^5.5.20",
+    "daisyui": "^5.7.50",
     "eslint": "^9",
     "eslint-config-next": "15.5.28",
     "jsdom": "^29.1.1",
