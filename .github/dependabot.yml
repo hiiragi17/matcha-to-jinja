@@ -17,6 +17,11 @@ updates:
     open-pull-requests-limit: 5
     cooldown:
       default-days: 3
+    ignore:
+      # Vercel の Node.js は 24。型定義のメジャーを実行環境より先に進めない
+      # (Node 25 以降にしかない API を型チェックで見逃すため)。Node を上げるときに外す
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
