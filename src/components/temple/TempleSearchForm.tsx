@@ -36,6 +36,8 @@ export default function TempleSearchForm({ areas }: TempleSearchFormProps) {
   // 無限ループになりうる。
   const searchParamsKey = searchParams.toString();
   useEffect(() => {
+    // URL（外部状態）への追従が目的の同期のため、effect 内での setState は意図どおり。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setKeyword(searchParams.get("q") ?? "");
     setAreaIds(parseAreaIds(searchParams));
     // eslint-disable-next-line react-hooks/exhaustive-deps
