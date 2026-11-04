@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { HiHeart, HiOutlineHeart } from "react-icons/hi2";
@@ -31,6 +32,10 @@ export default function LikeButton({
 }: LikeButtonProps) {
   const router = useRouter();
   const authToken = useAuthToken();
+  // セッション取得中は authToken も undefined になるため、未ログインと区別する。
+  // 区別しないと、ログイン済みでも表示直後に押すとログイン画面へ遷移してしまう。
+  const { status } = useSession();
+  const sessionLoading = status === "loading";
   const handleSessionExpired = useSessionExpiredHandler(callbackUrl);
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
@@ -40,7 +45,7 @@ export default function LikeButton({
   const toggle = async () => {
     // useTransition の pending は startTransition 後にしか立たないため、
     // 楽観的更新と startTransition の間に差し込まれる連打を別途ガードする。
-    if (pending) return;
+    if (pending || sessionLoading) return;
     if (!authToken) {
       router.push(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
       return;
@@ -79,7 +84,7 @@ export default function LikeButton({
       <button
         type="button"
         onClick={toggle}
-        disabled={pending}
+        disabled={pending || sessionLoading}
         aria-pressed={liked}
         aria-label={liked ? "お気に入りを解除" : "お気に入りに追加"}
         className={`inline-flex items-center gap-1.5 border px-2.5 py-1 font-sans-jp text-[11px] transition-colors disabled:opacity-60 ${

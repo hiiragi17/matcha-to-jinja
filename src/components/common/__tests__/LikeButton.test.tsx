@@ -40,7 +40,59 @@ function mockLoggedOut() {
   useSessionMock.mockReturnValue({ data: null, status: "unauthenticated" });
 }
 
+function mockSessionLoading() {
+  useSessionMock.mockReturnValue({ data: undefined, status: "loading" });
+}
+
 describe("LikeButton", () => {
+  it("セッション取得中はボタンが無効で、押してもログイン画面へ遷移しない", async () => {
+    mockSessionLoading();
+    const user = userEvent.setup();
+    render(
+      <LikeButton
+        kind="greentea"
+        id={1}
+        initialCount={3}
+        initialLiked={false}
+        callbackUrl="/greenteas/1"
+      />,
+    );
+
+    const button = screen.getByRole("button");
+    expect(button).toBeDisabled();
+
+    await user.click(button);
+
+    expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it("セッション取得が終わってログイン済と分かれば、ボタンが有効になり押せる", async () => {
+    mockSessionLoading();
+    const { rerender } = render(
+      <LikeButton
+        kind="greentea"
+        id={1}
+        initialCount={3}
+        initialLiked={false}
+        callbackUrl="/greenteas/1"
+      />,
+    );
+    expect(screen.getByRole("button")).toBeDisabled();
+
+    mockLoggedIn();
+    rerender(
+      <LikeButton
+        kind="greentea"
+        id={1}
+        initialCount={3}
+        initialLiked={false}
+        callbackUrl="/greenteas/1"
+      />,
+    );
+
+    expect(screen.getByRole("button")).toBeEnabled();
+  });
+
   it("未ログインでクリックすると /auth/login?callbackUrl=... に遷移する", async () => {
     mockLoggedOut();
     const user = userEvent.setup();
