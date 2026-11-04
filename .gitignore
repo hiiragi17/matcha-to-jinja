@@ -20,6 +20,8 @@
 # next.js
 /.next/
 /out/
+# Next 16 の `next dev` が起動のたびに自動生成する AI エージェント向けファイル
+/AGENTS.md
 
 # production
 /build
