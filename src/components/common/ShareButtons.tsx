@@ -14,6 +14,8 @@ export default function ShareButtons({ title, emoji = "🍵", hashtags = [] }: S
   const [url, setUrl] = useState("");
 
   useEffect(() => {
+    // SSR と初回描画を一致させる（ハイドレーション不一致を避ける）ため、マウント後に URL を取る。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUrl(window.location.href);
   }, []);
 

@@ -88,6 +88,10 @@ test.describe("シナリオ C: mock ログイン → Like → お気に入り一
 
     // 詳細ページで LikeButton を押下。
     await page.goto("/greenteas/1");
+    // SSR 直後はクライアント側のセッション取得が終わっておらず、LikeButton は未ログイン扱い
+    // （ログイン画面へ遷移する）になる。ヘッダーにログイン名が出る＝セッション取得済みなので、
+    // それを待ってから押す。
+    await expect(page.getByText(displayName).first()).toBeVisible();
     const likeButton = page.getByRole("button", {
       name: "お気に入りに追加",
     });

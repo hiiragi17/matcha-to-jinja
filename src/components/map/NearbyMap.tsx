@@ -108,6 +108,8 @@ export default function NearbyMap() {
 
   useEffect(() => {
     if (!hasMapsConfig) return;
+    // 現在地の取得（Geolocation API という外部システムとの同期）を開始する。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     requestLocation();
   }, [hasMapsConfig, requestLocation]);
 
@@ -128,6 +130,8 @@ export default function NearbyMap() {
   useEffect(() => {
     if (!hasMapsConfig || !origin) return;
     let cancelled = false;
+    // 取得開始時に読み込み中へ切り替える（origin / radius の変更ごとに再取得するため）。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFetchState({ status: "loading" });
     setSelected(null);
     getNearby({ lat: origin.lat, lng: origin.lng, radius })

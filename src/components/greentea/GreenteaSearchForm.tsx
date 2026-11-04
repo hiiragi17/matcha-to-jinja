@@ -36,6 +36,8 @@ export default function GreenteaSearchForm({ genres }: GreenteaSearchFormProps) 
   // 無限ループになりうる。
   const searchParamsKey = searchParams.toString();
   useEffect(() => {
+    // URL（外部状態）への追従が目的の同期のため、effect 内での setState は意図どおり。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setKeyword(searchParams.get("q") ?? "");
     setGenreIds(parseGenreIds(searchParams));
     // eslint-disable-next-line react-hooks/exhaustive-deps
