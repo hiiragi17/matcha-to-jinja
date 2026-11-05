@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { useSession } from "next-auth/react";
 import useSWR from "swr";
 import GreenteaCard from "@/components/greentea/GreenteaCard";
 import Loader from "./Loader";
@@ -27,6 +28,7 @@ type LikesResponse = GreenteaLikeListResponse | TempleLikeListResponse;
 type SwrKey = readonly [string, string];
 
 export default function LikedSpotsList({ kind }: LikedSpotsListProps) {
+  const { status } = useSession();
   const authToken = useAuthToken();
   const callbackUrl =
     kind === "greentea" ? "/mypage/greentea-likes" : "/mypage/temple-likes";
@@ -50,6 +52,11 @@ export default function LikedSpotsList({ kind }: LikedSpotsListProps) {
       void handleSessionExpired();
     }
   }, [sessionExpired, handleSessionExpired]);
+
+  // セッション取得中は authToken も未確定のため、そのまま進むと一瞬「ログインが必要」と出てしまう。
+  if (status === "loading") {
+    return <Loader />;
+  }
 
   if (!authToken) {
     return (
