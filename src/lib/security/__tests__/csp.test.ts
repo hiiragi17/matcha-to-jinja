@@ -15,6 +15,10 @@ describe("buildCsp", () => {
     expect(directive(prod, "base-uri")).toEqual(["'self'"]);
   });
 
+  it("frame-src は Google Maps 用に *.google.com のみ許可する", () => {
+    expect(directive(prod, "frame-src")).toEqual(["https://*.google.com"]);
+  });
+
   it("本番では unsafe-eval を許可しない", () => {
     expect(directive(prod, "script-src")).not.toContain("'unsafe-eval'");
   });

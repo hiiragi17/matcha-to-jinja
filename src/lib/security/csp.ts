@@ -61,7 +61,8 @@ export function buildCsp({
     "connect-src": connectSrc,
     // Google Maps の Web Worker
     "worker-src": ["'self'", "blob:"],
-    "frame-src": ["'none'"],
+    // Google Maps が内部で Google 所有のフレームを使う（公式の CSP ガイドで必須）
+    "frame-src": ["https://*.google.com"],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],
     "frame-ancestors": ["'none'"],
