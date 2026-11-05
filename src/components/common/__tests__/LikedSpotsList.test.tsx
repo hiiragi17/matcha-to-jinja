@@ -86,6 +86,17 @@ function renderWithSwr(ui: ReactElement) {
 }
 
 describe("LikedSpotsList — マイページの CSR ガード", () => {
+  it("セッション取得中は「ログインが必要」ではなくローダーを表示する", () => {
+    useSessionMock.mockReturnValue({ data: null, status: "loading" });
+
+    render(<LikedSpotsList kind="greentea" />);
+
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(
+      screen.queryByText(/ログインが必要/),
+    ).not.toBeInTheDocument();
+  });
+
   it("未ログインでは「お気に入り一覧の表示にはログインが必要」案内とログインリンクを表示する", () => {
     useSessionMock.mockReturnValue({ data: null, status: "unauthenticated" });
 
