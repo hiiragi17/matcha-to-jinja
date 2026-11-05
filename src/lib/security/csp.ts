@@ -36,6 +36,8 @@ export function buildCsp({
     ...GOOGLE_MAPS_HOSTS,
     // Next.js の dev サーバー（React Refresh）は eval を使う
     ...(isDev ? ["'unsafe-eval'"] : []),
+    // @vercel/analytics は dev のみ debug 版ローダーを va.vercel-scripts.com から読む
+    ...(isDev ? ["https://va.vercel-scripts.com"] : []),
   ];
 
   const connectSrc = [
@@ -55,7 +57,14 @@ export function buildCsp({
     // Google Maps が動的に <style> を挿入する
     "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
     // 店舗・神社の画像は Rails(CarrierWave)/外部 URL をそのまま表示する
-    "img-src": ["'self'", "data:", "blob:", "https:"],
+    "img-src": [
+      "'self'",
+      "data:",
+      "blob:",
+      "https:",
+      // dev ではローカル Rails（http://localhost:3001）の画像を表示できるようにする
+      ...(isDev ? ["http:"] : []),
+    ],
     // next/font/google はビルド時に自己ホスト化されるため 'self' で足りる
     "font-src": ["'self'", "data:", "https://fonts.gstatic.com"],
     "connect-src": connectSrc,

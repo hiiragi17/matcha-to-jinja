@@ -33,11 +33,26 @@ describe("buildCsp", () => {
     expect(directive(prod, "connect-src")).toContain("https://api.example.run.app");
   });
 
-  it("不正な API URL でも例外にならず、追加されない", () => {
-    const csp = buildCsp({ apiUrl: "not a url", isDev: false });
-    expect(directive(csp, "connect-src")).toEqual(
-      expect.not.arrayContaining(["not a url"]),
+  it("API のベースパスは connect-src に含めない", () => {
+    const csp = buildCsp({ apiUrl: "https://api.example.run.app/api/v1", isDev: false });
+    expect(directive(csp, "connect-src")).toContain("https://api.example.run.app");
+    expect(directive(csp, "connect-src")).not.toContain(
+      "https://api.example.run.app/api/v1",
     );
+  });
+
+  it("不正な API URL でも例外にならず、API URL なしと同じポリシーになる", () => {
+    expect(buildCsp({ apiUrl: "not a url", isDev: false })).toBe(
+      buildCsp({ isDev: false }),
+    );
+  });
+
+  it("http: の画像と Analytics の debug ローダーは dev のみ許可する", () => {
+    const dev = buildCsp({ isDev: true });
+    expect(directive(dev, "img-src")).toContain("http:");
+    expect(directive(dev, "script-src")).toContain("https://va.vercel-scripts.com");
+    expect(directive(prod, "img-src")).not.toContain("http:");
+    expect(directive(prod, "script-src")).not.toContain("https://va.vercel-scripts.com");
   });
 
   it("script-src は Google Maps 以外の外部ホストを許可しない", () => {
