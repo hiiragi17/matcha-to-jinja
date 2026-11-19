@@ -17,18 +17,17 @@
 
 ## 技術スタック
 
-### 導入済み
-- Next.js 15.5.19 (App Router) + React 19 + TypeScript 5
-- Tailwind CSS v4（`@tailwindcss/postcss`）
-- ESLint 9（`next/core-web-vitals`, `next/typescript`）
+正確なバージョンは `package.json` が正（ここではメジャーバージョンのみ記載）。
 
-### 導入予定（Issue #18 で追加）
-- daisyUI — 既存デザイン踏襲のための Tailwind プラグイン
-- SWR または TanStack Query — データフェッチ/キャッシュ
+- Next.js 16 (App Router) + React 19 + TypeScript 6
+- Tailwind CSS v4（`@tailwindcss/postcss`）+ daisyUI 5 — 既存デザイン踏襲
+- ESLint 9（`eslint-config-next` の core-web-vitals / typescript）
+- SWR — データフェッチ/キャッシュ
 - react-icons — アイコン
-- next-auth — OAuth（Google / LINE）フロー管理
+- next-auth v5（beta）— OAuth（Google / LINE）フロー管理
 - react-hook-form + zod + @hookform/resolvers — フォーム
-- @react-google-maps/api または @vis.gl/react-google-maps — 地図
+- @vis.gl/react-google-maps — 地図
+- テスト: Vitest + Testing Library + MSW（ユニット）/ Playwright（E2E）
 
 ## ディレクトリ構成（計画）
 
