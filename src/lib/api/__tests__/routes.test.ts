@@ -36,7 +36,6 @@ const detail = {
   updated_at: "2026-06-01T00:00:00Z",
   spots: [],
   total_distance_meters: 0,
-  total_duration_seconds: null,
 };
 
 describe("routes API クライアント", () => {
