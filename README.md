@@ -16,10 +16,30 @@
 - 認証は Rails が JWT を発行し、フロントは NextAuth.js（Auth.js v5）経由で OAuth（Google / LINE）フローを管理します。
 - **このリポジトリに Rails コードは含まれません。** バックエンドの変更は greentea_temple 側で行います。
 
+## 主な機能
+
+本番: https://matcha-to-jinja.vercel.app/
+
+| 抹茶スイーツをさがす | 神社仏閣をさがす | 詳細ページ（地図・近くのスポット） |
+|:---:|:---:|:---:|
+| <img src="docs/images/search-greentea.gif" alt="抹茶スイーツ検索" width="200"> | <img src="docs/images/search-temple.gif" alt="神社仏閣検索" width="200"> | <img src="docs/images/detail.gif" alt="詳細ページ" width="200"> |
+| キーワードとジャンルで検索 | キーワードとエリアで検索 | 半径1.5km以内のスポットを地図と一覧で表示。X / LINE で共有 |
+
+| 現在地から探す | ログイン・お気に入り・口コミ |
+|:---:|:---:|
+| <img src="docs/images/nearby.gif" alt="現在地検索" width="200"> | <img src="docs/images/login-review.gif" alt="ログイン・お気に入り・口コミ" width="200"> |
+| 半径を選んで、近くの抹茶店（茶碗）と神社仏閣（鳥居）を地図と一覧で表示 | Google / LINE でログインすると、お気に入り登録と口コミの投稿・削除ができる |
+
+**モデルコース**（ログインユーザー）: 行きたい抹茶スイーツ店・神社仏閣を選んで並べるだけで、自分だけの巡り方を作れます。コース詳細では、区間ごとの行き方を Google マップで確認できます。
+
+| マイページ | 抹茶スイーツを追加 | 神社仏閣を追加 | 保存 |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/images/route-mypage.gif" alt="マイページのモデルコース入口" width="200"> | <img src="docs/images/route-new-greentea.gif" alt="モデルコース作成で抹茶スイーツを追加" width="200"> | <img src="docs/images/route-new-temple.gif" alt="モデルコース作成で神社仏閣を追加" width="200"> | <img src="docs/images/route-new-save.gif" alt="モデルコースを保存" width="200"> |
+
 ## 技術スタック
 
-- Next.js 15（App Router）+ React 19 + TypeScript 5
-- Tailwind CSS v4 + daisyUI
+- Next.js 16（App Router）+ React 19 + TypeScript 6
+- Tailwind CSS v4 + daisyUI 5
 - SWR（データフェッチ / キャッシュ）
 - NextAuth.js（Auth.js v5、Google / LINE OAuth）
 - react-icons / `@vis.gl/react-google-maps`
@@ -27,92 +47,3 @@
 - Vercel Analytics（アクセス解析）
 - Vitest + React Testing Library + MSW（ユニット / 統合テスト）
 - Playwright（E2E ゴールデンパス）
-
-## クイックスタート（モックモード）
-
-Rails API を起動しなくても、インメモリのモック実装でフロント単独で動かせます。
-
-```bash
-pnpm install
-
-# 環境変数を用意（既定で NEXT_PUBLIC_USE_MOCK=true）
-cp .env.example .env.local
-
-pnpm dev
-```
-
-[http://localhost:3000](http://localhost:3000) を開くと、`src/lib/api/mock` が応答する状態で UI を確認できます。
-
-実 Rails API（`greentea_temple`、:3001）と結合して動かす手順は
-[`docs/local-setup.md`](docs/local-setup.md) を参照してください。
-
-## モック / 実 API の切替
-
-`NEXT_PUBLIC_USE_MOCK` 環境変数で切り替えます。
-
-- **`true`** … `src/lib/api/mock` のインメモリ実装が応答する（Rails 未起動で開発可）
-- **`false`** … `NEXT_PUBLIC_API_URL` に対して実 fetch を行う
-
-`NEXT_PUBLIC_*` はビルド時に埋め込まれるため、切り替えたら `pnpm dev` を再起動してください。
-
-## 環境変数
-
-`.env.example` をコピーして `.env.local` を作成します。主な変数:
-
-| 変数 | 用途 |
-|------|------|
-| `NEXT_PUBLIC_API_URL` | Rails API のベース URL（開発: `http://localhost:3001`） |
-| `NEXT_PUBLIC_USE_MOCK` | モック / 実 API の切替（`true` / `false`） |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` / `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` | 現在地検索の地図表示 |
-| `AUTH_SECRET` / `AUTH_URL` | NextAuth.js（Auth.js v5） |
-| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` / `AUTH_LINE_ID` / `AUTH_LINE_SECRET` | OAuth プロバイダー（未設定時は開発用モックログインを表示） |
-
-各変数の詳細はコメント付きで `.env.example` に記載しています。
-
-## スクリプト
-
-| コマンド | 内容 |
-|----------|------|
-| `pnpm dev` | 開発サーバ起動（:3000） |
-| `pnpm build` | 本番ビルド |
-| `pnpm start` | ビルド済みアプリの起動 |
-| `pnpm lint` | ESLint |
-| `pnpm test` | Vitest（ユニット / 統合） |
-| `pnpm test:watch` | Vitest ウォッチモード |
-| `pnpm test:coverage` | カバレッジ付きで実行（`coverage/` に出力） |
-| `pnpm test:e2e` | Playwright E2E（モックモードで起動） |
-
-## ディレクトリ構成（抜粋）
-
-```text
-src/
-  app/            # ルーティング（greenteas / temples / nearby / mypage / routes / admin / auth ...）
-  components/     # layout / greentea / temple / map / route / admin / common / auth / brand
-  lib/
-    api/          # client.ts + 各リソースの API 関数 + admin/ + mock 実装
-    auth.ts       # NextAuth 設定
-    utils/        # distance.ts ほか
-    validation/   # react-hook-form + zod のスキーマ（greentea / temple / route / user）
-  types/          # API レスポンスに対応する型定義
-tests/
-  msw/            # MSW ハンドラ
-  e2e/            # Playwright シナリオ
-```
-
-エイリアス: `@/*` → `./src/*`、`@tests/*` → `./tests/*`。
-
-## ドキュメント
-
-- [`docs/local-setup.md`](docs/local-setup.md) — Rails API とのローカル結合手順
-- [`docs/migration-plan.md`](docs/migration-plan.md) — 移行計画（API レスポンス契約 / 構成 / レンダリング戦略 / デプロイ）
-- [`docs/api-contract-checklist.md`](docs/api-contract-checklist.md) — Rails API 契約の実装チェックリスト
-- [`docs/frontend-setup-runbook.md`](docs/frontend-setup-runbook.md) — フロント単体〜実 API 結合までのフェーズ別手順
-- [`docs/deploy-checklist.md`](docs/deploy-checklist.md) — Vercel デプロイ チェックリスト
-- [`docs/test-plan.md`](docs/test-plan.md) — テスト方針
-- [`docs/github-issues.md`](docs/github-issues.md) — issue 定義
-- [`CLAUDE.md`](CLAUDE.md) — コーディング規約・アーキテクチャ方針
-
-## 著作権・免責
-
-- 画像は外部 URL 参照のみ（Rails 側 CarrierWave の URL をそのまま表示）。
-- 本アプリは非公式です。出典の注意書きをフッターに表示しています。
