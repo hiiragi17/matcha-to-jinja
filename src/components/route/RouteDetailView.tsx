@@ -17,7 +17,7 @@ import {
 } from "@/lib/api";
 import { useAuthToken } from "@/lib/api/useAuthToken";
 import { useSessionExpiredHandler } from "@/lib/api/useSessionExpired";
-import { googleMapsDirectionsUrl } from "@/lib/utils/maps";
+import { googleMapsDirectionsUrl, hasCoords } from "@/lib/utils/maps";
 import type { RouteDetailResponse, RouteSpot } from "@/types";
 
 type RouteDetailViewProps = {
@@ -213,14 +213,16 @@ function SpotRow({ spot, next }: { spot: RouteSpot; next?: RouteSpot }) {
       {next && (
         <div className="flex items-center gap-2 py-2 pl-9 font-sans-jp text-xs tracking-[0.1em] text-muted">
           <span aria-hidden="true">↓</span>
-          <a
-            href={googleMapsDirectionsUrl(spot, next)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline underline-offset-2 transition-colors hover:text-olive"
-          >
-            Googleマップで行き方を見る
-          </a>
+          {hasCoords(spot) && hasCoords(next) && (
+            <a
+              href={googleMapsDirectionsUrl(spot, next)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 transition-colors hover:text-olive"
+            >
+              Googleマップで行き方を見る
+            </a>
+          )}
         </div>
       )}
     </li>

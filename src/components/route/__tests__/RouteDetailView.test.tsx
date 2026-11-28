@@ -220,6 +220,30 @@ describe("RouteDetailView", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("座標の無い（削除済み）スポットを含む区間には行き方リンクを出さない", async () => {
+    const [first, second] = routeDetail.spots;
+    server.use(
+      http.get(endpoint("/routes/7"), () =>
+        HttpResponse.json({
+          data: {
+            ...routeDetail,
+            spots: [first, { ...second, latitude: 0, longitude: 0 }],
+          },
+        }),
+      ),
+    );
+
+    renderWithSwr(<RouteDetailView id="7" />);
+
+    const items = await screen.findAllByRole("listitem");
+    expect(within(items[0]).getByText("↓")).toBeInTheDocument();
+    expect(
+      within(items[0]).queryByRole("link", {
+        name: "Googleマップで行き方を見る",
+      }),
+    ).not.toBeInTheDocument();
+  });
+
   it("404 では削除済みの可能性を案内する", async () => {
     server.use(
       http.get(endpoint("/routes/7"), () =>

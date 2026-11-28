@@ -8,6 +8,7 @@ import {
   useMap,
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
+import { hasCoords } from "@/lib/utils/maps";
 import type { RouteSpot } from "@/types";
 
 type RouteMapProps = {
@@ -16,15 +17,11 @@ type RouteMapProps = {
 
 const KYOTO_CENTER = { lat: 35.0116, lng: 135.7681 };
 
-// 緯度経度が解決できたスポットのみ地図に載せる（削除済みスポットは lat/lng が 0）。
-function hasCoords(spot: RouteSpot): boolean {
-  return spot.latitude !== 0 || spot.longitude !== 0;
-}
-
 export default function RouteMap({ spots }: RouteMapProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
   // 参照を安定させ、RoutePolyline / FitBounds の effect が親の再描画で
   // 無駄に再実行されないようにする（ユーザーの pan/zoom を保持）。
+  // 緯度経度が解決できたスポットのみ地図に載せる。
   const points = useMemo(() => spots.filter(hasCoords), [spots]);
 
   if (!apiKey) {
