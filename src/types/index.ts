@@ -20,7 +20,6 @@ export type {
 } from "./like";
 export type {
   SpotType,
-  Transport,
   RouteSpotInput,
   RouteInput,
   RouteSpot,

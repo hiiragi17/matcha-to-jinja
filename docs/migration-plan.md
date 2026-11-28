@@ -175,8 +175,8 @@ DELETE /api/v1/routes/:id        # コース削除
 `spots` は `position` 昇順。モデルコースは「行きたいスポットのリスト」として扱い、**移動手段・経路距離・所要時間は算出しない**。
 Google Directions API は日本の公共交通機関（乗換案内）の経路を返さず、所要時間を出すと不正確になるため、行き方はフロントが区間ごとに置く Google マップのリンク（Maps URLs）に任せる。
 
-`distance_to_next_meters` は次スポットまでの直線距離（配列末尾は `null`）。`total_distance_meters` はその合計。
-`transport` / `route_distance_to_next_meters` / `duration_to_next_seconds` / `route_polyline_to_next` / `total_duration_seconds` は、算出していた頃に保存された過去データとの互換のためにフィールドとして残っている。新規に作成・更新されたコースでは常に `null`。フロントは移動手段・距離・所要時間を表示しない（`route_polyline_to_next` は値があれば地図の道なり描画に使い、`null` なら2点間を直線で描く）。
+`distance_to_next_meters` は次スポットまでの直線距離（配列末尾は `null`）。`total_distance_meters` はその合計。地図は隣り合うスポットを直線で結ぶ。
+以前返していた `transport` / `route_distance_to_next_meters` / `duration_to_next_seconds` / `route_polyline_to_next` / `total_duration_seconds` は廃止した（`route_spots` の対応列 `transport` / `leg_*` も削除する）。
 
 ```json
 {
@@ -190,7 +190,6 @@ Google Directions API は日本の公共交通機関（乗換案内）の経路�
       {
         "position": 1,
         "spot_type": "greentea",
-        "transport": null,
         "id": 1,
         "name": "茶寮都路里",
         "address": "京都市東山区...",
@@ -198,15 +197,11 @@ Google Directions API は日本の公共交通機関（乗換案内）の経路�
         "latitude": 35.0036,
         "longitude": 135.7714,
         "img": "https://...",
-        "distance_to_next_meters": 450,
-        "route_distance_to_next_meters": null,
-        "duration_to_next_seconds": null,
-        "route_polyline_to_next": null
+        "distance_to_next_meters": 450
       },
       {
         "position": 2,
         "spot_type": "temple",
-        "transport": null,
         "id": 3,
         "name": "建仁寺",
         "address": "京都市東山区...",
@@ -214,14 +209,10 @@ Google Directions API は日本の公共交通機関（乗換案内）の経路�
         "latitude": 35.0000,
         "longitude": 135.7740,
         "img": "https://...",
-        "distance_to_next_meters": null,
-        "route_distance_to_next_meters": null,
-        "duration_to_next_seconds": null,
-        "route_polyline_to_next": null
+        "distance_to_next_meters": null
       }
     ],
-    "total_distance_meters": 450,
-    "total_duration_seconds": null
+    "total_distance_meters": 450
   }
 }
 ```

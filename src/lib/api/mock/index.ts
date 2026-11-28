@@ -813,9 +813,8 @@ function parseRouteSpots(
   });
 }
 
-// StoredRoute を詳細レスポンス形へ。スポット座標を解決し、各 leg の直線距離だけを
-// 算出する。greentea_temple は移動手段・経路距離・所要時間の算出をやめたため
-// （行き方は Google マップに任せる）、それらは常に null。
+// StoredRoute を詳細レスポンス形へ。スポット座標を解決し、各 leg の直線距離を算出する
+// （移動手段・所要時間は扱わない。行き方は Google マップのリンクに任せる）。
 function buildRouteDetail(
   route: StoredRoute,
   greenteas: Greentea[],
@@ -829,7 +828,6 @@ function buildRouteDetail(
     return {
       position: idx + 1,
       spot_type: s.spot_type,
-      transport: null,
       id: s.spot_id,
       name: src?.name ?? "(削除されたスポット)",
       address: src?.address ?? "",
@@ -838,9 +836,6 @@ function buildRouteDetail(
       longitude: src?.longitude ?? 0,
       img: src?.img ?? "",
       distance_to_next_meters: null,
-      route_distance_to_next_meters: null,
-      duration_to_next_seconds: null,
-      route_polyline_to_next: null,
     };
   });
 
@@ -859,7 +854,6 @@ function buildRouteDetail(
     updated_at: route.updated_at,
     spots,
     total_distance_meters: totalDistance,
-    total_duration_seconds: null,
   };
 }
 

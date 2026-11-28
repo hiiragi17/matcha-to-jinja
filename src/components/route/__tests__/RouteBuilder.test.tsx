@@ -84,7 +84,6 @@ const initialRoute: RouteDetail = {
     {
       position: 1,
       spot_type: "greentea",
-      transport: "walk",
       id: 1,
       name: "茶寮都路里",
       address: "",
@@ -93,14 +92,10 @@ const initialRoute: RouteDetail = {
       longitude: 135.7714,
       img: "",
       distance_to_next_meters: 800,
-      route_distance_to_next_meters: null,
-      duration_to_next_seconds: null,
-      route_polyline_to_next: null,
     },
     {
       position: 2,
       spot_type: "temple",
-      transport: "train",
       id: 3,
       name: "八坂神社",
       address: "",
@@ -109,14 +104,10 @@ const initialRoute: RouteDetail = {
       longitude: 135.7786,
       img: "",
       distance_to_next_meters: 1500,
-      route_distance_to_next_meters: null,
-      duration_to_next_seconds: null,
-      route_polyline_to_next: null,
     },
     {
       position: 3,
       spot_type: "greentea",
-      transport: null,
       id: 5,
       name: "中村藤吉本店",
       address: "",
@@ -125,13 +116,9 @@ const initialRoute: RouteDetail = {
       longitude: 135.7998,
       img: "",
       distance_to_next_meters: null,
-      route_distance_to_next_meters: null,
-      duration_to_next_seconds: null,
-      route_polyline_to_next: null,
     },
   ],
   total_distance_meters: 2300,
-  total_duration_seconds: null,
 };
 
 beforeEach(() => {
@@ -194,7 +181,6 @@ function routeDetailResponse(id: number, name: string) {
       updated_at: "2026-07-03T00:00:00Z",
       spots: [],
       total_distance_meters: 0,
-      total_duration_seconds: null,
     },
   };
 }

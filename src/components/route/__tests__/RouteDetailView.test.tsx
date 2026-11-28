@@ -47,7 +47,6 @@ const routeDetail: RouteDetail = {
     {
       position: 1,
       spot_type: "greentea",
-      transport: "walk",
       id: 1,
       name: "茶寮都路里",
       address: "京都市東山区四条通",
@@ -56,14 +55,10 @@ const routeDetail: RouteDetail = {
       longitude: 135.7714,
       img: "",
       distance_to_next_meters: 800,
-      route_distance_to_next_meters: 1200,
-      duration_to_next_seconds: 900,
-      route_polyline_to_next: null,
     },
     {
       position: 2,
       spot_type: "temple",
-      transport: null,
       id: 3,
       name: "八坂神社",
       address: "京都市東山区祇園町北側",
@@ -72,13 +67,9 @@ const routeDetail: RouteDetail = {
       longitude: 135.7786,
       img: "",
       distance_to_next_meters: null,
-      route_distance_to_next_meters: null,
-      duration_to_next_seconds: null,
-      route_polyline_to_next: null,
     },
   ],
   total_distance_meters: 1200,
-  total_duration_seconds: 900,
 };
 
 beforeEach(() => {

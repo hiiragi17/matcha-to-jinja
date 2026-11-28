@@ -45,29 +45,26 @@ describe("mockClient POST /routes", () => {
     expect(res.data.name).toBe("祇園抹茶巡り");
     expect(res.data.spots).toHaveLength(2);
     expect(res.data.spots.map((s) => s.position)).toEqual([1, 2]);
-    // 直線距離だけが入り、移動手段・経路距離・所要時間・道なり経路は算出しない。
+    // 直線距離だけが入り、移動手段・経路距離・所要時間のフィールドは持たない。
     expect(res.data.spots[0].distance_to_next_meters).toBeGreaterThan(0);
-    expect(res.data.spots[0].transport).toBeNull();
-    expect(res.data.spots[0].route_distance_to_next_meters).toBeNull();
-    expect(res.data.spots[0].duration_to_next_seconds).toBeNull();
-    expect(res.data.spots[0].route_polyline_to_next).toBeNull();
+    expect(res.data.spots[0]).not.toHaveProperty("transport");
+    expect(res.data.spots[0]).not.toHaveProperty("duration_to_next_seconds");
     // 最後の要素は次が無いので距離も null
     expect(res.data.spots[1].distance_to_next_meters).toBeNull();
-    // 合計距離は直線距離の和、所要時間は出さない
+    // 合計距離は直線距離の和
     expect(res.data.total_distance_meters).toBe(
       res.data.spots[0].distance_to_next_meters,
     );
-    expect(res.data.total_duration_seconds).toBeNull();
+    expect(res.data).not.toHaveProperty("total_duration_seconds");
   });
 
-  it("単一スポットのルートは total_duration_seconds が null・total_distance が 0", async () => {
+  it("単一スポットのルートは total_distance が 0", async () => {
     const res = await mockClient<RouteDetailResponse>(
       "/routes",
       jsonBody("mock-alice", {
         route: { name: "一箇所", spots: [{ spot_type: "temple", spot_id: 1 }] },
       }),
     );
-    expect(res.data.total_duration_seconds).toBeNull();
     expect(res.data.total_distance_meters).toBe(0);
     expect(res.data.spots[0].distance_to_next_meters).toBeNull();
   });
@@ -116,8 +113,8 @@ describe("mockClient POST /routes", () => {
       }),
     );
     expect(res.data.spots).toHaveLength(2);
-    // 送った "teleport" は保存されず、移動手段は常に null。
-    expect(res.data.spots[0].transport).toBeNull();
+    // 送った "teleport" は保存も返却もされない。
+    expect(res.data.spots[0]).not.toHaveProperty("transport");
   });
 
   it("非オブジェクトの spot 要素（[null]）は TypeError ではなく 422", async () => {

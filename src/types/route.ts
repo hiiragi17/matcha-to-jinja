@@ -1,13 +1,9 @@
 import type { Meta } from "./api";
 
 export type SpotType = "greentea" | "temple";
-// 過去データとの互換のため残る。バックエンドは移動手段の算出をやめたので新規は常に null
-// （行き方は Google マップのリンクに任せる）。
-export type Transport = "walk" | "train" | "bus" | "car" | "transit" | null;
-
 // 作成・更新リクエスト（POST/PATCH の body の route キー配下）。
-// spots の配列順がそのままルート順になる。移動手段は扱わないので、
-// リクエストには含めない。
+// spots の配列順がそのままルート順になる。移動手段・所要時間は扱わない
+// （行き方は Google マップのリンクに任せる）。
 export interface RouteSpotInput {
   spot_type: SpotType;
   spot_id: number;
@@ -24,8 +20,6 @@ export interface RouteInput {
 export interface RouteSpot {
   position: number;
   spot_type: SpotType;
-  // 次スポットへの移動手段。過去データのみ。新規・最後の要素は null。
-  transport: Transport;
   id: number;
   name: string;
   address: string;
@@ -35,12 +29,6 @@ export interface RouteSpot {
   img: string;
   // 次スポットまでの直線距離(m)。最後の要素は null。
   distance_to_next_meters: number | null;
-  // 経路距離/所要時間。過去データのみ（算出は廃止済み）。新規は null。
-  route_distance_to_next_meters: number | null;
-  duration_to_next_seconds: number | null;
-  // 次スポットまでの道なり経路（Google Encoded Polyline Algorithm Format）。
-  // 地図描画に使う。未算出・失敗時は null（直線描画にフォールバックする）。
-  route_polyline_to_next: string | null;
 }
 
 export interface RouteDetail {
@@ -50,10 +38,8 @@ export interface RouteDetail {
   created_at: string;
   updated_at: string;
   spots: RouteSpot[];
-  // 合計距離(m 整数)。経路距離優先＋無い leg は直線距離でフォールバック。
+  // 合計距離(m 整数)。直線距離の合計。
   total_distance_meters: number;
-  // 合計所要時間(秒)。過去データのみ。新規は null。
-  total_duration_seconds: number | null;
 }
 
 // 一覧レスポンス要素（軽量シリアライザ。spots は返さず件数のみ）。
