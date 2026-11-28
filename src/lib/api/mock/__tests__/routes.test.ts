@@ -40,43 +40,24 @@ describe("mockClient POST /routes", () => {
     ).rejects.toMatchObject({ status: 401 });
   });
 
-  it("スポット順・位置・距離・所要時間を計算して詳細形で返す", async () => {
+  it("スポット順・位置・直線距離を計算して詳細形で返す", async () => {
     const res = await createSample("mock-alice");
     expect(res.data.name).toBe("祇園抹茶巡り");
     expect(res.data.spots).toHaveLength(2);
     expect(res.data.spots.map((s) => s.position)).toEqual([1, 2]);
-    // 最初の leg は距離・経路距離・所要時間・移動手段（自動決定）が算出される。
-    // temple#2 - greentea#1 の直線距離は約647m（<1000m）なので "walk" になるはず。
+    // 直線距離だけが入り、移動手段・経路距離・所要時間・道なり経路は算出しない。
     expect(res.data.spots[0].distance_to_next_meters).toBeGreaterThan(0);
-    expect(res.data.spots[0].route_distance_to_next_meters).toBeGreaterThan(0);
-    expect(res.data.spots[0].duration_to_next_seconds).toBeGreaterThan(0);
-    expect(res.data.spots[0].transport).toBe("walk");
-    // モックは Directions API 連携を持たないため道なり経路は常に null
+    expect(res.data.spots[0].transport).toBeNull();
+    expect(res.data.spots[0].route_distance_to_next_meters).toBeNull();
+    expect(res.data.spots[0].duration_to_next_seconds).toBeNull();
     expect(res.data.spots[0].route_polyline_to_next).toBeNull();
-    // 最後の要素は全て null、transport も null
+    // 最後の要素は次が無いので距離も null
     expect(res.data.spots[1].distance_to_next_meters).toBeNull();
-    expect(res.data.spots[1].transport).toBeNull();
-    // 合計
-    expect(res.data.total_distance_meters).toBeGreaterThan(0);
-    expect(res.data.total_duration_seconds).toBeGreaterThan(0);
-  });
-
-  it("区間距離が1km以上なら transit を自動選択する", async () => {
-    // greentea#1 - temple#3 の直線距離は約2427m（>=1000m）。
-    const res = await mockClient<RouteDetailResponse>(
-      "/routes",
-      jsonBody("mock-alice", {
-        route: {
-          name: "遠出コース",
-          spots: [
-            { spot_type: "greentea", spot_id: 1 },
-            { spot_type: "temple", spot_id: 3 },
-          ],
-        },
-      }),
+    // 合計距離は直線距離の和、所要時間は出さない
+    expect(res.data.total_distance_meters).toBe(
+      res.data.spots[0].distance_to_next_meters,
     );
-    expect(res.data.spots[0].distance_to_next_meters).toBeGreaterThanOrEqual(1000);
-    expect(res.data.spots[0].transport).toBe("transit");
+    expect(res.data.total_duration_seconds).toBeNull();
   });
 
   it("単一スポットのルートは total_duration_seconds が null・total_distance が 0", async () => {
@@ -121,7 +102,7 @@ describe("mockClient POST /routes", () => {
     ).rejects.toMatchObject({ status: 422 });
   });
 
-  it("transport を送っても無視される（移動手段は自動決定）", async () => {
+  it("transport を送っても無視される（移動手段は扱わない）", async () => {
     const res = await mockClient<RouteDetailResponse>(
       "/routes",
       jsonBody("mock-alice", {
@@ -135,8 +116,8 @@ describe("mockClient POST /routes", () => {
       }),
     );
     expect(res.data.spots).toHaveLength(2);
-    // 送った "teleport" は無視され、区間距離（約647m、<1000m）から "walk" が自動決定される。
-    expect(res.data.spots[0].transport).toBe("walk");
+    // 送った "teleport" は保存されず、移動手段は常に null。
+    expect(res.data.spots[0].transport).toBeNull();
   });
 
   it("非オブジェクトの spot 要素（[null]）は TypeError ではなく 422", async () => {

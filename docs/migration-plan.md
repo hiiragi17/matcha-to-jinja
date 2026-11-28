@@ -146,7 +146,7 @@ app/controllers/api/v1/
 
 ```text
 GET    /api/v1/routes            # 自分のコース一覧（ページネーション）
-GET    /api/v1/routes/:id        # コース詳細（スポット・距離・所要時間）
+GET    /api/v1/routes/:id        # コース詳細（スポット・直線距離）
 POST   /api/v1/routes            # コース作成
 PATCH  /api/v1/routes/:id        # コース更新（spots 省略で name/description のみ部分更新）
 DELETE /api/v1/routes/:id        # コース削除
@@ -172,11 +172,11 @@ DELETE /api/v1/routes/:id        # コース削除
 ```
 
 ##### GET /api/v1/routes/:id（詳細）
-`spots` は `position` 昇順。各スポットは次スポットへの移動手段（`transport`）と距離・所要時間を持つ。
-`distance_to_next_meters` は直線距離、`route_distance_to_next_meters` / `duration_to_next_seconds` / `route_polyline_to_next` は Google Directions API の経路値（未算出・失敗時は `null`）。配列末尾のスポットはこれらが `null`。
-`route_polyline_to_next` は次スポットまでの道なり経路（Google Encoded Polyline Algorithm Format の文字列）。地図描画時は `google.maps.geometry.encoding.decodePath()` でデコードして使う。直線距離のようなフォールバック値は無く、未算出時は `null`（フロント側で2点間の直線描画にフォールバックする）。
+`spots` は `position` 昇順。モデルコースは「行きたいスポットのリスト」として扱い、**移動手段・経路距離・所要時間は算出しない**。
+Google Directions API は日本の公共交通機関（乗換案内）の経路を返さず、所要時間を出すと不正確になるため、行き方はフロントが区間ごとに置く Google マップのリンク（Maps URLs）に任せる。
 
-`transport` は**ユーザーが選ぶのではなく、バックエンドが区間距離と Directions API の結果から自動決定する**（`"walk" | "train" | "bus" | "car" | "transit" | null`）。区間距離が短い（1km 未満）場合は `"walk"`、それ以外は手段を絞らない一般的な `transit`（乗換案内）を優先し、見つからなければ `"walk"` にフォールバックする。よって新規に作成・更新されたコースの `transport` は `"walk"` か `"transit"`、配列末尾や未算出時は `null` のいずれかになる。`"train"` / `"bus"` / `"car"` は移動手段を手動選択できた過去のデータに残るのみで、以後は付与されない。フロント側はこの値を**表示専用**として扱い、送信は不要（送っても無視される）。
+`distance_to_next_meters` は次スポットまでの直線距離（配列末尾は `null`）。`total_distance_meters` はその合計。
+`transport` / `route_distance_to_next_meters` / `duration_to_next_seconds` / `route_polyline_to_next` / `total_duration_seconds` は、算出していた頃に保存された過去データとの互換のためにフィールドとして残っている。新規に作成・更新されたコースでは常に `null`。フロントは移動手段・距離・所要時間を表示しない（`route_polyline_to_next` は値があれば地図の道なり描画に使い、`null` なら2点間を直線で描く）。
 
 ```json
 {
@@ -190,7 +190,7 @@ DELETE /api/v1/routes/:id        # コース削除
       {
         "position": 1,
         "spot_type": "greentea",
-        "transport": "walk",
+        "transport": null,
         "id": 1,
         "name": "茶寮都路里",
         "address": "京都市東山区...",
@@ -199,9 +199,9 @@ DELETE /api/v1/routes/:id        # コース削除
         "longitude": 135.7714,
         "img": "https://...",
         "distance_to_next_meters": 450,
-        "route_distance_to_next_meters": 520,
-        "duration_to_next_seconds": 360,
-        "route_polyline_to_next": "osstEgzt{XnUgO"
+        "route_distance_to_next_meters": null,
+        "duration_to_next_seconds": null,
+        "route_polyline_to_next": null
       },
       {
         "position": 2,
@@ -220,15 +220,15 @@ DELETE /api/v1/routes/:id        # コース削除
         "route_polyline_to_next": null
       }
     ],
-    "total_distance_meters": 520,
-    "total_duration_seconds": 360
+    "total_distance_meters": 450,
+    "total_duration_seconds": null
   }
 }
 ```
 
 ##### POST /api/v1/routes / PATCH /api/v1/routes/:id（作成・更新）
 リクエストボディは `route` キー配下。`spots` の配列順がそのままコース順になる。
-各スポットは `spot_type` / `spot_id` のみ（**`transport` は送らない**。移動手段はユーザーが選ぶのではなく、上記の通りバックエンドが自動決定する。送っても無視される）。
+各スポットは `spot_type` / `spot_id` のみ（**`transport` は送らない**。移動手段は扱わないため、送っても無視される）。
 PATCH で `spots` を省略すると既存スポットを保持したまま `name` / `description` のみ部分更新する。
 
 ```json

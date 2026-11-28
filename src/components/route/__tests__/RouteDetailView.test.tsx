@@ -153,7 +153,7 @@ describe("RouteDetailView", () => {
     ).toBeInTheDocument();
   });
 
-  it("コース概要・合計値・地図・スポットを表示する", async () => {
+  it("コース概要・スポット数・地図・スポットを表示し、距離や所要時間は出さない", async () => {
     server.use(routeFound());
 
     renderWithSwr(<RouteDetailView id="7" />);
@@ -165,9 +165,9 @@ describe("RouteDetailView", () => {
       screen.getByText("神社とお茶屋さんを巡る半日コース"),
     ).toBeInTheDocument();
 
-    expect(stat("TOTAL DISTANCE")).toHaveTextContent("1.2km");
-    expect(stat("TOTAL TIME")).toHaveTextContent("約15分");
     expect(stat("SPOTS")).toHaveTextContent("2 件");
+    expect(screen.queryByText("TOTAL DISTANCE")).not.toBeInTheDocument();
+    expect(screen.queryByText("TOTAL TIME")).not.toBeInTheDocument();
 
     expect(screen.getByTestId("route-map")).toHaveTextContent("map:2");
 
@@ -183,7 +183,7 @@ describe("RouteDetailView", () => {
     expect(screen.getByText("祇園四条駅から徒歩8分")).toBeInTheDocument();
   });
 
-  it("区間情報は経路距離を優先し、最終スポットには出さない", async () => {
+  it("区間ごとに Googleマップの行き方リンクを出し、最終スポットには出さない", async () => {
     server.use(routeFound());
 
     renderWithSwr(<RouteDetailView id="7" />);
@@ -191,15 +191,33 @@ describe("RouteDetailView", () => {
     const items = await screen.findAllByRole("listitem");
     expect(items).toHaveLength(2);
 
-    // 1件目の区間: 徒歩 / 経路距離 1200m（直線 800m ではない）/ 約15分
+    // 移動手段・距離・所要時間は表示しない（過去データに値があっても出さない）
     const firstLeg = within(items[0]);
-    expect(firstLeg.getByText("徒歩")).toBeInTheDocument();
-    expect(firstLeg.getByText("1.2km")).toBeInTheDocument();
-    expect(firstLeg.getByText("約15分")).toBeInTheDocument();
-    expect(firstLeg.queryByText("800m")).not.toBeInTheDocument();
+    expect(firstLeg.queryByText("徒歩")).not.toBeInTheDocument();
+    expect(firstLeg.queryByText("1.2km")).not.toBeInTheDocument();
+    expect(firstLeg.queryByText("約15分")).not.toBeInTheDocument();
 
-    // 最終スポットには区間表示（↓）が付かない
-    expect(within(items[1]).queryByText("↓")).not.toBeInTheDocument();
+    const [first, second] = routeDetail.spots;
+    const link = firstLeg.getByRole("link", {
+      name: "Googleマップで行き方を見る",
+    });
+    const url = new URL(link.getAttribute("href") ?? "");
+    expect(url.origin + url.pathname).toBe("https://www.google.com/maps/dir/");
+    expect(url.searchParams.get("origin")).toBe(
+      `${first.latitude},${first.longitude}`,
+    );
+    expect(url.searchParams.get("destination")).toBe(
+      `${second.latitude},${second.longitude}`,
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+
+    // 最終スポットには区間表示（↓・リンク）が付かない
+    const lastLeg = within(items[1]);
+    expect(lastLeg.queryByText("↓")).not.toBeInTheDocument();
+    expect(
+      lastLeg.queryByRole("link", { name: "Googleマップで行き方を見る" }),
+    ).not.toBeInTheDocument();
   });
 
   it("404 では削除済みの可能性を案内する", async () => {

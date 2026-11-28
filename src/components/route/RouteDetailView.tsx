@@ -17,11 +17,7 @@ import {
 } from "@/lib/api";
 import { useAuthToken } from "@/lib/api/useAuthToken";
 import { useSessionExpiredHandler } from "@/lib/api/useSessionExpired";
-import {
-  formatDistance,
-  formatDuration,
-  transportLabel,
-} from "@/lib/utils/format";
+import { googleMapsDirectionsUrl } from "@/lib/utils/maps";
 import type { RouteDetailResponse, RouteSpot } from "@/types";
 
 type RouteDetailViewProps = {
@@ -152,22 +148,6 @@ export default function RouteDetailView({ id }: RouteDetailViewProps) {
         <dl className="flex flex-wrap gap-x-10 gap-y-2">
           <div>
             <dt className="font-sans-jp text-[10px] tracking-[0.3em] text-muted">
-              TOTAL DISTANCE
-            </dt>
-            <dd className="mt-1 font-mincho text-lg text-ink">
-              {formatDistance(route.total_distance_meters)}
-            </dd>
-          </div>
-          <div>
-            <dt className="font-sans-jp text-[10px] tracking-[0.3em] text-muted">
-              TOTAL TIME
-            </dt>
-            <dd className="mt-1 font-mincho text-lg text-ink">
-              {formatDuration(route.total_duration_seconds)}
-            </dd>
-          </div>
-          <div>
-            <dt className="font-sans-jp text-[10px] tracking-[0.3em] text-muted">
               SPOTS
             </dt>
             <dd className="mt-1 font-mincho text-lg text-ink">
@@ -184,7 +164,7 @@ export default function RouteDetailView({ id }: RouteDetailViewProps) {
           <SpotRow
             key={`${spot.spot_type}-${spot.id}-${spot.position}`}
             spot={spot}
-            isLast={index === route.spots.length - 1}
+            next={route.spots[index + 1]}
           />
         ))}
       </ol>
@@ -192,14 +172,11 @@ export default function RouteDetailView({ id }: RouteDetailViewProps) {
   );
 }
 
-function SpotRow({ spot, isLast }: { spot: RouteSpot; isLast: boolean }) {
+function SpotRow({ spot, next }: { spot: RouteSpot; next?: RouteSpot }) {
   const href =
     spot.spot_type === "greentea"
       ? `/greenteas/${spot.id}`
       : `/temples/${spot.id}`;
-  // 経路値優先・直線距離フォールバック（ハンドオフ doc の指針）。
-  const legMeters =
-    spot.route_distance_to_next_meters ?? spot.distance_to_next_meters;
 
   return (
     <li className="flex flex-col">
@@ -233,18 +210,17 @@ function SpotRow({ spot, isLast }: { spot: RouteSpot; isLast: boolean }) {
           )}
         </div>
       </div>
-      {!isLast && (
+      {next && (
         <div className="flex items-center gap-2 py-2 pl-9 font-sans-jp text-xs tracking-[0.1em] text-muted">
           <span aria-hidden="true">↓</span>
-          {spot.transport && (
-            <span className="border border-line-soft px-2 py-0.5 text-olive">
-              {transportLabel(spot.transport)}
-            </span>
-          )}
-          {legMeters !== null && <span>{formatDistance(legMeters)}</span>}
-          {spot.duration_to_next_seconds !== null && (
-            <span>{formatDuration(spot.duration_to_next_seconds)}</span>
-          )}
+          <a
+            href={googleMapsDirectionsUrl(spot, next)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 transition-colors hover:text-olive"
+          >
+            Googleマップで行き方を見る
+          </a>
         </div>
       )}
     </li>

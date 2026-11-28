@@ -738,18 +738,6 @@ export async function mockClient<T>(
 
 // --- routes 用ヘルパー ---
 
-// 移動手段は greentea_temple 側と同じ閾値でバックエンド（ここではモック）が自動決定する。
-// 区間の直線距離がこの未満なら徒歩、以上なら手段を絞らない一般的な transit（乗換案内）
-// を優先する想定（本物の Directions API 連携は無いため、ここでは概算速度で近似する）。
-const AUTO_WALK_THRESHOLD_METERS = 1000;
-
-// 自動決定後の移動手段ごとの mock 概算速度(m/秒)。Directions API 未接続のため
-// 所要時間の擬似算出に使う。
-const SPEED_M_PER_SEC: Record<"walk" | "transit", number> = {
-  walk: 1.33,
-  transit: 7,
-};
-
 type RawRouteBody = {
   name?: unknown;
   description?: unknown;
@@ -806,7 +794,7 @@ function parseRouteSpots(
     if (typeof entry !== "object" || entry === null) {
       routeUnprocessable([`Invalid spot: ${JSON.stringify(entry)}`]);
     }
-    // transport は受け取っても無視する（移動手段はバックエンドが自動決定するため）。
+    // transport は受け取っても無視する（移動手段はバックエンドで扱わないため）。
     const spot = entry as { spot_type?: unknown; spot_id?: unknown };
     if (spot.spot_type !== "greentea" && spot.spot_type !== "temple") {
       routeUnprocessable([`Invalid spot_type: ${String(spot.spot_type)}`]);
@@ -825,10 +813,9 @@ function parseRouteSpots(
   });
 }
 
-// StoredRoute を詳細レスポンス形へ。スポット座標を解決し、各 leg の直線距離・
-// 経路距離(≈直線×1.3)・移動手段・所要時間(手段別の概算速度)を算出する。
-// 移動手段は greentea_temple の DirectionsService.auto_leg と同じ方針で自動決定する
-// （区間距離が閾値未満なら徒歩、以上なら transit）。
+// StoredRoute を詳細レスポンス形へ。スポット座標を解決し、各 leg の直線距離だけを
+// 算出する。greentea_temple は移動手段・経路距離・所要時間の算出をやめたため
+// （行き方は Google マップに任せる）、それらは常に null。
 function buildRouteDetail(
   route: StoredRoute,
   greenteas: Greentea[],
@@ -842,8 +829,6 @@ function buildRouteDetail(
     return {
       position: idx + 1,
       spot_type: s.spot_type,
-      // 次スポットへの移動手段。最後の要素や未算出時は null（後段のループで
-      // 最後のスポット以外は上書きされる）。
       transport: null,
       id: s.spot_id,
       name: src?.name ?? "(削除されたスポット)",
@@ -855,31 +840,15 @@ function buildRouteDetail(
       distance_to_next_meters: null,
       route_distance_to_next_meters: null,
       duration_to_next_seconds: null,
-      // モック環境には Directions API 連携が無く道なり経路を持てないため常に null
-      // （RouteMap 側は null を直線描画にフォールバックする）。
       route_polyline_to_next: null,
     };
   });
 
   let totalDistance = 0;
-  let totalDuration = 0;
-  let hasLeg = false;
   for (let i = 0; i < spots.length - 1; i++) {
-    const a = spots[i];
-    const b = spots[i + 1];
-    const straight = distanceMeters(a, b);
-    const routeDistance = Math.round(straight * 1.3);
-    const transport: "walk" | "transit" =
-      straight < AUTO_WALK_THRESHOLD_METERS ? "walk" : "transit";
-    const speed = SPEED_M_PER_SEC[transport];
-    const duration = Math.round(routeDistance / speed);
-    a.transport = transport;
-    a.distance_to_next_meters = straight;
-    a.route_distance_to_next_meters = routeDistance;
-    a.duration_to_next_seconds = duration;
-    totalDistance += routeDistance;
-    totalDuration += duration;
-    hasLeg = true;
+    const straight = distanceMeters(spots[i], spots[i + 1]);
+    spots[i].distance_to_next_meters = straight;
+    totalDistance += straight;
   }
 
   return {
@@ -890,7 +859,7 @@ function buildRouteDetail(
     updated_at: route.updated_at,
     spots,
     total_distance_meters: totalDistance,
-    total_duration_seconds: hasLeg ? totalDuration : null,
+    total_duration_seconds: null,
   };
 }
 
